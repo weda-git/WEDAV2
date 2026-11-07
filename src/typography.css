@@ -60,7 +60,8 @@ h1 { font-size: var(--type-h1-size) !important; line-height: 1.05 !important; le
 h2 { font-size: var(--type-h2-size) !important; line-height: 1.1 !important; letter-spacing: var(--type-h2-tracking) !important; }
 h3, h4, h5, h6 { font-size: var(--type-h3-size) !important; line-height: 1.2 !important; letter-spacing: var(--type-h3-tracking) !important; }
 /* Display: el título principal de la landing (uno solo por pantalla). */
-.hero-copy h1, .seed-hero h1, .hero h1 { font-size: var(--type-display-size) !important; line-height: 1 !important; letter-spacing: var(--type-display-tracking) !important; }
+/* La dueña lo pidió un poco más chico que el Display del sistema (2026-11-07): 85 %. */
+.hero-copy h1, .seed-hero h1, .hero h1 { font-size: calc(var(--type-display-size) * .85) !important; line-height: 1 !important; letter-spacing: var(--type-display-tracking) !important; }
 p { text-wrap: pretty; }
 body { font-size: var(--type-body-size); line-height: 1.6; }
 /* Sin negritas ni itálicas en ningún texto. */
