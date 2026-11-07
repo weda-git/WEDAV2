@@ -1527,3 +1527,5 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 .seed-hero .hero-copy p { width: calc(var(--type-display-size) * .85 * 8.5); max-width: 100% !important; white-space: normal !important; text-wrap: wrap; }
 /* En el celular el título ocupa casi todo el ancho: la bajada reparte sus renglones parejos. */
 @media (max-width: 640px) { .seed-hero .hero-copy p { width: auto; text-wrap: balance; } }
+/* La bajada del hero en dos renglones también en el celular. */
+@media (max-width: 640px) { .seed-hero .hero-copy p { width: calc(100vw - 32px); max-width: 360px !important; text-wrap: wrap; } }
