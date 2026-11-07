@@ -120,3 +120,6 @@ button:not(.float-burger):not(.float-cta):not(.float-link):not(:is(.dm-root, .dm
 /* Bajada del hero más chica y siempre en dos renglones (pedido de la dueña, 2026-11-07): Cuerpo (16 px) en la compu y Nota (14 px) en el celular; renglones parejos. */
 .hero-copy p:not(:is(.dm-root *)) { font-size: var(--type-body-size) !important; line-height: 1.5 !important; letter-spacing: 0 !important; }
 @media (max-width: 640px) { .hero-copy p:not(:is(.dm-root *)) { font-size: var(--type-note-size) !important; } }
+/* Botones del hero («Crear mi evento», «Ver ejemplo»): mismo tamaño que la bajada de arriba (16 px en la compu, 14 px en el celular). */
+.hero-copy .hero-actions a, .hero-copy .hero-actions a span { font-size: var(--type-body-size) !important; }
+@media (max-width: 640px) { .hero-copy .hero-actions a, .hero-copy .hero-actions a span { font-size: var(--type-note-size) !important; } }
