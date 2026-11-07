@@ -72,8 +72,8 @@ h3:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)
 h4:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
 h5:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
 h6:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-h3-size) !important; line-height: 1.2 !important; letter-spacing: var(--type-h3-tracking) !important; }
-/* Display: el título del hero de la landing. La dueña lo pidió al 85 % del Display y más fino (370, Geist variable local); al afinar las letras se abren, así que el interletrado se ajusta .008em para que la distancia entre letras se vea igual. */
-.hero-copy h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: 'Geist Variable', var(--font-ui) !important; font-weight: 370 !important; font-size: calc(var(--type-display-size) * .85) !important; line-height: 1 !important; letter-spacing: calc(var(--type-display-tracking) - .008em) !important; }
+/* Display: el título del hero de la landing. La dueña lo pidió al 85 % del Display y apenas más fino (420, Geist variable local), con el mismo interletrado. */
+.hero-copy h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: 'Geist Variable', var(--font-ui) !important; font-weight: 420 !important; font-size: calc(var(--type-display-size) * .85) !important; line-height: 1 !important; letter-spacing: var(--type-display-tracking) !important; }
 /* En el celular, en dos renglones («Tu casamiento empieza» / «antes del gran día.»). */
 @media (max-width: 640px) {
 .hero-copy h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: min(calc(var(--type-display-size) * .85), calc((100vw - 48px) / 10.2)) !important; }
