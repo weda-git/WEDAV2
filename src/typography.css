@@ -69,7 +69,7 @@ em, i, cite, address { font-style: normal !important; }
 /* Campos: 16 px como mínimo. */
 input, select, textarea { font-family: var(--font-ui); font-size: max(16px, 1em); }
 /* Botones. */
-button, .seed-button, .dm-solid, .dm-ghost, .pn-btn, .float-cta, .rg-btn { font-family: var(--font-ui) !important; font-weight: 500 !important; font-size: var(--type-button-size) !important; line-height: 1 !important; letter-spacing: var(--type-button-tracking) !important; }
+button:not(.float-burger), .seed-button, .dm-solid, .dm-ghost, .pn-btn, .rg-btn { font-family: var(--font-ui) !important; font-weight: 500 !important; font-size: var(--type-button-size) !important; line-height: 1 !important; letter-spacing: var(--type-button-tracking) !important; }
 /* Etiquetas: Mono 400, mayúsculas, +4 %. Cubre los rótulos que ya iban en mayúsculas. */
 .tq-label, .rg-kicker, .rg-up-label, .pn-kicker, .iv-kicker, .ej-kicker, .lr-kicker, .rg-amount span, .rg-copy dt,
 .rg-field label:not(.rg-chip), .rg-field legend { font-family: var(--font-mono) !important; font-weight: 400 !important; font-size: var(--type-label-size) !important; line-height: 1.3 !important; letter-spacing: var(--type-label-tracking) !important; text-transform: uppercase !important; }
@@ -114,5 +114,6 @@ button, .seed-button, .dm-solid, .dm-ghost, .pn-btn, .float-cta, .rg-btn { font-
 .dm-root .iv-cover-names, .dm-root .iv-cover-title, .dm-root .iv-welcome-title { font-family: var(--font-ui) !important; font-weight: 500 !important; font-size: var(--type-h1-size) !important; line-height: 1.05 !important; letter-spacing: var(--type-h1-tracking) !important; text-transform: none !important; }
 .dm-root .iv-card-body h3 { text-transform: none !important; }
 /* Enlaces de las barras de navegación: todos iguales (Nota 500), aunque alguno sea un <button> (p. ej. «Confirmá asistencia»). */
-.ej-bar-link, .float-link, .menu-row strong { font-size: var(--type-note-size) !important; letter-spacing: 0 !important; line-height: 1.2 !important; }
+.ej-bar-link, .menu-row strong { font-size: var(--type-note-size) !important; letter-spacing: 0 !important; line-height: 1.2 !important; }
 .menu-row strong { font-size: var(--type-body-size) !important; }
+/* La barra de la landing queda como estaba antes del sistema tipográfico (pedido de la dueña, 2026-11-07): «Iniciar sesión» y «Crear mi evento» conservan sus estilos propios (styles.css). */
