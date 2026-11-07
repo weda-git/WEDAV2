@@ -20,7 +20,7 @@
 /* =========================================================================
    Versión "tarjeta de invitación": blancos y cremas, azul Weda solo en botones
    ========================================================================= */
-.dm-root { background: #fff; color: var(--foreground); }
+.dm-root { background: #fff; color: var(--text-main); }
 .dm-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 /* con el diálogo abierto, la barra flotante no compite con el modal */
 
@@ -29,7 +29,7 @@
 /* =========================================================================
    Versión "tarjeta de invitación": blancos y cremas, azul Weda solo en botones
    ========================================================================= */
-.dm-root { background: #fff; color: var(--foreground); }
+.dm-root { background: #fff; color: var(--text-main); }
 .dm-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* botones primarios: azul Weda */
@@ -70,7 +70,7 @@
    mayúscula inicial) con el tratamiento tipográfico de Seed: titulares
    compactos, etiquetas de 12 px en mayúsculas con .1em y texto de 14–16 px.
    ========================================================================= */
-.dm-root { font-family: Arial, Helvetica, sans-serif; font-weight: 400; letter-spacing: 0; }
+.dm-root { font-family: var(--font-ui); font-weight: 400; letter-spacing: 0; }
 .dm-root button, .dm-root input, .dm-root textarea, .dm-root select { font-family: inherit; }
 
 /* nombres: igual que el h1 del hero de la landing, a mayor escala */
@@ -80,7 +80,7 @@
 
 /* ---------- pop-up de confirmación (una persona por vez, con menú) ---------- */
 
-.dm-rsvp { width: calc(100% - 24px) !important; max-width: 560px !important; max-height: calc(100dvh - 32px); overflow-y: auto; border: 0 !important; border-radius: 24px !important; background: #fff !important; padding: clamp(20px, 3.4vw, 36px) !important; gap: 0 !important; font-family: Arial, Helvetica, sans-serif; color: var(--foreground); }
+.dm-rsvp { width: calc(100% - 24px) !important; max-width: 560px !important; max-height: calc(100dvh - 32px); overflow-y: auto; border: 0 !important; border-radius: 24px !important; background: #fff !important; padding: clamp(20px, 3.4vw, 36px) !important; gap: 0 !important; font-family: var(--font-ui); color: var(--text-main); }
 .dm-rsvp h2 { margin: 0; font-size: clamp(24px, 3vw, 30px); font-weight: 400; line-height: 1.12; letter-spacing: -.01em; }
 .dm-rsvp [id^="radix-"][class*="muted"], .dm-rsvp p { color: var(--muted-foreground); }
 .dm-rsvp header p { margin: 8px 0 0; font-size: 15px; line-height: 1.5; }
@@ -88,7 +88,7 @@
 .dm-rsvp-field { border: 0; margin: 0; padding: 0; min-width: 0; }
 .dm-rsvp-field label:not(.dm-rsvp-opt):not(.dm-rsvp-menu), .dm-rsvp-field legend { display: block; padding: 0; margin: 0 0 8px; font-size: 14px; }
 .dm-rsvp-field label span { color: var(--muted-foreground); }
-.dm-rsvp-field input[type="text"], .dm-rsvp-field textarea { width: 100%; min-height: 48px; padding: 0 16px; border-radius: 14px; border: 1px solid rgb(59 60 58 / .25); background: #fff; color: var(--foreground); font: inherit; font-size: 16px; outline: none; transition: border-color .2s, box-shadow .2s; }
+.dm-rsvp-field input[type="text"], .dm-rsvp-field textarea { width: 100%; min-height: 48px; padding: 0 16px; border-radius: 14px; border: 1px solid rgb(59 60 58 / .25); background: #fff; color: var(--text-main); font: inherit; font-size: 16px; outline: none; transition: border-color .2s, box-shadow .2s; }
 .dm-rsvp-field textarea { padding: 12px 16px; line-height: 1.5; resize: vertical; }
 .dm-rsvp-field input:focus-visible, .dm-rsvp-field textarea:focus-visible { border-color: var(--dm-blue); box-shadow: 0 0 0 3px rgb(149 149 113 / .3); }
 .dm-rsvp-field.has-error input[type="text"], .dm-rsvp-field.has-error textarea { border-color: var(--destructive); }
@@ -116,5 +116,5 @@
 @media (max-width: 480px) { .dm-rsvp-pair { grid-template-columns: 1fr; } }
 
 /* Confirmación de asistencia: casilla de novedades de Weda (aparte y destildada). */
-.dm-rsvp-optin { display: flex; align-items: flex-start; gap: 10px; margin: 14px 0 0; font-size: 13px; line-height: 1.45; color: #575757; text-align: left; cursor: pointer; }
+.dm-rsvp-optin { display: flex; align-items: flex-start; gap: 10px; margin: 14px 0 0; font-size: 13px; line-height: 1.45; color: var(--text-soft); text-align: left; cursor: pointer; }
 .dm-rsvp-optin input { flex: none; width: 18px; height: 18px; margin: 1px 0 0; accent-color: #3b3c3a; }

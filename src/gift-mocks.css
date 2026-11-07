@@ -1,6 +1,6 @@
 /* Maquetas de la lista de regalos (src/components/gift-mocks.tsx): foto inclinada con una pieza de la interfaz encima, al estilo de The Knot.
    Se usan en la sección Regalos de la landing y en /lista-de-regalos. */
-.mk { position: relative; width: 100%; max-width: 520px; aspect-ratio: 1 / 1; margin-inline: auto; font-size: var(--fs-13); color: var(--foreground); }
+.mk { position: relative; width: 100%; max-width: 520px; aspect-ratio: 1 / 1; margin-inline: auto; font-size: var(--fs-13); color: var(--text-main); }
 .mk img { display: block; object-fit: cover; }
 .mk-photo { position: absolute; inset: 6% 6% 6% 22%; width: 72%; height: 88%; border-radius: var(--r-lg); transform: rotate(3deg); box-shadow: var(--sh-float); }
 
@@ -18,7 +18,7 @@
 .mk-note { color: #6f7070; font-size: var(--fs-12); }
 .mk-badge { position: absolute; left: 2%; top: 10%; z-index: 2; width: 30%; transform: rotate(-12deg); }
 .mk-badge circle { fill: #959571; }
-.mk-badge text { fill: #fff; font-size: var(--fs-12); font-weight: 600; letter-spacing: .14em; }
+.mk-badge text { fill: #fff; font-size: var(--fs-12); font-weight: 500; letter-spacing: .14em; }
 .mk-badge .mk-badge-big { font-size: var(--fs-30); letter-spacing: 0; }
 
 /* Para cada bolsillo: filtros por monto reales de la página de regalos */
@@ -51,7 +51,7 @@
 .mk-list { position: absolute; left: 0; top: 24%; width: 74%; padding: 16px; border-radius: var(--r-md); background: #fff; box-shadow: var(--sh-float); display: grid; gap: 4px; }
 .mk-list > b { margin-bottom: 6px; }
 .mk-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid #eceded; }
-.mk-avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--r-round); background: #e8e8dd; font-size: var(--fs-11); font-weight: 600; color: #6f6f50; }
+.mk-avatar { display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--r-round); background: #e8e8dd; font-size: var(--fs-11); font-weight: 500; color: #6f6f50; }
 .mk-row-main { display: grid; gap: 1px; min-width: 0; }
 .mk-row-main strong { font-size: var(--fs-14); font-weight: var(--w-medium, 500); }
 .mk-row-main small { color: #6f7070; font-size: var(--fs-12); }
