@@ -118,3 +118,5 @@ button:not(.float-burger), .seed-button, .dm-solid, .dm-ghost, .pn-btn, .rg-btn 
 .ej-bar-link, .menu-row strong { font-size: var(--type-note-size) !important; letter-spacing: 0 !important; line-height: 1.2 !important; }
 .menu-row strong { font-size: var(--type-body-size) !important; }
 /* La barra de la landing queda como estaba antes del sistema tipográfico (pedido de la dueña, 2026-11-07): «Iniciar sesión» y «Crear mi evento» conservan sus estilos propios (styles.css). */
+/* En el celular el título del hero va en dos renglones («Tu casamiento empieza» / «antes del gran día.»): el tamaño se ajusta al ancho de la pantalla. */
+@media (max-width: 640px) { .hero-copy h1, .seed-hero h1 { font-size: min(calc(var(--type-display-size) * .85), calc((100vw - 48px) / 10.2)) !important; } }
