@@ -2,7 +2,7 @@
 
 Weda crea y gestiona la experiencia digital de un casamiento: página de invitación, lista de regalos simbólicos con aportes por alias, invitados y mesas, confirmación de asistencia y vista previa. Tiene frontend (TanStack Start + React) y un servidor propio (API `/api/*`) con base PostgreSQL, cuentas y archivos en Supabase (OPS-08). Todavía **no** tiene hosting de producción ni proveedor de pagos real.
 
-Este archivo es un índice. Las reglas por área se cargan solas al trabajar en esos archivos (`.claude/rules/`): interfaz (`frontend-ux.md`), servidor y datos (`backend-data.md`) y documentación (`docs.md`).
+Este archivo es un índice. Las reglas por área se cargan solas al trabajar en esos archivos (`.claude/rules/`): interfaz (`frontend-ux.md`), servidor y datos (`backend-data.md`) y documentación (`docs.md`). Para probar rediseños del front rápido, sin validar en cada vuelta, está el modo boceto (`boceto.md`, rama `rediseno`).
 
 ## Fuente de verdad
 - Mandan, en este orden: el código, las decisiones comerciales documentadas y luego los documentos de criterio. Si un documento contradice el código, corregí el documento o avisá.
