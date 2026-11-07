@@ -78,11 +78,12 @@ button, input { font: inherit; }
 @media(min-width:960px) { .seed-hero .hero-copy p { white-space: nowrap; max-width: none; } }
 .seed-hero .seed-button { background: #fff; color: var(--foreground); }
 .seed-nav { position: absolute; z-index: 10; top: 0; left: 0; right: 0; }
-.seed-logo { display: inline-flex; align-items: center; font-size: var(--fs-logo); gap: 3px; font-weight: 400; }
-.seed-logo i { position: relative; width: 17px; height: 16px; }
-.seed-logo i::before, .seed-logo i::after { content: ""; position: absolute; width: 64%; aspect-ratio: 1; background: currentColor; border-radius: var(--r-round); }
-.seed-logo i::before { left: 0; bottom: 0; }
-.seed-logo i::after { right: 0; top: 0; }
+/* Logo oficial (v2.0, `public/weda-logo.svg`): se escala con el tamaño de letra del enlace (alto 1em, ancho proporcional 4,63:1; mínimo 80 px de ancho).
+   Color según el fondo, solo los dos del manual: #ECE9E2 (White Tea) sobre fondos oscuros y #5D573F (Dragon) sobre fondos claros. */
+:root { --logo-on-dark: #ECE9E2; --logo-on-light: #5D573F; }
+.seed-logo { display: inline-flex; align-items: center; font-size: var(--fs-logo); font-weight: 400; color: var(--logo-on-light); }
+.seed-logo .weda-logo { display: block; height: 1em; width: auto; min-width: 80px; }
+.float-left .seed-logo, .seed-footer .seed-logo, .iv-footer-brand.seed-logo { color: var(--logo-on-dark); }
 .hero-inner { width: 92%; max-width: 1800px; margin: 0 auto; position: relative; padding-top: 140px; }
 .hero-copy { width: 460px; max-width: 46%; }
 .hero-copy h1 { font-weight: var(--w-medium); margin: 0 0 18px; }
@@ -96,8 +97,7 @@ h2 { font-weight: var(--w-medium); letter-spacing: var(--ls-title); font-size: c
 .duo-section { position: relative; }
 .eyebrow { font-size: var(--fs-12); margin: 0 0 24px; }
 .footer-top { display: grid; grid-template-columns: 1fr 1fr; gap: 100px; margin-bottom: 60px; }
-.footer-top .seed-logo { font-size: 38px; }
-.footer-top .seed-logo i { width: 31px; height: 29px; }
+.footer-top .seed-logo { font-size: 38px; margin-bottom: 18px; }
 .footer-mission { font-size: var(--fs-24); line-height: 1.2; max-width: 340px; }
 .footer-top small { font-size: var(--fs-10); opacity: .85; display: block; margin-top: 14px; }
 .footer-bottom { display: flex; padding-top: 30px; }
@@ -1116,6 +1116,7 @@ html.lenis, html.lenis body { height: auto; }
 .legal-page.is-narrow { max-width: 480px; }
 .legal-brand { margin: 0 0 28px; font-weight: 600; }
 .legal-brand a { color: inherit; text-decoration: none; }
+.legal-brand .seed-logo { color: var(--logo-on-light); font-size: 26px; }
 .legal-page h1 { margin: 0 0 8px; font-size: clamp(28px, 4vw, 36px); line-height: 1.15; }
 .legal-page h2 { margin: 32px 0 8px; font-size: var(--fs-18); }
 .legal-page ul { padding-left: 20px; }

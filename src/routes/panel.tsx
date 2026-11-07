@@ -12,6 +12,7 @@ import { formatPrice, PLANS, TRIAL_DAYS, trialRemaining } from '@/lib/weda/plans
 import { ensureRemote, errorText, hasUnsaved, dismissNotice, reloadFromServer, retrySave, useRemote } from '@/lib/weda/remote';
 import { useAppSelector, useAppState, useHydrated, useStorageFull } from '@/lib/weda/store';
 import { isLive } from '@/lib/weda/payments';
+import { WedaLogo } from '@/components/weda-logo';
 
 export const Route = createFileRoute('/panel')({
   head: () => ({
@@ -223,7 +224,7 @@ function PanelLayout() {
       <div className="pn-root pn-app" data-side={collapsed ? 'collapsed' : 'open'}>
         <a className="skip-link" href="#main">Ir al contenido</a>
         <header className="pn-top">
-          <Link to="/panel" className="seed-logo" aria-label="Weda, ir al inicio">Weda<i aria-hidden="true" /></Link>
+          <Link to="/panel" className="seed-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link>
           {/* Vista previa en todas las secciones: abre la página pública en un pop-up. «Regalos» va directo a la lista; el resto, al inicio de la invitación. */}
           <Profile compact />
           <div className="pn-top-actions">
@@ -235,7 +236,7 @@ function PanelLayout() {
         <aside className="pn-side">
           <div className="pn-side-top">
             <button type="button" className="pn-side-toggle" onClick={toggleSide} aria-expanded={!collapsed} aria-controls="pn-side-nav" aria-label={collapsed ? 'Abrir el menú' : 'Recoger el menú'} title={collapsed ? 'Abrir el menú' : 'Recoger el menú'}><SideMenuIcon /></button>
-            <Link to="/panel" className="seed-logo pn-side-logo" aria-label="Weda, ir al inicio">Weda<i aria-hidden="true" /></Link>
+            <Link to="/panel" className="seed-logo pn-side-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link>
           </div>
           <Profile />
           <nav aria-label="Secciones del panel" className="pn-nav" id="pn-side-nav">

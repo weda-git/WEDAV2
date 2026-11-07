@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Check, Upload } from 'lucide-react';
 import { pageMeta } from '@/lib/site';
+import { WedaLogo } from '@/components/weda-logo';
 
 /* Adjuntar el comprobante desde el enlace del correo (constancia del regalo o recordatorio de la pareja). El enlace lleva el id del aporte
    y un token que solo tiene quien regaló; sin cuenta. Mismo límite y tipos que en el regalo: imagen o PDF de hasta 5 MB. */
@@ -54,7 +55,7 @@ function Receipt() {
 
   return (
     <main className="legal-page is-narrow" id="main">
-      <p className="legal-brand"><Link to="/">Weda</Link></p>
+      <p className="legal-brand"><Link to="/" className="seed-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link></p>
       <h1>Comprobante de tu regalo</h1>
       {state === 'checking' && <p role="status">Cargando…</p>}
       {state === 'invalid' && <p>Este enlace ya no sirve. Si los novios te pidieron el comprobante, usá el enlace del correo más reciente o escribinos a <a href="mailto:hola@weda.app">hola@weda.app</a>.</p>}

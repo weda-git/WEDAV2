@@ -18,7 +18,7 @@
 .pn-root *, .pn-dialog * { box-sizing: border-box; font-family: inherit; }
 .pn-root h1, .pn-root h2, .pn-root h3, .pn-dialog h2 { font-weight: var(--w-semibold); margin: 0; }
 .pn-root p { margin: 0; }
-.pn-root .seed-logo { color: var(--pn-ink); }
+.pn-root .seed-logo { color: var(--logo-on-light); }
 .pn-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .pn-loading { min-height: 50svh; display: grid; place-items: center; color: var(--pn-muted); }
 .pn-root :where(a, button, input, select, textarea, summary):focus-visible, .pn-dialog :where(a, button, input, select, textarea):focus-visible { outline: 2px solid var(--pn-slate-d); outline-offset: 2px; }
