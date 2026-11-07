@@ -8,6 +8,7 @@ import { hasGiftsPage, useSite } from '@/lib/weda/site-model';
 import '@/demo.css';
 import '@/ejemplo.css';
 import '@/invitacion.css';
+import { WedaLogo } from '@/components/weda-logo';
 
 // `to` recibe rutas dinámicas (/sitio/tomas-y-martina): el router solo conoce los patrones, no cada valor.
 const to = (path: string) => path as never;
@@ -114,7 +115,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     <SiteNav />
     <main id="main">{children}</main>
     <footer className="iv-footer"><div className="iv-wrap">
-      <Link to="/" className="iv-footer-brand seed-logo" aria-label="Weda, volver a la página principal">Weda<i aria-hidden="true" /></Link>
+      <Link to="/" className="iv-footer-brand seed-logo" aria-label="Weda, volver a la página principal"><WedaLogo /></Link>
       <p>{site.kind === 'demo'
         ? 'Este sitio fue creado con Weda: lista de regalos, sitio del casamiento y confirmación de asistencia en un solo lugar.'
         : `Sitio de ${site.names} creado con Weda.`}</p>

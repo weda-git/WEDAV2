@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { pageMeta } from '@/lib/site';
+import { WedaLogo } from '@/components/weda-logo';
 
 /* Política de privacidad — BORRADOR (2026-10-28). Antes del lanzamiento: completar los datos marcados como «a completar» y hacerla revisar
    por un abogado (Ley 25.326). Hasta entonces la página no se indexa. Checklist completo en docs/datos-personales.md. */
@@ -17,7 +18,7 @@ const Todo = ({ children }: { children: string }) => <mark className="legal-todo
 function Privacy() {
   return (
     <main className="legal-page" id="main">
-      <p className="legal-brand"><Link to="/">Weda</Link></p>
+      <p className="legal-brand"><Link to="/" className="seed-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link></p>
       <h1>Política de privacidad</h1>
       <p className="legal-meta">Última actualización: <Todo>fecha de publicación</Todo></p>
 

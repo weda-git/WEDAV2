@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { ImagePlus } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { useHydrated } from '@/lib/weda/store';
+import { WedaLogo } from '@/components/weda-logo';
 
 export type OnboardingStep = 1 | 2 | 3;
 
@@ -17,7 +18,7 @@ export function OnboardingShell({ step, title, sub, big = false, back, formId, o
   return (
     <div className="ob">
       <header className="ob-top">
-        <Link to="/" className="seed-logo" aria-label="Weda, volver al inicio">Weda<i aria-hidden="true" /></Link>
+        <Link to="/" className="seed-logo" aria-label="Weda, volver al inicio"><WedaLogo /></Link>
         <div className="ob-bar" role="progressbar" aria-label={`Paso ${step} de 3`} aria-valuemin={1} aria-valuemax={3} aria-valuenow={step}><i style={{ width: `${(step / 3) * 100}%` }} /></div>
       </header>
       <div className={`ob-body${big ? ' is-big' : ''}`}>
