@@ -1521,3 +1521,8 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
   .pl-foot { padding-top: 18px; gap: 14px; }
   .pl-price strong { font-size: 30px; }
 }
+
+/* Boceto 2026-11-07: «Crear mi evento» ocupa todo el alto de la píldora gris de la barra (4 px de aire arriba, abajo y a la derecha). */
+.float-right { padding-right: 4px !important; }
+.float-right .float-cta { height: calc(100% - 8px); padding: 0 22px; }
+@media (max-width: 640px) { .float-right .float-cta { padding: 0 18px; } }
