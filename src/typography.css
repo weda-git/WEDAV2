@@ -14,6 +14,10 @@
 @font-face { font-family: var(--font-ui); font-style: normal; font-weight: 300 700; font-display: swap; src: url('/fonts/cormorant/cormorant-garamond-latin-ext-wght-normal.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 @font-face { font-family: var(--font-ui); font-style: normal; font-weight: 300 700; font-display: swap; src: url('/fonts/cormorant/cormorant-garamond-latin-wght-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 
+/* Cormorant Garamond (portada del sitio de cada pareja), servida desde /fonts: antes se pedía a Google Fonts (otro dominio, hoja de estilos que bloqueaba el render y 190–280 KB). Es una fuente variable: un archivo cubre 400–600. */
+@font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 300 700; font-display: swap; src: url('/fonts/cormorant/cormorant-garamond-latin-ext-wght-normal.woff2') format('woff2'); unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: 'Cormorant Garamond'; font-style: normal; font-weight: 300 700; font-display: swap; src: url('/fonts/cormorant/cormorant-garamond-latin-wght-normal.woff2') format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
 :root {
   /* Sistema tipográfico de Weda (pedido de la dueña, 2026-11-07). Geist 400/500 para todo el texto (600 solo en el logo) y Geist Mono 400 para
      etiquetas, fechas y datos. Sin negritas ni itálicas. Tamaños fluidos de 375 a 1440 px. */
@@ -52,73 +56,64 @@ html { font-family: var(--font-ui); color: var(--text-main); -webkit-text-size-a
 .num { font-variant-numeric: tabular-nums; }
 
 /* =========================================================================
-   Roles tipográficos. Se aplican sobre los estilos de cada pantalla (por eso llevan !important en esta etapa de boceto):
-   Display (uno por pantalla) · H1 · H2 · H3 (también h4–h6) · Bajada · Cuerpo · Nota · Etiqueta (Mono, mayúsculas) · Botón.
+   Roles tipográficos de Weda (landing, armado y panel). El sitio de cada pareja (/ejemplo, publicado, vista previa y sus diálogos) conserva su
+   tipografía propia (pedido de la dueña, 2026-11-07): por eso cada regla excluye .dm-root, .rg-dialog y .dm-rsvp.
+   Llevan !important en esta etapa de boceto para ganarle a los estilos de cada pantalla.
    ========================================================================= */
-h1, h2, h3, h4, h5, h6 { font-family: var(--font-ui) !important; font-weight: 500 !important; font-style: normal !important; text-wrap: balance; }
-h1 { font-size: var(--type-h1-size) !important; line-height: 1.05 !important; letter-spacing: var(--type-h1-tracking) !important; }
-h2 { font-size: var(--type-h2-size) !important; line-height: 1.1 !important; letter-spacing: var(--type-h2-tracking) !important; }
-h3, h4, h5, h6 { font-size: var(--type-h3-size) !important; line-height: 1.2 !important; letter-spacing: var(--type-h3-tracking) !important; }
-/* Display: el título principal de la landing (uno solo por pantalla). */
-/* La dueña lo pidió un poco más chico que el Display del sistema (2026-11-07): 85 %. */
-.hero-copy h1, .seed-hero h1, .hero h1 { font-size: calc(var(--type-display-size) * .85) !important; line-height: 1 !important; letter-spacing: var(--type-display-tracking) !important; }
-p { text-wrap: pretty; }
-body { font-size: var(--type-body-size); line-height: 1.6; }
-/* Sin negritas ni itálicas en ningún texto. */
-strong, b { font-weight: 500 !important; }
-em, i, cite, address { font-style: normal !important; }
+h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+h2:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+h3:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+h4:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+h5:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+h6:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: var(--font-ui) !important; font-weight: 500 !important; font-style: normal !important; text-wrap: balance; }
+h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-h1-size) !important; line-height: 1.05 !important; letter-spacing: var(--type-h1-tracking) !important; }
+h2:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-h2-size) !important; line-height: 1.1 !important; letter-spacing: var(--type-h2-tracking) !important; }
+h3:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+h4:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+h5:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+h6:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-h3-size) !important; line-height: 1.2 !important; letter-spacing: var(--type-h3-tracking) !important; }
+/* Display: el título del hero de la landing. La dueña lo pidió al 85 % del Display y apenas más fino (450, Geist variable local), con el mismo interletrado. */
+.hero-copy h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: 'Geist Variable', var(--font-ui) !important; font-weight: 450 !important; font-size: calc(var(--type-display-size) * .85) !important; line-height: 1 !important; letter-spacing: var(--type-display-tracking) !important; }
+/* En el celular, en dos renglones («Tu casamiento empieza» / «antes del gran día.»). */
+@media (max-width: 640px) {
+.hero-copy h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: min(calc(var(--type-display-size) * .85), calc((100vw - 48px) / 10.2)) !important; }
+}
+/* Bajada. */
+.hero-copy p:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.section-lead:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.lead:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-lead-size) !important; line-height: 1.45 !important; letter-spacing: var(--type-lead-tracking) !important; }
+p:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { text-wrap: pretty; }
+/* Sin negritas ni itálicas. */
+strong:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+b:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-weight: 500 !important; }
+em:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+i:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+cite:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+address:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-style: normal !important; }
 /* Campos: 16 px como mínimo. */
-input, select, textarea { font-family: var(--font-ui); font-size: max(16px, 1em); }
-/* Botones. */
-button:not(.float-burger), .seed-button, .dm-solid, .dm-ghost, .pn-btn, .rg-btn { font-family: var(--font-ui) !important; font-weight: 500 !important; font-size: var(--type-button-size) !important; line-height: 1 !important; letter-spacing: var(--type-button-tracking) !important; }
-/* Etiquetas: Mono 400, mayúsculas, +4 %. Cubre los rótulos que ya iban en mayúsculas. */
-.tq-label, .rg-kicker, .rg-up-label, .pn-kicker, .iv-kicker, .ej-kicker, .lr-kicker, .rg-amount span, .rg-copy dt,
-.rg-field label:not(.rg-chip), .rg-field legend { font-family: var(--font-mono) !important; font-weight: 400 !important; font-size: var(--type-label-size) !important; line-height: 1.3 !important; letter-spacing: var(--type-label-tracking) !important; text-transform: uppercase !important; }
+input:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+select:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+textarea:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: var(--font-ui); font-size: max(16px, 1em); }
+/* Botones (la barra de la landing conserva sus estilos propios). */
+button:not(.float-burger):not(.float-cta):not(.float-link):not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.seed-button:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.pn-btn:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: var(--font-ui) !important; font-weight: 500 !important; font-size: var(--type-button-size) !important; line-height: 1 !important; letter-spacing: var(--type-button-tracking) !important; }
+/* Etiquetas: Geist Mono 400, mayúsculas, +4 %. */
+.tq-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.pn-kicker:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.hx-eyebrow:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.hx-kicker:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.hx-link-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.gift-feature-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.lr-hero .eyebrow:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.duo-panel .eyebrow:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.fd-count span:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.fd-std small:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.rg-pack-cover small:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+.rg-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: var(--font-mono) !important; font-weight: 400 !important; font-size: var(--type-label-size) !important; line-height: 1.3 !important; letter-spacing: var(--type-label-tracking) !important; text-transform: uppercase !important; }
+/* Menú de la landing en el celular. */
+.menu-row strong:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-body-size) !important; letter-spacing: 0 !important; line-height: 1.2 !important; }
 /* Números en tablas y precios. */
-.num, .rg-price, .rg-amount strong, .rg-copy dd, .pl-price, td { font-variant-numeric: tabular-nums; }
+.num, .pl-price, td { font-variant-numeric: tabular-nums; }
 /* Panel (dashboard): escala más compacta, sin Display. */
 .pn-root { --type-h1-size: clamp(1.75rem, 1.6620rem + 0.3756vw, 2rem); --type-h2-size: clamp(1.375rem, 1.2870rem + 0.3756vw, 1.625rem); --type-h3-size: clamp(1.125rem, 1.0810rem + 0.1878vw, 1.25rem); }
-/* Bajada: el texto bajo el título del hero y de las secciones; ancho de lectura de 640 px. */
-.hero-copy p, .section-lead, .lead { font-size: var(--type-lead-size) !important; line-height: 1.45 !important; letter-spacing: var(--type-lead-tracking) !important; max-width: 640px; }
-/* Todo rótulo que ya iba en mayúsculas pasa a Etiqueta (Mono). */
-.dm-root .iv-card-map,
-.dm-root .iv-count-l,
-.dm-root .iv-cover:not(.is-gifts) .iv-cover-date,
-.dm-root .iv-day .iv-card-map,
-.dm-root .iv-day .iv-when-l,
-.dm-root .iv-eyebrow,
-.dm-root .iv-welcome .iv-count-l,
-.dm-root .iv-welcome-date,
-.dm-root .rg-kicker,
-.dm-rsvp-field label:not(.dm-rsvp-opt):not(.dm-rsvp-menu),
-.dm-rsvp-field legend,
-.duo-panel .eyebrow,
-.fd-count span,
-.fd-std small,
-.gift-feature-label,
-.hx-eyebrow,
-.hx-kicker,
-.hx-link-label,
-.lr-hero .eyebrow,
-.rg-amount span,
-.rg-copy dt,
-.rg-dialog .rg-kicker,
-.rg-field label,
-.rg-field label:not(.rg-chip),
-.rg-field legend,
-.rg-kicker,
-.rg-label,
-.rg-pack-cover small,
-.rg-up-label,
-.tq-label { font-family: var(--font-mono) !important; font-weight: 400 !important; font-size: var(--type-label-size) !important; line-height: 1.3 !important; letter-spacing: var(--type-label-tracking) !important; }
-/* Micrositio: nombres de la pareja en H1 (nunca en Display), sin mayúsculas forzadas; la fecha va en Etiqueta. */
-.dm-root .iv-cover-names, .dm-root .iv-cover-title, .dm-root .iv-welcome-title { font-family: var(--font-ui) !important; font-weight: 500 !important; font-size: var(--type-h1-size) !important; line-height: 1.05 !important; letter-spacing: var(--type-h1-tracking) !important; text-transform: none !important; }
-.dm-root .iv-card-body h3 { text-transform: none !important; }
-/* Enlaces de las barras de navegación: todos iguales (Nota 500), aunque alguno sea un <button> (p. ej. «Confirmá asistencia»). */
-.ej-bar-link, .menu-row strong { font-size: var(--type-note-size) !important; letter-spacing: 0 !important; line-height: 1.2 !important; }
-.menu-row strong { font-size: var(--type-body-size) !important; }
-/* La barra de la landing queda como estaba antes del sistema tipográfico (pedido de la dueña, 2026-11-07): «Iniciar sesión» y «Crear mi evento» conservan sus estilos propios (styles.css). */
-/* En el celular el título del hero va en dos renglones («Tu casamiento empieza» / «antes del gran día.»): el tamaño se ajusta al ancho de la pantalla. */
-@media (max-width: 640px) { .hero-copy h1, .seed-hero h1 { font-size: min(calc(var(--type-display-size) * .85), calc((100vw - 48px) / 10.2)) !important; } }
-/* Título del hero apenas más fino (pedido de la dueña, 2026-11-07): peso 450 con la Geist variable local; el interletrado no cambia. */
-.hero-copy h1, .seed-hero h1 { font-family: 'Geist Variable', var(--font-ui) !important; font-weight: 450 !important; }
