@@ -1521,3 +1521,9 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
   .pl-foot { padding-top: 18px; gap: 14px; }
   .pl-price strong { font-size: 30px; }
 }
+
+/* Boceto 2026-11-07: la bajada del hero toma el ancho del título y reparte el texto en renglones parejos, para que los bordes acompañen al título. */
+/* La bajada sigue la forma del título: renglón de arriba más largo que el de abajo, en la misma proporción. */
+.seed-hero .hero-copy p { width: calc(var(--type-display-size) * .85 * 8.5); max-width: 100% !important; white-space: normal !important; text-wrap: wrap; }
+/* En el celular el título ocupa casi todo el ancho: la bajada reparte sus renglones parejos. */
+@media (max-width: 640px) { .seed-hero .hero-copy p { width: auto; text-wrap: balance; } }
