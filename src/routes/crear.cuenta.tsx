@@ -86,13 +86,13 @@ function Account() {
 
 
       <form onSubmit={submit} noValidate className="pn-form">
-        <Field id="ac-email" label="Correo electrónico" error={errors.email}>
-          {a => <input id="ac-email" onFocus={() => { if (signup) track('signup_started'); }} type="email" inputMode="email" autoComplete="email" value={email} onChange={e => { setEmail(e.target.value); setErrors(x => ({ ...x, email: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
+        <Field id="ac-email" label="Correo electrónico" labelInside error={errors.email}>
+          {a => <input id="ac-email" placeholder="Correo electrónico" onFocus={() => { if (signup) track('signup_started'); }} type="email" inputMode="email" autoComplete="email" value={email} onChange={e => { setEmail(e.target.value); setErrors(x => ({ ...x, email: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
         </Field>
-        <Field id="ac-pass" label="Clave" error={errors.password} hint={signup ? 'Mínimo 8 caracteres, con mayúscula, minúscula y número.' : undefined}>
+        <Field id="ac-pass" label="Clave" labelInside error={errors.password} hint={signup ? 'Mínimo 8 caracteres, con mayúscula, minúscula y número.' : undefined}>
           {a => (
             <div className="pn-pass">
-              <input id="ac-pass" type={show ? 'text' : 'password'} autoComplete={signup ? 'new-password' : 'current-password'} value={password} onChange={e => { setPassword(e.target.value); setErrors(x => ({ ...x, password: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />
+              <input id="ac-pass" placeholder="Clave" type={show ? 'text' : 'password'} autoComplete={signup ? 'new-password' : 'current-password'} value={password} onChange={e => { setPassword(e.target.value); setErrors(x => ({ ...x, password: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />
               <button type="button" className="pn-pass-toggle" onClick={() => setShow(v => !v)} aria-label={show ? 'Ocultar la clave' : 'Mostrar la clave'} aria-pressed={show}>
                 {show ? <EyeOff size={20} strokeWidth={1.5} aria-hidden="true" /> : <Eye size={20} strokeWidth={1.5} aria-hidden="true" />}
               </button>
