@@ -1843,3 +1843,11 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 .rg-free-cfg { margin-top: 28px; }
 .rg-free-cfg .pn-check { margin-top: 4px; }
 .rg-free-cfg .pn-field { max-width: 320px; }
+
+/* Boceto 2026-11-08 (pantalla de cuenta): la tarjeta un poco más amplia, con más aire parejo en los cuatro lados (sobre todo arriba de «¡Bienvenidos!»),
+   y los textos dentro de los campos un tono más oscuros para que se lean. */
+.pn-account { width: min(100%, 480px) !important; max-width: 480px !important; padding: 44px 40px 36px !important; }
+@media (max-width: 640px) { .pn-account { padding: 36px 24px 28px !important; } }
+.pn-account input::placeholder { color: var(--text-soft); opacity: 1; }
+/* «¡Bienvenidos!» y «Registrate en Weda» / «Ingresá a Weda» en grafito oscuro, casi negro (el tono más oscuro del sistema, nunca negro puro). */
+.pn-account-head h1, .pn-account-head p { color: var(--text-strong) !important; }
