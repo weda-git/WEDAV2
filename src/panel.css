@@ -1852,4 +1852,4 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 /* «¡Bienvenidos!» y «Registrate en Weda» / «Ingresá a Weda» en grafito oscuro, casi negro (el tono más oscuro del sistema, nunca negro puro). */
 .pn-account-head h1, .pn-account-head p { color: var(--text-strong) !important; }
 /* «Registrarme» y «Registrarme con Google»: bastante más oscuros, sin llegar al tono del título. */
-.pn-account .pn-btn.pn-block { color: #403C2B !important; }
+.pn-account .pn-btn.pn-block, .pn-account .pn-link { color: #403C2B !important; }
