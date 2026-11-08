@@ -1853,3 +1853,6 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 .pn-account-head h1, .pn-account-head p { color: var(--text-strong) !important; }
 /* «Registrarme» y «Registrarme con Google»: bastante más oscuros, sin llegar al tono del título. */
 .pn-account .pn-btn.pn-block, .pn-account .pn-link { color: #403C2B !important; }
+/* «Registrarme» / «Ingresar» en el verde de Weda, como «Crear mi evento» de la landing (prueba de la dueña, 2026-11-08). */
+.pn-account .pn-btn.pn-block:not(.is-ghost) { background: var(--slate, #959571) !important; color: #fff !important; border-color: transparent !important; }
+.pn-account .pn-btn.pn-block:not(.is-ghost):hover { background: color-mix(in oklab, var(--slate, #959571), #000 8%) !important; }
