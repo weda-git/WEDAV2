@@ -44,7 +44,7 @@ Auditoría del 2026-10-28. Lo que no se puede resolver del todo desde la interfa
 
 ### D5 — Búsqueda de casamientos para invitados · P2
 - **Hoy:** `/encontrar` ya no muestra parejas inventadas: indica usar el link de los novios.
-- **Falta:** decisión de privacidad (¿se puede buscar a una pareja por nombre?) y un endpoint de búsqueda sobre publicaciones con opt-in de la pareja.
+- **Decidido (2026-11-08, D-08):** se puede buscar por nombre a todos los casamientos publicados, sin opt-in. **Falta:** construirlo ([LAN-05](../../specs/LAN-05-busqueda-por-nombre/spec.md)).
 
 ### D6 — Almacenamiento de fotos · P2
 - **Hoy:** las fotos viajan dentro del borrador (data URL). Con muchas fotos se llega al límite (6 MB) y al límite del navegador sin cuenta.
