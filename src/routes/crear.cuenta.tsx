@@ -1,5 +1,5 @@
 import { track } from '@/lib/analytics';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { Eye, EyeOff } from 'lucide-react';
 import { Field, FlowClose } from '@/components/panel/ui';
@@ -45,7 +45,12 @@ function Account() {
   const [formError, setFormError] = useState<string | undefined>();
   const [googleMsg, setGoogleMsg] = useState(false);
   const [errors, setErrors] = useState<{ email?: string | undefined; password?: string | undefined }>({});
+  // Al ingresar con un correo y una clave que no coinciden con ninguna cuenta, se ofrece crearla con esos mismos datos (pedido de la dueña, 2026-11-08):
+  // así quien tocó «Iniciar sesión» sin tener cuenta no se pierde. Si el correo ya tiene cuenta, el registro lo dice y se ofrece recuperar la clave.
+  const [offerSignup, setOfferSignup] = useState(false);
   const signup = mode === 'signup';
+  // «Iniciar sesión» y «Crear mi evento» llevan a esta misma pantalla: el modo sigue al enlace aunque la pantalla ya esté abierta.
+  useEffect(() => { setMode(modo === 'ingresar' ? 'login' : 'signup'); setErrors({}); setOfferSignup(false); setFormError(undefined); }, [modo]);
   const saved = hydrated && hasEvent(state);
 
   // Con evento guardado, sigue donde corresponde (panel si ya lo terminó; si no, el onboarding con lo ya cargado). Sin evento, empieza el onboarding.
@@ -70,8 +75,23 @@ function Account() {
         return;
       }
       if (r.ok) { const s = getState(); void navigate({ to: hasEvent(s) ? accountDestination(s) : '/crear' }); return; }
+      if (!signup && r.code === 'invalid_credentials') { setOfferSignup(true); return; }
       if (r.code === 'email_taken' || r.code === 'invalid_email') setErrors({ email: errorText(r.code) });
       else if (r.code === 'invalid_credentials' || r.code === 'weak_password') setErrors({ password: errorText(r.code) });
+      else setFormError(errorText(r.code));
+    });
+  };
+
+  // Crear la cuenta con el correo y la clave que se acaban de escribir al intentar ingresar.
+  const createWithSameData = () => {
+    if (!strongPassword(password)) { setOfferSignup(false); setMode('signup'); setErrors({ password: 'Para crear tu cuenta, usá 8 o más caracteres, con mayúsculas, minúsculas y un número.' }); document.getElementById('ac-pass')?.focus(); return; }
+    setBusy(true); setFormError(undefined);
+    void register(email.trim(), password).then(r => {
+      setBusy(false);
+      if (r.ok) { track('signup_started'); const s = getState(); void navigate({ to: hasEvent(s) ? accountDestination(s) : '/crear' }); return; }
+      setOfferSignup(false);
+      // El correo ya tiene cuenta: entonces lo que falló es la clave.
+      if (r.code === 'email_taken') setErrors({ password: 'Ese correo ya tiene cuenta, pero la clave no coincide. Probá de nuevo o recuperala.' });
       else setFormError(errorText(r.code));
     });
   };
@@ -87,12 +107,12 @@ function Account() {
 
       <form onSubmit={submit} noValidate className="pn-form">
         <Field id="ac-email" label="Correo electrónico" labelInside error={errors.email}>
-          {a => <input id="ac-email" placeholder="Correo electrónico" onFocus={() => { if (signup) track('signup_started'); }} type="email" inputMode="email" autoComplete="email" value={email} onChange={e => { setEmail(e.target.value); setErrors(x => ({ ...x, email: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
+          {a => <input id="ac-email" placeholder="Correo electrónico" onFocus={() => { if (signup) track('signup_started'); }} type="email" inputMode="email" autoComplete="email" value={email} onChange={e => { setEmail(e.target.value); setErrors(x => ({ ...x, email: undefined })); setOfferSignup(false); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
         </Field>
         <Field id="ac-pass" label="Clave" labelInside error={errors.password} hint={signup ? 'Mínimo 8 caracteres, con mayúscula, minúscula y número.' : undefined}>
           {a => (
             <div className="pn-pass">
-              <input id="ac-pass" placeholder="Clave" type={show ? 'text' : 'password'} autoComplete={signup ? 'new-password' : 'current-password'} value={password} onChange={e => { setPassword(e.target.value); setErrors(x => ({ ...x, password: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />
+              <input id="ac-pass" placeholder="Clave" type={show ? 'text' : 'password'} autoComplete={signup ? 'new-password' : 'current-password'} value={password} onChange={e => { setPassword(e.target.value); setErrors(x => ({ ...x, password: undefined })); setOfferSignup(false); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />
               <button type="button" className="pn-pass-toggle" onClick={() => setShow(v => !v)} aria-label={show ? 'Ocultar la clave' : 'Mostrar la clave'} aria-pressed={show}>
                 {show ? <EyeOff size={20} strokeWidth={1.5} aria-hidden="true" /> : <Eye size={20} strokeWidth={1.5} aria-hidden="true" />}
               </button>
@@ -102,7 +122,14 @@ function Account() {
         {signup && <p className="pn-terms">Al registrarte, aceptás los <a href="/terminos" target="_blank" rel="noopener noreferrer"><strong>Términos de uso</strong></a> y la <a href="/privacidad" target="_blank" rel="noopener noreferrer"><strong>Política de privacidad</strong></a> de Weda.</p>}
         {!signup && <p className="pn-alt"><Link to="/clave" className="pn-link">¿Olvidaste tu clave?</Link></p>}
         {formError && <p className="pn-banner" role="alert">{formError}</p>}
-        <button type="submit" className="pn-btn pn-block" disabled={busy || !hydrated} aria-busy={busy}>{busy ? 'Un momento…' : signup ? 'Registrarme' : 'Ingresar'}</button>
+        {offerSignup && (
+          <div className="pn-offer" role="alert">
+            <p><strong>No encontramos una cuenta con ese correo y esa clave.</strong> Si es tu primera vez en Weda, creala ahora con estos mismos datos.</p>
+            <p className="pn-terms">Al crear tu cuenta, aceptás los <a href="/terminos" target="_blank" rel="noopener noreferrer"><strong>Términos de uso</strong></a> y la <a href="/privacidad" target="_blank" rel="noopener noreferrer"><strong>Política de privacidad</strong></a> de Weda.</p>
+            <button type="button" className="pn-btn pn-block" onClick={createWithSameData} disabled={busy} aria-busy={busy}>{busy ? 'Un momento…' : 'Crear mi cuenta'}</button>
+          </div>
+        )}
+        {!offerSignup && <button type="submit" className="pn-btn pn-block" disabled={busy || !hydrated} aria-busy={busy}>{busy ? 'Un momento…' : signup ? 'Registrarme' : 'Ingresar'}</button>}
       </form>
 
       <div className="pn-or" aria-hidden="true">o</div>
@@ -111,7 +138,7 @@ function Account() {
 
       <p className="pn-alt pn-account-switch">
         {signup ? '¿Ya sos miembro? ' : '¿Todavía no tenés cuenta? '}
-        <button type="button" className="pn-link" onClick={() => { setMode(signup ? 'login' : 'signup'); setErrors({}); }}>{signup ? 'Ingresá' : 'Registrate'}</button>
+        <button type="button" className="pn-link" onClick={() => { setMode(signup ? 'login' : 'signup'); setErrors({}); setOfferSignup(false); }}>{signup ? 'Ingresá' : 'Registrate'}</button>
       </p>
     </div>
   );
