@@ -10,7 +10,7 @@ const g = (id: string) => gifts.find(x => x.id === id)!;
 
 export function NoFeeMock() {
   const ring = `mk-ring-${useId().replace(/:/g, '')}`;
-  const trip = g('patagonia');
+  const trip = g('santorini');
   return (
     <div className="mk mk-nofee" aria-hidden="true">
       <svg className="mk-badge" viewBox="0 0 120 120"><defs><path id={ring} d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0" /></defs>
