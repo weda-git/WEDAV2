@@ -18,13 +18,19 @@ export function CreateLayout() {
   // este contenedor montaba la landing entera de fondo justo en ese momento, congelando la transición en equipos y redes lentas.
   const path = useRouterState({ select: s => (s.resolvedLocation ?? s.location).pathname.replace(/\/$/, '') });
   const onboarding = ONBOARDING.includes(path);
-  const accountPage = path === '/crear/cuenta';
+  // Para la compuerta de cuenta se mira la ruta pedida (no la ya resuelta): al llegar desde otra pantalla la resuelta todavía es la anterior y
+  // redirigía de nuevo a /crear/cuenta, perdiendo «?modo=ingresar».
+  const requested = useRouterState({ select: s => s.location.pathname.replace(/\/$/, '') });
+  const accountPage = requested === '/crear/cuenta';
   // Mientras no se sabe si hay sesión (servidor y primer instante en el navegador) se muestra la pantalla: así funciona antes de hidratar y no parpadea.
   // Confirmado que no hay sesión, se va a la cuenta.
   const blocked = remote.settled && !accountPage && !remote.user;
   useEffect(() => {
-    if (blocked) void navigate({ to: '/crear/cuenta', replace: true });
-  }, [blocked, navigate]);
+    if (!blocked) return;
+    // Un instante después, para ganarle a las redirecciones de cada paso (que corren antes y mandan a /crear).
+    const t = window.setTimeout(() => { void navigate({ to: '/crear/cuenta', replace: true }); }, 50);
+    return () => window.clearTimeout(t);
+  }, [blocked, requested, navigate]); // también al cambiar de pantalla: otra redirección (p. ej. «falta el nombre») podía pisar esta
   const showBackdrop = !onboarding && path.startsWith('/crear');
   // El fondo aparece recién cuando la landing terminó de pintarse: antes el iframe vacío se veía como un destello blanco.
   const [bgReady, setBgReady] = useState(false);
