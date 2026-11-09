@@ -1,7 +1,7 @@
 import { track } from '@/lib/analytics';
 import { useEffect, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, TriangleAlert } from 'lucide-react';
 import { Field, FlowClose } from '@/components/panel/ui';
 import { accountDestination, hasEvent } from '@/lib/weda/account';
 import { isEmail, strongPassword } from '@/lib/weda/logic';
@@ -91,6 +91,9 @@ function Account() {
 
 
       <form onSubmit={submit} noValidate className="pn-form">
+        {loginFailed && (
+          <div className="pn-login-failed" role="alert"><TriangleAlert size={22} strokeWidth={1.6} aria-hidden="true" /><p>Credenciales incorrectas.</p></div>
+        )}
         <Field id="ac-email" label="Correo electrónico" labelInside error={errors.email}>
           {a => <input id="ac-email" placeholder="Correo electrónico" onFocus={() => { if (signup) track('signup_started'); }} type="email" inputMode="email" autoComplete="email" value={email} onChange={e => { setEmail(e.target.value); setErrors(x => ({ ...x, email: undefined })); setLoginFailed(false); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
         </Field>
@@ -107,12 +110,6 @@ function Account() {
         {signup && <p className="pn-terms">Al registrarte, aceptás los <a href="/terminos" target="_blank" rel="noopener noreferrer"><strong>Términos de uso</strong></a> y la <a href="/privacidad" target="_blank" rel="noopener noreferrer"><strong>Política de privacidad</strong></a> de Weda.</p>}
         {!signup && <p className="pn-alt"><Link to="/clave" className="pn-link">¿Olvidaste tu clave?</Link></p>}
         {formError && <p className="pn-banner" role="alert">{formError}</p>}
-        {loginFailed && (
-          <div className="pn-banner pn-login-failed" role="alert">
-            <p>El correo o la clave no son correctos.</p>
-            <p>¿Todavía no tenés cuenta? <button type="button" className="pn-link" onClick={() => { setMode('signup'); setLoginFailed(false); setErrors({}); }}>Registrate</button></p>
-          </div>
-        )}
         <button type="submit" className="pn-btn pn-block" disabled={busy || !hydrated} aria-busy={busy}>{busy ? 'Un momento…' : signup ? 'Registrarme' : 'Ingresar'}</button>
       </form>
 

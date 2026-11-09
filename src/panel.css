@@ -1856,7 +1856,7 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 /* «Registrarme» / «Ingresar» en el verde de Weda, como «Crear mi evento» de la landing (prueba de la dueña, 2026-11-08). */
 .pn-account .pn-btn.pn-block:not(.is-ghost) { background: var(--slate, #959571) !important; color: #fff !important; border-color: transparent !important; }
 .pn-account .pn-btn.pn-block:not(.is-ghost):hover { background: color-mix(in oklab, var(--slate, #959571), #000 8%) !important; }
-/* Cuenta: aviso de ingreso fallido, con la invitación a registrarse. */
-.pn-login-failed { display: grid; gap: 4px; }
-.pn-login-failed p { margin: 0; }
-.pn-account .pn-login-failed .pn-link { font: inherit !important; letter-spacing: inherit !important; line-height: inherit !important; white-space: nowrap; }
+/* Cuenta: aviso de ingreso fallido, arriba del correo (como la referencia de la dueña). */
+.pn-login-failed { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 14px; background: #fcebe3; color: var(--text-strong); }
+.pn-login-failed svg { flex: none; color: #c43d2b; }
+.pn-login-failed p { margin: 0; font-size: 16px; line-height: 1.4; }
