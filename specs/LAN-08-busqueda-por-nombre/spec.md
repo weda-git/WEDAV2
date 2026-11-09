@@ -1,8 +1,8 @@
-# LAN-05 · Buscar un casamiento por el nombre de los novios — spec
+# LAN-08 · Buscar un casamiento por el nombre de los novios — spec
 
-- **Estado:** borrador (2026-11-08)
+- **Estado:** construida en la rama `rediseno` (2026-11-09); se cierra con el PR
 - **Tamaño:** crítica (privacidad: hace encontrables los sitios publicados)
-- **Plan:** se escribe cuando se apruebe esta spec
+- **Plan:** [plan.md](plan.md)
 
 ## Problema
 En `/encontrar` el invitado tiene que pegar el link que le mandaron (LAN-04). Muchos no lo tienen a mano. La dueña quiere que pueda buscar a la pareja por su nombre y entrar a su sitio.
@@ -24,7 +24,7 @@ En `/encontrar` el invitado tiene que pegar el link que le mandaron (LAN-04). Mu
 | # | Criterio | Regla | Cómo se verifica |
 |---|---|---|---|
 | CA-1 | Buscar por el nombre de uno o de los dos novios encuentra los casamientos **publicados** cuyo nombre lo contiene, sin importar mayúsculas ni tildes («lucia» encuentra «Lucía») | D-08 | Prueba de servidor |
-| CA-2 | No aparecen borradores, páginas dadas de baja ni celebraciones pausadas | BR-65, D-08 | Prueba de servidor |
+| CA-2 | No aparecen borradores ni páginas dadas de baja: solo lo que hoy se puede abrir públicamente | BR-65, D-08 | Prueba de servidor |
 | CA-3 | Cada resultado muestra solo lo que ya es público en el sitio: los nombres, la fecha (si la cargaron) y el enlace al sitio. Nada de correos, invitados, montos ni aportes | D-08 | Prueba de servidor (forma de la respuesta) |
 | CA-4 | Se pide al menos 3 letras; como mucho 10 resultados, del más cercano en fecha al más lejano | — | Prueba de servidor |
 | CA-5 | Límite de búsquedas por IP (para que no se pueda recorrer el listado entero) | — | Prueba de servidor (429) |
@@ -42,11 +42,21 @@ En `/encontrar` el invitado tiene que pegar el link que le mandaron (LAN-04). Mu
 - **Aviso en la política de privacidad y en «Publicar»:** con D-08, el sitio publicado se puede encontrar por nombre. Hay que decirlo en `/privacidad` y en la confirmación de publicar. El texto legal lo revisa la dueña (con su asesor). No bloquea la construcción; sí la publicación en producción.
 
 ## Revisión de consistencia (antes de construir)
-- [ ] Todos los IDs citados existen y su estado es el indicado.
-- [ ] Ningún criterio contradice una regla decidida.
-- [ ] Lo pendiente está marcado como pendiente y no bloquea, o la construcción espera.
+- [x] Todos los IDs citados existen y su estado es el indicado (LAN-05 estaba ocupado: la funcionalidad pasó a LAN-08).
+- [x] Ningún criterio contradice una regla decidida. CA-2 se ajustó al construir: no hay «celebraciones pausadas» con la página caída, así que el buscador muestra exactamente lo que hoy se puede abrir.
+- [x] Lo pendiente (revisión legal del aviso) está marcado y no bloquea la construcción.
 
 ## Verificación al cerrar
 | Criterio | Evidencia |
 |---|---|
-| CA-1 | |
+| CA-1 | `src/test/server/search.test.ts` «encuentra por un nombre o los dos…» |
+| CA-2 | `search.test.ts` «no muestra borradores ni páginas dadas de baja» |
+| CA-3 | `search.test.ts` «cada resultado trae solo nombres, fecha y enlace» |
+| CA-4 | `search.test.ts` «pide 3 letras, ordena…» |
+| CA-5 | `search.test.ts` «limita las búsquedas por IP» |
+| CA-6 | `e2e/search-by-name.spec.ts` (sin resultados y link pegado) y `e2e/audit.spec.ts` P-02/P-05 |
+| CA-7 | `e2e/search-by-name.spec.ts` (resultado → sitio de la pareja) |
+| CA-8 | `e2e/search-by-name.spec.ts` (`noindex`); la API responde con `x-robots-tag: noindex` |
+| CA-9 | Recorrido en el navegador a 375 y 1440 px, sin scroll horizontal |
+
+Pendiente para publicar en producción: revisión legal del aviso en `/privacidad` (sección «Qué es público»).

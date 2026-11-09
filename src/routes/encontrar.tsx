@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowRight, Search, X } from 'lucide-react';
 import { FloatNav } from '@/components/float-nav';
 import { wedding } from '@/lib/demo-wedding';
 import { pageMeta } from '@/lib/site';
 import { invitationPath } from '@/lib/weda/logic';
+import { api, ApiFailure, errorText } from '@/lib/weda/remote';
 
 export const Route = createFileRoute('/encontrar')({
   head: () => {
@@ -15,21 +16,26 @@ export const Route = createFileRoute('/encontrar')({
   component: Find,
 });
 
-/* Pantalla de invitados: buscar a los novios por su nombre (boceto 2026-11-08, pedido de la dueña).
-   OJO: la búsqueda real todavía no existe (falta el endpoint y la decisión de privacidad D5, docs/auditoria-ux-conversion/backend-dependencies.md).
-   Mientras tanto, buscar por nombre muestra «no encontramos» y un link pegado igual abre la invitación. No publicar este boceto sin la búsqueda real. */
+/* Pantalla de invitados: buscar a los novios por su nombre (LAN-08, D-08: todos los casamientos publicados). Un link pegado sigue abriendo la
+   invitación (LAN-04). Cada resultado muestra solo lo público: nombres, fecha y enlace al sitio. */
+type Result = { names: string; dateLabel: string | null; path: string };
 function Find() {
   const navigate = useNavigate();
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
-  const [searched, setSearched] = useState('');
-  const go = (e: React.FormEvent) => {
+  const [busy, setBusy] = useState(false);
+  const [results, setResults] = useState<{ q: string; list: Result[] } | null>(null);
+  const reset = () => { setError(''); setResults(null); };
+  const go = async (e: React.FormEvent) => {
     e.preventDefault();
     const q = value.trim();
-    if (q.length < 2) { setError('Escribí el nombre de uno de los novios.'); return; }
     const path = invitationPath(q);
     if (path) { void navigate({ to: path as never }); return; }
-    setSearched(q);
+    if (q.replace(/\s+y\s+|&/gi, '').replace(/\s/g, '').length < 3) { setError('Escribí al menos 3 letras del nombre de uno de los novios.'); return; }
+    setBusy(true); reset();
+    try { const r = await api<{ results: Result[] }>('GET', `/api/search?q=${encodeURIComponent(q)}`); setResults({ q, list: r.results }); }
+    catch (err) { setError(errorText(err instanceof ApiFailure ? err.code : 'network')); }
+    finally { setBusy(false); }
   };
   return (
     <div className="find">
@@ -43,17 +49,23 @@ function Find() {
         </div>
       </section>
       <main id="buscar" className="find-main">
-        <form className="find-form" onSubmit={go} noValidate>
+        <form className="find-form" onSubmit={e => void go(e)} noValidate>
           <label htmlFor="find-q" className="find-sr">Nombres de los novios</label>
           <div className="find-field">
             <Search className="find-icon" size={20} aria-hidden="true" />
-            <input id="find-q" type="search" value={value} onChange={e => { setValue(e.target.value); setError(''); setSearched(''); }} placeholder="Por ejemplo, Ana y Leo" autoComplete="off" enterKeyHint="search" aria-invalid={!!error} aria-describedby={error ? 'find-err' : undefined} />
-            {value && <button type="button" className="find-clear" aria-label="Borrar" onClick={() => { setValue(''); setError(''); setSearched(''); }}><X size={18} aria-hidden="true" /></button>}
+            <input id="find-q" type="search" value={value} onChange={e => { setValue(e.target.value); reset(); }} placeholder="Por ejemplo, Ana y Leo" autoComplete="off" enterKeyHint="search" aria-invalid={!!error} aria-describedby={error ? 'find-err' : undefined} />
+            {value && <button type="button" className="find-clear" aria-label="Borrar" onClick={() => { setValue(''); reset(); }}><X size={18} aria-hidden="true" /></button>}
           </div>
           {error && <p className="find-error" id="find-err" role="alert">{error}</p>}
-          <button type="submit" className="find-go">Buscar <ArrowRight size={16} aria-hidden="true" /></button>
+          <button type="submit" className="find-go" disabled={busy} aria-busy={busy}>{busy ? 'Buscando…' : <>Buscar <ArrowRight size={16} aria-hidden="true" /></>}</button>
         </form>
-        {searched && <p className="find-none" role="status">No encontramos ningún casamiento con «{searched}».</p>}
+        {results && (results.list.length === 0
+          ? <p className="find-none" role="status">No encontramos ningún casamiento con «{results.q}».</p>
+          : <ul className="find-results" aria-label="Casamientos encontrados">
+              {results.list.map(r => (
+                <li key={r.path}><Link to={r.path as never} className="find-result"><span><strong>{r.names.replace(/\s*&\s*/, ' y ')}</strong>{r.dateLabel && <small>{r.dateLabel}</small>}</span><ArrowRight size={18} aria-hidden="true" /></Link></li>
+              ))}
+            </ul>)}
       </main>
     </div>
   );

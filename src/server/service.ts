@@ -2,6 +2,7 @@
 // ya autenticado y filtra por él; ninguna confía en un identificador que venga del cliente. No depende de HTTP (ver api.ts).
 import { timingSafeEqual } from 'node:crypto';
 import { normalizeName, publicSite, sanitizeDraft, type DraftState } from './draft';
+import { norm } from '@/lib/weda/logic';
 import type { Db } from './db';
 import { ApiError, conflict, forbidden, invalid, notFound, unauthorized } from './errors';
 import { newId, newToken, RateLimiter, sha256 } from './security';
@@ -53,6 +54,8 @@ export class Service {
 
   /** Intentos de cambiar el destino de cobro con la clave equivocada, por usuario. */
   private payoutLimiter = new RateLimiter(8, 15 * 60_000);
+  /** Búsqueda de casamientos por nombre (LAN-08): 30 por IP cada 10 minutos, para que no se pueda recorrer el listado entero. */
+  private searchLimiter = new RateLimiter(30, 10 * 60_000);
   constructor(public db: Db, public cfg: ServerConfig, public files: Files, public accounts: Accounts) {}
 
   /* ------------------------------------------------------------------ cuentas y sesiones */
@@ -444,6 +447,28 @@ export class Service {
     if (row['status'] !== 'live') throw new ApiError(410, 'site_unpublished');
     // Sin vencimiento (BR-65): la página, las confirmaciones y los regalos siguen activos mientras esté publicada.
     return { wid: row['wid'] as string, snapshot: JSON.parse(row['snapshot'] as string) as SiteData, status: 'live' };
+  }
+
+  /**
+   * Buscar un casamiento por el nombre de los novios (LAN-08, D-08): todos los publicados, sin opt-in. Solo devuelve lo que ya es público
+   * en el sitio (nombres, fecha y enlace). Sin tildes ni mayúsculas, cada palabra tiene que estar en los nombres. Como mucho 10, del más
+   * cercano en fecha al más lejano (sin fecha, al final).
+   */
+  async searchPublic(raw: unknown, ip: string): Promise<{ results: { names: string; dateLabel: string | null; path: string }[] }> {
+    const q = norm(typeof raw === 'string' ? raw.slice(0, 60) : '').replace(/[%_\\]/g, ' ');
+    const words = q.split(/\s+/).filter(w => w && w !== 'y' && w !== '&' && w !== 'e');
+    if (words.join('').length < 3) throw invalid('query_too_short');
+    if (!this.searchLimiter.take(`search|${ip}`)) throw new ApiError(429, 'too_many_requests');
+    const names = "translate(lower(p.snapshot::jsonb->>'names'), 'áéíóúüñàèìòùäëïö', 'aeiouunaeiouaeio')";
+    const where = words.map(() => `${names} LIKE ?`).join(' AND ');
+    const rows = (await this.db.all(`SELECT w.slug AS slug, p.snapshot AS snapshot FROM publications p JOIN weddings w ON w.id = p.wedding_id WHERE p.status = 'live' AND w.slug IS NOT NULL AND ${where} LIMIT 50`, ...words.map(w => `%${w}%`))) as Row[];
+    const today = Date.now();
+    const found = rows.map(r => {
+      const site = JSON.parse(r['snapshot'] as string) as SiteData;
+      const t = site.eventDate ? Date.parse(site.eventDate) : NaN;
+      return { names: site.names, dateLabel: site.dateLabel ?? null, path: `/sitio/${r['slug'] as string}`, d: Number.isNaN(t) ? Infinity : Math.abs(t - today) };
+    }).sort((a, b) => a.d - b.d).slice(0, 10).map(({ names, dateLabel, path }) => ({ names, dateLabel, path }));
+    return { results: found };
   }
 
   /** Solo el snapshot publicado. Ningún dato de aportes: los regalos son repetibles (BR-19) y lo público no muestra cuántos se regalaron (BR-27). */

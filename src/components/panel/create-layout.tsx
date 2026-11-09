@@ -24,7 +24,8 @@ export function CreateLayout() {
   const accountPage = requested === '/crear/cuenta';
   // Mientras no se sabe si hay sesión (servidor y primer instante en el navegador) se muestra la pantalla: así funciona antes de hidratar y no parpadea.
   // Confirmado que no hay sesión, se va a la cuenta.
-  const blocked = remote.settled && !accountPage && !remote.user;
+  // Solo dentro de /crear: al salir hacia otra pantalla (por ejemplo «¿Olvidaste tu clave?» → /clave) este contenedor todavía está montado un instante.
+  const blocked = remote.settled && requested.startsWith('/crear') && !accountPage && !remote.user;
   useEffect(() => {
     if (!blocked) return;
     // Un instante después, para ganarle a las redirecciones de cada paso (que corren antes y mandan a /crear).
