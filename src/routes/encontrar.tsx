@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ArrowRight, Search, X } from 'lucide-react';
 import { FloatNav } from '@/components/float-nav';
 import { wedding } from '@/lib/demo-wedding';
@@ -15,17 +15,21 @@ export const Route = createFileRoute('/encontrar')({
   component: Find,
 });
 
-/* Pantalla de invitados. Todavía no hay búsqueda de casamientos reales (decisión de privacidad pendiente: docs/auditoria-ux-conversion/backend-dependencies.md, D5).
-   Antes mostraba parejas inventadas que abrían la lista de ejemplo, como si fueran reales (auditoría 2026-10-28). Ahora: pegar el link que mandaron los novios. */
+/* Pantalla de invitados: buscar a los novios por su nombre (boceto 2026-11-08, pedido de la dueña).
+   OJO: la búsqueda real todavía no existe (falta el endpoint y la decisión de privacidad D5, docs/auditoria-ux-conversion/backend-dependencies.md).
+   Mientras tanto, buscar por nombre muestra «no encontramos» y un link pegado igual abre la invitación. No publicar este boceto sin la búsqueda real. */
 function Find() {
   const navigate = useNavigate();
   const [value, setValue] = useState('');
   const [error, setError] = useState('');
+  const [searched, setSearched] = useState('');
   const go = (e: React.FormEvent) => {
     e.preventDefault();
-    const path = invitationPath(value);
-    if (!path) { setError('Pegá el link completo que te mandaron, por ejemplo weda.app/sitio/ana-y-leo.'); return; }
-    void navigate({ to: path as never });
+    const q = value.trim();
+    if (q.length < 2) { setError('Escribí el nombre de uno de los novios.'); return; }
+    const path = invitationPath(q);
+    if (path) { void navigate({ to: path as never }); return; }
+    setSearched(q);
   };
   return (
     <div className="find">
@@ -35,24 +39,21 @@ function Find() {
         <FloatNav back />
         <div className="find-hero-copy">
           <h1 id="find-title">Encontrá un casamiento</h1>
-          <p>Abrí el link de la invitación que te mandaron los novios.</p>
+          <p>Buscá a los novios por su nombre.</p>
         </div>
       </section>
       <main id="buscar" className="find-main">
         <form className="find-form" onSubmit={go} noValidate>
-          <label htmlFor="find-q" className="find-sr">Link de la invitación</label>
+          <label htmlFor="find-q" className="find-sr">Nombres de los novios</label>
           <div className="find-field">
             <Search className="find-icon" size={20} aria-hidden="true" />
-            <input id="find-q" type="url" inputMode="url" value={value} onChange={e => { setValue(e.target.value); setError(''); }} placeholder="Pegá el link acá" autoComplete="off" enterKeyHint="go" aria-invalid={!!error} aria-describedby={error ? 'find-err' : undefined} />
-            {value && <button type="button" className="find-clear" aria-label="Borrar" onClick={() => { setValue(''); setError(''); }}><X size={18} aria-hidden="true" /></button>}
+            <input id="find-q" type="search" value={value} onChange={e => { setValue(e.target.value); setError(''); setSearched(''); }} placeholder="Por ejemplo, Ana y Leo" autoComplete="off" enterKeyHint="search" aria-invalid={!!error} aria-describedby={error ? 'find-err' : undefined} />
+            {value && <button type="button" className="find-clear" aria-label="Borrar" onClick={() => { setValue(''); setError(''); setSearched(''); }}><X size={18} aria-hidden="true" /></button>}
           </div>
           {error && <p className="find-error" id="find-err" role="alert">{error}</p>}
-          <button type="submit" className="find-go">Abrir la invitación <ArrowRight size={16} aria-hidden="true" /></button>
+          <button type="submit" className="find-go">Buscar <ArrowRight size={16} aria-hidden="true" /></button>
         </form>
-        <div className="find-empty">
-          <p>¿No tenés el link? Pediselo a los novios: lo comparten cuando publican su invitación.</p>
-          <Link to="/ejemplo" className="find-reset">Ver una invitación de ejemplo</Link>
-        </div>
+        {searched && <p className="find-none" role="status">No encontramos ningún casamiento con «{searched}».</p>}
       </main>
     </div>
   );
