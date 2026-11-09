@@ -1529,3 +1529,22 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 @media (max-width: 640px) { .seed-hero .hero-copy p { width: auto; text-wrap: balance; } }
 /* La bajada del hero en dos renglones también en el celular. */
 @media (max-width: 640px) { .seed-hero .hero-copy p { width: calc(100vw - 32px); max-width: 360px !important; text-wrap: balance; } }
+
+/* Recuperar la clave (boceto 2026-11-08, referencia de la dueña): página blanca, una columna centrada, título, frase, línea, el campo con su nombre adentro y un botón redondeado centrado. */
+.fg-page { min-height: 100dvh; background: #fff; display: flex; justify-content: center; padding: clamp(56px, 12vh, 120px) 20px 48px; }
+.fg-box { width: min(100%, 400px); text-align: center; }
+.fg-box .fg-title { margin: 0; font-size: var(--type-lead-size) !important; line-height: 1.2 !important; letter-spacing: var(--type-h3-tracking) !important; color: var(--text-strong); }
+.fg-lead { margin: 18px 0 0; font-size: var(--type-h3-size); line-height: 1.25; font-weight: 500; letter-spacing: var(--type-h3-tracking); color: var(--text-strong); text-wrap: balance; }
+.fg-rule { margin: 24px 0; border: 0; border-top: 1px solid rgb(59 60 58 / .2); }
+.fg-form { display: grid; gap: 16px; justify-items: center; }
+.fg-input { width: 100%; height: 56px; padding: 0 18px; border: 1px solid rgb(59 60 58 / .3); border-radius: 12px; background: #fff; color: var(--text-strong); font: inherit; font-size: 16px; outline: none; }
+.fg-input::placeholder { color: var(--text-soft); opacity: 1; }
+.fg-input:focus-visible { border-color: var(--text-main); box-shadow: 0 0 0 3px rgb(149 149 113 / .35); }
+.fg-input[aria-invalid="true"] { border-color: var(--destructive); }
+.fg-error { margin: -6px 0 0; justify-self: start; font-size: var(--type-note-size); color: var(--destructive); text-align: left; }
+.fg-btn { display: inline-flex; align-items: center; justify-content: center; height: 52px; padding: 0 32px; border: 0; border-radius: 999px; background: var(--slate, #959571); color: #fff; font: inherit; font-size: 16px !important; font-weight: 500; text-decoration: none; cursor: pointer; }
+.fg-btn:hover { background: color-mix(in oklab, var(--slate, #959571), #000 8%); }
+.fg-btn:disabled { opacity: .6; cursor: default; }
+.fg-back { font-size: var(--type-note-size); color: #403C2B; text-decoration: underline; text-underline-offset: 3px; }
+.fg-note { margin: 0 0 20px; font-size: var(--type-body-size); line-height: 1.6; color: var(--text-main); }
+.fg-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
