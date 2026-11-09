@@ -60,59 +60,59 @@ html { font-family: var(--font-ui); color: var(--text-main); -webkit-text-size-a
    tipografía propia (pedido de la dueña, 2026-11-07): por eso cada regla excluye .dm-root, .rg-dialog y .dm-rsvp.
    Llevan !important en esta etapa de boceto para ganarle a los estilos de cada pantalla.
    ========================================================================= */
-h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-h2:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-h3:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-h4:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-h5:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-h6:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: var(--font-ui) !important; font-weight: 500 !important; font-style: normal !important; text-wrap: balance; }
-h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-h1-size) !important; line-height: 1.05 !important; letter-spacing: var(--type-h1-tracking) !important; }
-h2:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-h2-size) !important; line-height: 1.1 !important; letter-spacing: var(--type-h2-tracking) !important; }
-h3:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-h4:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-h5:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-h6:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-h3-size) !important; line-height: 1.2 !important; letter-spacing: var(--type-h3-tracking) !important; }
+h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+h2:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+h3:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+h4:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+h5:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+h6:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-family: var(--font-ui) !important; font-weight: 500 !important; font-style: normal !important; text-wrap: balance; }
+h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-size: var(--type-h1-size) !important; line-height: 1.05 !important; letter-spacing: var(--type-h1-tracking) !important; }
+h2:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-size: var(--type-h2-size) !important; line-height: 1.1 !important; letter-spacing: var(--type-h2-tracking) !important; }
+h3:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+h4:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+h5:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+h6:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-size: var(--type-h3-size) !important; line-height: 1.2 !important; letter-spacing: var(--type-h3-tracking) !important; }
 /* Display: el título del hero de la landing. La dueña lo pidió al 85 % del Display y apenas más fino (420, Geist variable local), con el mismo interletrado. */
-.hero-copy h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: 'Geist Variable', var(--font-ui) !important; font-weight: 420 !important; font-size: calc(var(--type-display-size) * .85) !important; line-height: 1 !important; letter-spacing: var(--type-display-tracking) !important; }
+.hero-copy h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-family: 'Geist Variable', var(--font-ui) !important; font-weight: 420 !important; font-size: calc(var(--type-display-size) * .85) !important; line-height: 1 !important; letter-spacing: var(--type-display-tracking) !important; }
 /* En el celular, en dos renglones («Tu casamiento empieza» / «antes del gran día.»). */
 @media (max-width: 640px) {
-.hero-copy h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: min(calc(var(--type-display-size) * .85), calc((100vw - 48px) / 10.2)) !important; }
+.hero-copy h1:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-size: min(calc(var(--type-display-size) * .85), calc((100vw - 48px) / 10.2)) !important; }
 }
 /* Bajada. */
-.hero-copy p:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.section-lead:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.lead:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-lead-size) !important; line-height: 1.45 !important; letter-spacing: var(--type-lead-tracking) !important; }
-p:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { text-wrap: pretty; }
+.hero-copy p:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.section-lead:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.lead:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-size: var(--type-lead-size) !important; line-height: 1.45 !important; letter-spacing: var(--type-lead-tracking) !important; }
+p:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { text-wrap: pretty; }
 /* Sin negritas ni itálicas. */
-strong:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-b:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-weight: 500 !important; }
-em:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-i:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-cite:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-address:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-style: normal !important; }
+strong:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+b:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-weight: 500 !important; }
+em:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+i:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+cite:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+address:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-style: normal !important; }
 /* Campos: 16 px como mínimo. */
-input:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-select:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-textarea:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: var(--font-ui); font-size: max(16px, 1em); }
+input:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+select:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+textarea:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-family: var(--font-ui); font-size: max(16px, 1em); }
 /* Botones (la barra de la landing conserva sus estilos propios). */
-button:not(.float-burger):not(.float-cta):not(.float-link):not(.pn-link):not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.seed-button:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.pn-btn:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: var(--font-ui) !important; font-weight: 500 !important; font-size: var(--type-button-size) !important; line-height: 1 !important; letter-spacing: var(--type-button-tracking) !important; }
+button:not(.float-burger):not(.float-cta):not(.float-link):not(.pn-link):not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.seed-button:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.pn-btn:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-family: var(--font-ui) !important; font-weight: 500 !important; font-size: var(--type-button-size) !important; line-height: 1 !important; letter-spacing: var(--type-button-tracking) !important; }
 /* Etiquetas: Geist Mono 400, mayúsculas, +4 %. */
-.tq-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.pn-kicker:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.hx-eyebrow:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.hx-kicker:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.hx-link-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.gift-feature-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.lr-hero .eyebrow:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.duo-panel .eyebrow:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.fd-count span:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.fd-std small:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.rg-pack-cover small:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
-.rg-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: var(--font-mono) !important; font-weight: 400 !important; font-size: var(--type-label-size) !important; line-height: 1.3 !important; letter-spacing: var(--type-label-tracking) !important; text-transform: uppercase !important; }
+.tq-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.pn-kicker:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.hx-eyebrow:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.hx-kicker:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.hx-link-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.gift-feature-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.lr-hero .eyebrow:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.duo-panel .eyebrow:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.fd-count span:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.fd-std small:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.rg-pack-cover small:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)),
+.rg-label:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-family: var(--font-mono) !important; font-weight: 400 !important; font-size: var(--type-label-size) !important; line-height: 1.3 !important; letter-spacing: var(--type-label-tracking) !important; text-transform: uppercase !important; }
 /* Menú de la landing en el celular. */
-.menu-row strong:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-size: var(--type-body-size) !important; letter-spacing: 0 !important; line-height: 1.2 !important; }
+.menu-row strong:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *, .fd, .fd *, .mk, .mk *)) { font-size: var(--type-body-size) !important; letter-spacing: 0 !important; line-height: 1.2 !important; }
 /* Números en tablas y precios. */
 .num, .pl-price, td { font-variant-numeric: tabular-nums; }
 /* Panel (dashboard): escala más compacta, sin Display. */
