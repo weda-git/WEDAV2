@@ -95,7 +95,7 @@ input:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp
 select:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
 textarea:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: var(--font-ui); font-size: max(16px, 1em); }
 /* Botones (la barra de la landing conserva sus estilos propios). */
-button:not(.float-burger):not(.float-cta):not(.float-link):not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
+button:not(.float-burger):not(.float-cta):not(.float-link):not(.pn-link):not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
 .seed-button:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)),
 .pn-btn:not(:is(.dm-root, .dm-root *, .rg-dialog, .rg-dialog *, .dm-rsvp, .dm-rsvp *)) { font-family: var(--font-ui) !important; font-weight: 500 !important; font-size: var(--type-button-size) !important; line-height: 1 !important; letter-spacing: var(--type-button-tracking) !important; }
 /* Etiquetas: Geist Mono 400, mayúsculas, +4 %. */

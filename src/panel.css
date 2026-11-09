@@ -1857,4 +1857,6 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 .pn-account .pn-btn.pn-block:not(.is-ghost) { background: var(--slate, #959571) !important; color: #fff !important; border-color: transparent !important; }
 .pn-account .pn-btn.pn-block:not(.is-ghost):hover { background: color-mix(in oklab, var(--slate, #959571), #000 8%) !important; }
 /* Cuenta: aviso de ingreso fallido, con la invitación a registrarse. */
-.pn-login-failed .pn-link { font: inherit; }
+.pn-login-failed { display: grid; gap: 4px; }
+.pn-login-failed p { margin: 0; }
+.pn-account .pn-login-failed .pn-link { font: inherit !important; letter-spacing: inherit !important; line-height: inherit !important; white-space: nowrap; }

@@ -108,10 +108,10 @@ function Account() {
         {!signup && <p className="pn-alt"><Link to="/clave" className="pn-link">¿Olvidaste tu clave?</Link></p>}
         {formError && <p className="pn-banner" role="alert">{formError}</p>}
         {loginFailed && (
-          <p className="pn-banner pn-login-failed" role="alert">
-            El correo o la clave no son correctos. ¿Todavía no tenés cuenta?{' '}
-            <button type="button" className="pn-link" onClick={() => { setMode('signup'); setLoginFailed(false); setErrors({}); }}>Registrate</button>
-          </p>
+          <div className="pn-banner pn-login-failed" role="alert">
+            <p>El correo o la clave no son correctos.</p>
+            <p>¿Todavía no tenés cuenta? <button type="button" className="pn-link" onClick={() => { setMode('signup'); setLoginFailed(false); setErrors({}); }}>Registrate</button></p>
+          </div>
         )}
         <button type="submit" className="pn-btn pn-block" disabled={busy || !hydrated} aria-busy={busy}>{busy ? 'Un momento…' : signup ? 'Registrarme' : 'Ingresar'}</button>
       </form>
