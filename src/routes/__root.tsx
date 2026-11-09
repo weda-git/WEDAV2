@@ -83,10 +83,6 @@ export const Route = createRootRoute({
       ],
       links: [
         { rel: "preload", href: "/fonts/geist/geist-latin-wght-normal.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
-        // Geist y Geist Mono (sistema tipográfico, 2026-11-07): carga indicada por la dueña.
-        { rel: "preconnect", href: "https://fonts.googleapis.com" },
-        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-        { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400&display=swap" },
         { rel: "stylesheet", href: typographyCss },
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: "/favicon.svg?v=4", type: "image/svg+xml" },
