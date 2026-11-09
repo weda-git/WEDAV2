@@ -205,7 +205,7 @@ function PanelLayout() {
   // Sin cuenta no hay panel (decisión de la dueña, 2026-11-06): se va a crear la cuenta o ingresar.
   useEffect(() => {
     if (!remote.settled) return;
-    if (!remote.user) void navigate({ to: '/crear/cuenta', replace: true });
+    if (!remote.user) void navigate({ to: '/crear/cuenta', search: { modo: 'ingresar' }, replace: true }); // quien entra al panel ya tiene cuenta: va a ingresar
     else if (hydrated && !onboarded) void navigate({ to: '/crear', replace: true });
   }, [hydrated, remote.settled, remote.user, onboarded, navigate]);
   // Cambios sin confirmar por el servidor: avisa antes de cerrar la pestaña.
