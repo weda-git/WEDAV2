@@ -1857,6 +1857,6 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 .pn-account .pn-btn.pn-block:not(.is-ghost) { background: var(--slate, #959571) !important; color: #fff !important; border-color: transparent !important; }
 .pn-account .pn-btn.pn-block:not(.is-ghost):hover { background: color-mix(in oklab, var(--slate, #959571), #000 8%) !important; }
 /* Cuenta: oferta de crear la cuenta cuando el ingreso no encuentra una. */
-.pn-offer { display: grid; gap: 12px; padding: 16px; border-radius: 14px; background: #f5f3ee; }
+.pn-offer { display: grid; gap: 10px; }
 .pn-offer p { margin: 0; font-size: 14px; line-height: 1.5; color: var(--text-main); }
 .pn-offer strong { font-weight: 500; color: var(--text-strong); }

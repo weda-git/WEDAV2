@@ -124,9 +124,9 @@ function Account() {
         {formError && <p className="pn-banner" role="alert">{formError}</p>}
         {offerSignup && (
           <div className="pn-offer" role="alert">
-            <p><strong>No encontramos una cuenta con ese correo y esa clave.</strong> Si es tu primera vez en Weda, creala ahora con estos mismos datos.</p>
+            <p className="pn-sr">No encontramos una cuenta con ese correo y esa clave.</p>
+            <button type="button" className="pn-btn pn-block" onClick={createWithSameData} disabled={busy} aria-busy={busy}>{busy ? 'Un momento…' : 'Crear mi cuenta con estos datos'}</button>
             <p className="pn-terms">Al crear tu cuenta, aceptás los <a href="/terminos" target="_blank" rel="noopener noreferrer"><strong>Términos de uso</strong></a> y la <a href="/privacidad" target="_blank" rel="noopener noreferrer"><strong>Política de privacidad</strong></a> de Weda.</p>
-            <button type="button" className="pn-btn pn-block" onClick={createWithSameData} disabled={busy} aria-busy={busy}>{busy ? 'Un momento…' : 'Crear mi cuenta'}</button>
           </div>
         )}
         {!offerSignup && <button type="submit" className="pn-btn pn-block" disabled={busy || !hydrated} aria-busy={busy}>{busy ? 'Un momento…' : signup ? 'Registrarme' : 'Ingresar'}</button>}
