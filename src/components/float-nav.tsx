@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Menu, X, Gift, CalendarHeart, LogIn } from 'lucide-react';
+import { WedaLogo } from '@/components/weda-logo';
 
 /** Barra flotante de la landing. Se reutiliza tal cual en las demás pantallas para que el logo quede siempre en el mismo lugar. */
 export function FloatNav({ onLanding = false, back = false }: { onLanding?: boolean; back?: boolean }) {
@@ -43,8 +44,8 @@ export function FloatNav({ onLanding = false, back = false }: { onLanding?: bool
       <nav className="float-bar" aria-label="Principal">
         <div className="float-pill float-left">
           {onLanding
-            ? <a href="#top" className="seed-logo" aria-label="Weda, volver arriba">Weda<i aria-hidden="true" /></a>
-            : <Link to="/" className="seed-logo" aria-label="Weda, ir al inicio">Weda<i aria-hidden="true" /></Link>}
+            ? <a href="#top" className="seed-logo" aria-label="Weda, volver arriba"><WedaLogo /></a>
+            : <Link to="/" className="seed-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link>}
         </div>
         {back ? (
           <div className="float-pill float-right">

@@ -40,6 +40,14 @@ Pesos: `--w-regular` 400 (texto), `--w-medium` 500 (navegación, botones, etique
 
 **Página pública (`invitacion.css`):** `--iv-ink #3b3c3a`, `--iv-muted #575757`, `--iv-slate #66747f` (un punto más profundo para que el texto blanco llegue a 4,5:1), `--iv-paper #f5f2eb`, `--iv-section #f3f0e8`, `--iv-tonal #f4f4f2`; `/ejemplo` usa además `--ej-slate #5A646C`.
 
+## 2b. Logo (v2.0, 2026-11-07)
+
+- **Archivo oficial:** `public/weda-logo.svg`; en la interfaz se usa el componente `WedaLogo` (`src/components/weda-logo.tsx`), con la misma geometría y dentro de un enlace `.seed-logo` que tiene su nombre accesible («Weda, …»).
+- **Ajuste aprobado por la dueña:** las letras se ven apenas más finas que en el archivo (un filtro `feMorphology` de 6 unidades) y se acercan 12 unidades por letra, así el interletrado visual queda igual. Los círculos no cambian. Para volver al grosor del archivo, `THIN = 0`.
+- **Color, solo los dos del manual:** `#ECE9E2` (White Tea, `--logo-on-dark`) sobre fondos oscuros, que es la barra de la landing, el pie de la landing y el pie de cada sitio; y `#5D573F` (Dragon, `--logo-on-light`) sobre fondos claros, que es el panel, el armado del casamiento y las páginas legales. No se usa sobre `#9B9779` ni `#9F9E88`.
+- **Tamaño:** alto `1em` del enlace (ancho proporcional 4,63:1) y mínimo 80 px de ancho. Barra: 21 px de alto; pie de la landing: 38 px.
+- **Ícono de la pestaña:** `public/favicon.svg`, con los dos círculos del logo en Dragon. `favicon.ico` y `apple-touch-icon.png` todavía son los anteriores.
+
 ## 3. Forma y espacio
 
 - **Botones en píldora** (`border-radius: 999px`) en los tres contextos; alto mínimo 48 px en el panel (`.pn-btn`), 44 px en los botones chicos (`is-small`) y filas táctiles.

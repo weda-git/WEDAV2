@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { ArrowLeft, Check, Receipt, X } from 'lucide-react';
+import { ArrowLeft, Check, Receipt, X, Copy } from 'lucide-react';
 import { formatARS, gifts } from '@/lib/demo-wedding';
 import '@/gift-mocks.css';
 
@@ -10,7 +10,7 @@ const g = (id: string) => gifts.find(x => x.id === id)!;
 
 export function NoFeeMock() {
   const ring = `mk-ring-${useId().replace(/:/g, '')}`;
-  const trip = g('patagonia');
+  const trip = g('santorini');
   return (
     <div className="mk mk-nofee" aria-hidden="true">
       <svg className="mk-badge" viewBox="0 0 120 120"><defs><path id={ring} d="M60 60 m-44 0 a44 44 0 1 1 88 0 a44 44 0 1 1 -88 0" /></defs>
@@ -23,9 +23,9 @@ export function NoFeeMock() {
         <span className="mk-amount">{formatARS(trip.amount)}</span>
       </div>
       <div className="mk-pay">
-        <b>¿Cómo querés pagar?</b>
-        <span className="mk-opt is-on"><i />Transferencia al alias</span>
-        <span className="mk-note">Va directo a la cuenta de los novios</span>
+        <b>Transferí a</b>
+        {/* Alias inventado de ejemplo (no es de nadie): muestra que la plata va directo a la cuenta de la pareja. */}
+        <span className="mk-alias"><span>casamiento.mariajuan</span><Copy size={14} aria-hidden="true" /></span>
       </div>
     </div>
   );

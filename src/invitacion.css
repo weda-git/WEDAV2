@@ -131,7 +131,7 @@
 /* ---------- pie (el de la landing, en una sola línea) ---------- */
 .dm-root .iv-footer { background: var(--iv-slate); color: #fff; padding: 28px 0; font-family: var(--iv-font); }
 .dm-root .iv-footer .iv-wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 32px; }
-.dm-root .iv-footer-brand { font-size: 21px; min-height: 44px; color: #fff; }
+.dm-root .iv-footer-brand { font-size: 21px; min-height: 44px; color: var(--logo-on-dark); }
 .dm-root .iv-footer p { flex: 1 1 320px; margin: 0; max-width: 56ch; font: 400 13px/1.5 var(--iv-font); color: #fff; }
 .dm-root .iv-footer span { font: 400 12px/1.2 var(--iv-font); color: #fff; }
 /* Solo en el ejemplo: la salida natural para quien lo está mirando es empezar el suyo. Enlace de texto, sin relleno ni sombra. */

@@ -12,17 +12,17 @@ type Item = { title: string; text: string; Mock: ComponentType; cta: { label: st
 const ITEMS: Item[] = [
   {
     title: 'Sin comisión: el regalo entero es para ustedes',
-    text: 'Tus invitados transfieren directo al alias o CBU que cargaste. Weda no cobra ni mueve el dinero de los regalos.',
+    text: 'Tus invitados transfieren directo a la cuenta que cargaste. Weda no cobra ni mueve el dinero de los regalos.',
     Mock: NoFeeMock, cta: { label: 'Crear mi lista de regalos', to: '/crear/cuenta' },
   },
   {
     title: 'Regalos que se adaptan a cada bolsillo',
-    text: 'Armá tu lista de regalos con distintos montos. Tus invitados filtran por precio y encuentran uno que les quede cómodo.',
+    text: 'Armá tu lista de regalos con distintos montos. Tus invitados pueden filtrar por precio y encontrar el que les quede cómodo.',
     Mock: BudgetMock, cta: { label: 'Ver regalos', to: '/ejemplo/regalos' },
   },
   {
     title: 'Sabé quién te regaló qué',
-    text: 'Cada regalo llega con el comprobante de la transferencia, el nombre de quien lo hizo y su mensaje. Lo revisás, lo confirmás y te queda la lista para agradecer.',
+    text: 'Seguí cada regalo con su comprobante, quién lo hizo y su mensaje, y no te olvides de agradecer.',
     Mock: ReceivedMock, cta: { label: 'Crear mi lista de regalos', to: '/crear/cuenta' },
   },
 ];

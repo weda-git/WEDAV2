@@ -214,6 +214,9 @@ async function route(req: Request, cfg: ServerConfig, injected: Service | undefi
       return json(200, (await svc.handlePaymentNotification(c, raw, req.headers)));
     }
 
+    /* ---- búsqueda de casamientos por nombre (LAN-08), sin sesión */
+    if (a === 'search' && !b && method === 'GET') return json(200, (await svc.searchPublic(url.searchParams.get('q') ?? '', clientIp(req))), { 'cache-control': 'no-store', 'x-robots-tag': 'noindex' });
+
     /* ---- público (sin sesión) */
     if (a === 'public') {
       if (b === 'contributions' && c) {

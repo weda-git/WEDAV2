@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { formatPrice, PLANS, TRIAL_DAYS } from '@/lib/weda/plans';
 import { pageMeta } from '@/lib/site';
+import { WedaLogo } from '@/components/weda-logo';
 
 /* Términos de uso — BORRADOR (2026-10-29). No fue revisado por un abogado. Antes del lanzamiento: completar lo marcado «a completar», cerrar las
    decisiones comerciales marcadas «decisión pendiente» y hacerlo revisar. Hasta entonces la página no se indexa. Ver docs/auditoria-ux-conversion/production-readiness.md. */
@@ -18,7 +19,7 @@ const Decide = ({ children }: { children: string }) => <mark className="legal-to
 function Terms() {
   return (
     <main className="legal-page" id="main">
-      <p className="legal-brand"><Link to="/">Weda</Link></p>
+      <p className="legal-brand"><Link to="/" className="seed-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link></p>
       <h1>Términos de uso</h1>
       <p className="legal-meta">Última actualización: <Todo>fecha de publicación</Todo></p>
 

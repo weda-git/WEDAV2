@@ -13,16 +13,16 @@ import '@/panel.css';
 
 /* ------------------------------------------------------------------ campos */
 
-type FieldProps = { label: string; /** Id del control si ya tiene uno fijo (lo usan tests y el foco al validar): la etiqueta queda asociada a ese. Sin él se genera uno. */ id?: string; error?: string | undefined; hint?: string | undefined; optional?: boolean; children: (a: { id: string; describedBy: string | undefined; invalid: boolean }) => ReactNode };
+type FieldProps = { label: string; /** Id del control si ya tiene uno fijo (lo usan tests y el foco al validar): la etiqueta queda asociada a ese. Sin él se genera uno. */ id?: string; error?: string | undefined; hint?: string | undefined; optional?: boolean; /** El nombre del campo se ve dentro del campo (como texto de ejemplo) y la etiqueta queda solo para lectores de pantalla. */ labelInside?: boolean; children: (a: { id: string; describedBy: string | undefined; invalid: boolean }) => ReactNode };
 
 /** Etiqueta + control + ayuda + error, con los ids bien asociados (lectores de pantalla). */
-export function Field({ label, id: fixedId, error, hint, optional, children }: FieldProps) {
+export function Field({ label, id: fixedId, error, hint, optional, labelInside, children }: FieldProps) {
   const auto = useId();
   const id = fixedId ?? auto;
   const describedBy = [hint ? `${id}-h` : '', error ? `${id}-e` : ''].filter(Boolean).join(' ') || undefined;
   return (
     <div className={`pn-field${error ? ' has-error' : ''}`}>
-      <label htmlFor={id}>{label}{optional && <span className="pn-opt"> · opcional</span>}</label>
+      <label htmlFor={id} className={labelInside ? 'pn-sr' : undefined}>{label}{optional && <span className="pn-opt"> · opcional</span>}</label>
       {children({ id, describedBy, invalid: !!error })}
       {hint && !error && <p className="pn-hint" id={`${id}-h`}>{hint}</p>}
       {error && <p className="pn-error" id={`${id}-e`} role="alert">{error}</p>}

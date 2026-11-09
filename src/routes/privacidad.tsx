@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { pageMeta } from '@/lib/site';
+import { WedaLogo } from '@/components/weda-logo';
 
 /* Política de privacidad — BORRADOR (2026-10-28). Antes del lanzamiento: completar los datos marcados como «a completar» y hacerla revisar
    por un abogado (Ley 25.326). Hasta entonces la página no se indexa. Checklist completo en docs/datos-personales.md. */
@@ -17,7 +18,7 @@ const Todo = ({ children }: { children: string }) => <mark className="legal-todo
 function Privacy() {
   return (
     <main className="legal-page" id="main">
-      <p className="legal-brand"><Link to="/">Weda</Link></p>
+      <p className="legal-brand"><Link to="/" className="seed-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link></p>
       <h1>Política de privacidad</h1>
       <p className="legal-meta">Última actualización: <Todo>fecha de publicación</Todo></p>
 
@@ -35,6 +36,8 @@ function Privacy() {
       <h2>Con quién se comparten</h2>
       <p>Los datos de cada casamiento los ve la pareja que lo creó. Usamos proveedores que tratan los datos solo para prestarnos su servicio: Supabase guarda la base de datos, las cuentas, las fotos y los comprobantes en servidores de São Paulo, Brasil; Resend envía los correos, y <Todo>proveedor de hosting</Todo> aloja el sitio. <Todo>transferencia internacional de datos (revisión legal)</Todo>. No vendemos tus datos.</p>
 
+      <h2>Qué es público</h2>
+      <p>Cuando una pareja publica su página, la puede abrir cualquiera que tenga el link, y además aparece en el buscador de Weda (<a href="/encontrar">Encontrá un casamiento</a>) buscando los nombres de los novios. El buscador muestra solo los nombres, la fecha y el link; nunca correos, invitados ni regalos. Las páginas no se ofrecen a buscadores como Google. <Todo>revisión legal de esta sección</Todo></p>
       <h2>Cuánto tiempo los guardamos</h2>
       <p>Los datos del casamiento, mientras la cuenta esté activa: la página publicada no vence, y un proyecto en pausa por no haber contratado se conserva (<Todo>plazo de conservación de proyectos en pausa</Todo>). Los datos de novedades, hasta que te des de baja (guardamos la baja como constancia). <Todo>plazo de conservación luego de cerrar la cuenta</Todo>.</p>
 

@@ -1,7 +1,7 @@
 import { track } from '@/lib/analytics';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, TriangleAlert } from 'lucide-react';
 import { Field, FlowClose } from '@/components/panel/ui';
 import { accountDestination, hasEvent } from '@/lib/weda/account';
 import { isEmail, strongPassword } from '@/lib/weda/logic';
@@ -45,7 +45,11 @@ function Account() {
   const [formError, setFormError] = useState<string | undefined>();
   const [googleMsg, setGoogleMsg] = useState(false);
   const [errors, setErrors] = useState<{ email?: string | undefined; password?: string | undefined }>({});
+  // Ingreso fallido: se dice que el correo o la clave no son correctos y se invita a registrarse (decisión de la dueña, 2026-11-08: sin crear cuentas desde acá).
+  const [loginFailed, setLoginFailed] = useState(false);
   const signup = mode === 'signup';
+  // «Iniciar sesión» y «Crear mi evento» llevan a esta misma pantalla: el modo sigue al enlace aunque la pantalla ya esté abierta.
+  useEffect(() => { setMode(modo === 'ingresar' ? 'login' : 'signup'); setErrors({}); setLoginFailed(false); setFormError(undefined); }, [modo]);
   const saved = hydrated && hasEvent(state);
 
   // Con evento guardado, sigue donde corresponde (panel si ya lo terminó; si no, el onboarding con lo ya cargado). Sin evento, empieza el onboarding.
@@ -70,6 +74,7 @@ function Account() {
         return;
       }
       if (r.ok) { const s = getState(); void navigate({ to: hasEvent(s) ? accountDestination(s) : '/crear' }); return; }
+      if (!signup && r.code === 'invalid_credentials') { setLoginFailed(true); return; }
       if (r.code === 'email_taken' || r.code === 'invalid_email') setErrors({ email: errorText(r.code) });
       else if (r.code === 'invalid_credentials' || r.code === 'weak_password') setErrors({ password: errorText(r.code) });
       else setFormError(errorText(r.code));
@@ -86,13 +91,16 @@ function Account() {
 
 
       <form onSubmit={submit} noValidate className="pn-form">
-        <Field id="ac-email" label="Correo electrónico" error={errors.email}>
-          {a => <input id="ac-email" onFocus={() => { if (signup) track('signup_started'); }} type="email" inputMode="email" autoComplete="email" value={email} onChange={e => { setEmail(e.target.value); setErrors(x => ({ ...x, email: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
+        {loginFailed && (
+          <div className="pn-login-failed" role="alert"><TriangleAlert size={22} strokeWidth={1.6} aria-hidden="true" /><p>Credenciales incorrectas.</p></div>
+        )}
+        <Field id="ac-email" label="Correo electrónico" labelInside error={errors.email}>
+          {a => <input id="ac-email" placeholder="Correo electrónico" onFocus={() => { if (signup) track('signup_started'); }} type="email" inputMode="email" autoComplete="email" value={email} onChange={e => { setEmail(e.target.value); setErrors(x => ({ ...x, email: undefined })); setLoginFailed(false); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
         </Field>
-        <Field id="ac-pass" label="Clave" error={errors.password} hint={signup ? 'Mínimo 8 caracteres, con mayúscula, minúscula y número.' : undefined}>
+        <Field id="ac-pass" label="Clave" labelInside error={errors.password} hint={signup ? 'Mínimo 8 caracteres, con mayúscula, minúscula y número.' : undefined}>
           {a => (
             <div className="pn-pass">
-              <input id="ac-pass" type={show ? 'text' : 'password'} autoComplete={signup ? 'new-password' : 'current-password'} value={password} onChange={e => { setPassword(e.target.value); setErrors(x => ({ ...x, password: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />
+              <input id="ac-pass" placeholder="Clave" type={show ? 'text' : 'password'} autoComplete={signup ? 'new-password' : 'current-password'} value={password} onChange={e => { setPassword(e.target.value); setErrors(x => ({ ...x, password: undefined })); setLoginFailed(false); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />
               <button type="button" className="pn-pass-toggle" onClick={() => setShow(v => !v)} aria-label={show ? 'Ocultar la clave' : 'Mostrar la clave'} aria-pressed={show}>
                 {show ? <EyeOff size={20} strokeWidth={1.5} aria-hidden="true" /> : <Eye size={20} strokeWidth={1.5} aria-hidden="true" />}
               </button>
@@ -111,7 +119,7 @@ function Account() {
 
       <p className="pn-alt pn-account-switch">
         {signup ? '¿Ya sos miembro? ' : '¿Todavía no tenés cuenta? '}
-        <button type="button" className="pn-link" onClick={() => { setMode(signup ? 'login' : 'signup'); setErrors({}); }}>{signup ? 'Ingresá' : 'Registrate'}</button>
+        <button type="button" className="pn-link" onClick={() => { setMode(signup ? 'login' : 'signup'); setErrors({}); setLoginFailed(false); }}>{signup ? 'Ingresá' : 'Registrate'}</button>
       </p>
     </div>
   );

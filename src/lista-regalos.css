@@ -1,6 +1,6 @@
 /* Página /lista-de-regalos. Mismo ritmo que la landing (ver «Ritmo Knot» en styles.css): secciones que alternan blanco y gris
    #f6f7f8, 60/40 px de aire vertical, contenido hasta 1200 px y títulos de 36/28 px. El verde (#959571) queda solo en el cierre y los botones. */
-.lr { background: #fff; color: var(--foreground); }
+.lr { background: #fff; color: var(--text-main); }
 .lr-inner { width: var(--k-inner, min(100% - 64px, 1200px)); margin-inline: auto; }
 :where(.lr) h2 { font-size: var(--k-h2, clamp(28px, 3vw, 36px)); line-height: 1.1; letter-spacing: -.02em; font-weight: var(--w-medium, 500); margin: 0; text-wrap: balance; }
 .lr .seed-button { background: #959571; color: #fff; }
@@ -14,7 +14,7 @@
 .lr-lead { margin: 20px 0 0; max-width: 34em; font-size: clamp(16px, 1.3vw, 18px); line-height: 1.5; color: #4a4b48; text-wrap: pretty; }
 .lr-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 28px; }
 .lr-actions .seed-button { height: 44px; padding: 0 22px; font-size: 14px; }
-.lr-actions .seed-link-button { color: var(--foreground); font-size: 14px; }
+.lr-actions .seed-link-button { color: var(--text-main); font-size: 14px; }
 .lr-hero-demo { width: 100%; max-width: 520px; justify-self: end; }
 .lr-hero-demo .fd-stage { margin: 0; aspect-ratio: 1 / 1; min-height: 0; border-radius: 24px; background: #f6f7f8; }
 
@@ -46,7 +46,7 @@
 @media (prefers-reduced-motion: reduce) { .lr-faq-ico { transition: none; } }
 
 /* En el cierre verde el botón va blanco, como en la landing. */
-.lr .closing-section .seed-button { background: #fff; color: var(--foreground); }
-.lr .closing-section .seed-button:hover { background: var(--paper, #f3f0e8); color: var(--foreground); }
+.lr .closing-section .seed-button { background: #fff; color: var(--text-main); }
+.lr .closing-section .seed-button:hover { background: var(--paper, #f3f0e8); color: var(--text-main); }
 /* El título del cierre conserva la escala de los títulos de esta página. */
 .lr .closing-section h2 { font-size: var(--k-h2, clamp(28px, 3vw, 36px)); line-height: 1.1; letter-spacing: -.02em; }

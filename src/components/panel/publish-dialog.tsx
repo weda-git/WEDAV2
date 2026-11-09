@@ -160,6 +160,7 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
               <div><dt>Plan</dt><dd>{plan.name}</dd></div>
               <div><dt>Se publica</dt><dd>{publishedPagesText(plan.id)}</dd></div>
               <div><dt>Publicación</dt><dd>Al confirmarse el pago, sin vencimiento</dd></div>
+              <div><dt>Se encuentra</dt><dd>Con el link y buscando sus nombres en Weda</dd></div>
               <div className="is-total"><dt>Precio</dt><dd>{formatPrice(amount)} · {PRICE_UNIT}</dd></div>
             </dl>
             {error && <p className="pn-banner" role="alert">No se pudo publicar: {error}</p>}
@@ -169,7 +170,7 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
                 ? <p className="pn-note" role="status">Ya contrataste {planById(paidPlan)?.name}. Por ahora el plan no se puede cambiar después de contratarlo: publicá con {planById(paidPlan)?.name}.</p>
                 : mustPay
                 ? <p className="pn-note" role="status">Vas a pagar en una página segura. Cuando el pago se confirma, tu página se publica en ese momento.</p>
-                : <p className="pn-note" role="status">Al publicar, cualquiera que tenga el link va a poder abrir tu página.</p>}
+                : <p className="pn-note" role="status">Al publicar, tu página se puede abrir con el link y también se encuentra en Weda buscando sus nombres.</p>}
             <div className="pn-actions is-end">
               <button type="button" className="pn-btn is-ghost" disabled={step === 'paying'} onClick={() => setStep(pub ? 'manage' : 'choose')}>Volver</button>
               {!online
