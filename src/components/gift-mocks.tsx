@@ -1,5 +1,5 @@
 import { useId } from 'react';
-import { ArrowLeft, Check, Receipt, X } from 'lucide-react';
+import { ArrowLeft, Check, Receipt, X, Copy } from 'lucide-react';
 import { formatARS, gifts } from '@/lib/demo-wedding';
 import '@/gift-mocks.css';
 
@@ -23,9 +23,9 @@ export function NoFeeMock() {
         <span className="mk-amount">{formatARS(trip.amount)}</span>
       </div>
       <div className="mk-pay">
-        <b>¿Cómo querés pagar?</b>
-        <span className="mk-opt is-on"><i />Transferencia al alias</span>
-        <span className="mk-note">Va directo a la cuenta de los novios</span>
+        <b>Transferí a</b>
+        {/* Alias inventado de ejemplo (no es de nadie): muestra que la plata va directo a la cuenta de la pareja. */}
+        <span className="mk-alias"><span>casamiento.mariajuan</span><Copy size={14} aria-hidden="true" /></span>
       </div>
     </div>
   );
