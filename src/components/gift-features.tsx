@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { useEffect, useRef, type ComponentType, type ReactNode } from 'react';
+import { Fragment, useEffect, useRef, type ComponentType, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { BudgetMock, NoFeeMock, ReceivedMock } from '@/components/gift-mocks';
 
@@ -7,22 +7,23 @@ import { BudgetMock, NoFeeMock, ReceivedMock } from '@/components/gift-mocks';
    Se usan en la sección Regalos de la landing (un solo botón, dentro del último bloque) y en /lista-de-regalos (con un botón cada una).
    «Pedí en grande» se sacó (pedido de la dueña, 2026-11-03). Cada bloque entra al bajar con `useReveal` (clase `.gift-feature`). */
 
-type Item = { title: string; text: string; Mock: ComponentType; cta: { label: string; to: '/crear/cuenta' | '/ejemplo/regalos' } };
+/** `text`: los renglones como se ven en el celular (se cortan ahí solo en la landing en una columna; en la compu el texto corre normal). */
+type Item = { title: string; text: string[]; Mock: ComponentType; cta: { label: string; to: '/crear/cuenta' | '/ejemplo/regalos' } };
 
 const ITEMS: Item[] = [
   {
     title: 'Sin comisión: el regalo entero es para ustedes',
-    text: 'Tus invitados transfieren directo a la cuenta que cargaste. Weda no cobra ni mueve el dinero de los regalos.',
+    text: ['Tus invitados transfieren directo a la', 'cuenta que cargaste. Weda no cobra', 'ni mueve el dinero de los regalos.'],
     Mock: NoFeeMock, cta: { label: 'Crear mi lista de regalos', to: '/crear/cuenta' },
   },
   {
-    title: 'Regalos que se adaptan a cada bolsillo',
-    text: 'Armá tu lista de regalos con distintos montos. Tus invitados pueden filtrar por precio y encontrar el que les quede cómodo.',
+    title: 'Regalos que se adaptan a\u00a0cada bolsillo', // «a cada» juntos: el renglón no termina en «a»
+    text: ['Armá tu lista de regalos con distintos', 'montos. Tus invitados pueden filtrar por', 'precio y elegir el que les quede cómodo.'],
     Mock: BudgetMock, cta: { label: 'Ver regalos', to: '/ejemplo/regalos' },
   },
   {
     title: 'Sabé quién te regaló qué',
-    text: 'Seguí cada regalo con su comprobante, quién lo hizo y su mensaje, y no te olvides de agradecer.',
+    text: ['Seguí cada regalo con su comprobante,', 'quién te lo hizo y el mensaje que te', 'dejó, y no te olvides de agradecer.'],
     Mock: ReceivedMock, cta: { label: 'Crear mi lista de regalos', to: '/crear/cuenta' },
   },
 ];
@@ -80,9 +81,8 @@ export function GiftFeatures({ level = 2, withCta = false, endCta, label }: { le
           <div className="gift-feature-stage"><Mock /></div>
           <div className="gift-feature-copy">
             {label && i === 0 && <p className="gift-feature-label">{label}</p>}
-            {label && <p className="gift-feature-step" aria-hidden="true">{label} · {i + 1} de {ITEMS.length}</p>}
             <H>{title}</H>
-            <p>{text}</p>
+            <p>{text.map((line, k) => <Fragment key={k}>{line}{k < text.length - 1 && <>{' '}<br className="gf-br" /></>}</Fragment>)}</p>
             {withCta && <Button variant="seed" asChild><Link to={cta.to}>{cta.label}</Link></Button>}
             {endCta && i === ITEMS.length - 1 && endCta}
           </div>
