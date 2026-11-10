@@ -65,7 +65,7 @@
 /* Bloques de ventajas (src/components/gift-features.tsx): maqueta y explicación, uno debajo del otro, alternando el lado. */
 .gift-features { display: grid; gap: 96px; text-align: left; }
 .gift-feature { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
-.gift-feature.is-flip .mk { order: 2; }
+.gift-feature.is-flip .mk, .gift-feature.is-flip .gift-feature-stage { order: 2; }
 .gift-feature h2, .gift-feature h3 { margin: 0; font-size: clamp(30px, 3.4vw, 48px); line-height: 1.04; letter-spacing: -.03em; font-weight: var(--w-medium, 500); text-wrap: balance; }
 .gift-feature p { margin: 18px 0 0; font-size: var(--fs-18); line-height: 1.55; color: #4a4b48; max-width: 32em; text-wrap: pretty; }
 .gift-feature .seed-button { margin-top: 28px; height: 48px; padding: 0 26px; font-size: var(--fs-15); background: #959571; color: #fff; }
@@ -73,7 +73,7 @@
 @media (max-width: 900px) {
   .gift-features { gap: 64px; }
   .gift-feature { grid-template-columns: 1fr; gap: 28px; }
-  .gift-feature.is-flip .mk { order: 0; }
+  .gift-feature.is-flip .mk, .gift-feature.is-flip .gift-feature-stage { order: 0; }
 }
 @media (max-width: 640px) {
   .gift-features { gap: 56px; }
@@ -140,3 +140,12 @@
 
 @media (max-width: 640px) { .mk-pay { width: 58%; } .mk-alias { padding: 8px 9px; font-size: 11px; gap: 6px; } .mk-alias svg { width: 12px; height: 12px; } }
 @media (max-width: 360px) { .mk-pay { width: 62%; } .mk-alias { font-size: 10px; padding: 7px 8px; } }
+
+/* Marco de cada maqueta. En la compu solo la ubica; en una columna (celular y tablet) es un marco fijo y la maqueta se ajusta adentro
+   (gift-features.tsx, useFitMocks), así las tres pesan igual y empiezan a la misma altura. */
+.gift-feature-stage { display: grid; place-items: center; min-width: 0; width: 100%; }
+.gift-feature-step { display: none; }
+@media (max-width: 900px) {
+  .gift-feature-stage { position: relative; display: block; width: min(100%, 340px); height: min(78vw, 300px); margin-inline: auto; }
+  .gift-feature-stage .mk { position: absolute; top: 0; left: 0; width: 360px; max-width: none; margin: 0; }
+}
