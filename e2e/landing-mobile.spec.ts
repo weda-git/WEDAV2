@@ -151,7 +151,7 @@ test.describe('Landing · escritorio no cambia', () => {
     const m = await page.evaluate(() => { const pills = [...document.querySelectorAll('.float-pill')]; return { n: pills.length, radius: getComputedStyle(pills[0]!).borderRadius, h1: getComputedStyle(document.querySelector('.seed-hero h1')!).fontSize, ws: getComputedStyle(document.querySelector('.seed-hero h1')!).whiteSpace, pad: getComputedStyle(document.querySelector('.products-section')!).paddingTop, weight: getComputedStyle(document.querySelector('.feat-head h2')!).fontWeight, vh: innerHeight }; });
     expect(m.n).toBe(2);
     expect(m.radius).not.toBe('0px');
-    expect(m.h1).toBe('72px'); // hero: clamp(52px, 5vw, 76px)
+    expect(m.h1).toBe('68px'); // hero: 85 % del Display (80 px a 1440 px), pedido de la dueña 2026-11-07
     expect(m.pad).toBe('60px'); // espaciado de sección como The Knot: 60 px en compu (40 px en celular)
     expect(m.weight).toBe('500'); // Medium
   });

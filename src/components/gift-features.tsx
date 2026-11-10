@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import type { ComponentType, ReactNode } from 'react';
+import { useEffect, useRef, type ComponentType, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { BudgetMock, NoFeeMock, ReceivedMock } from '@/components/gift-mocks';
 
@@ -29,15 +29,58 @@ const ITEMS: Item[] = [
 
 /** `withCta`: un botón en cada bloque (/lista-de-regalos). `endCta`: un único botón dentro del último bloque (landing).
  *  `label`: un rótulo chico arriba del primer título, para presentar de qué habla la sección (landing: «Lista de regalos»). */
+/* Celular y tablet (una columna): cada maqueta se ajusta a un mismo marco (el mismo ancho y alto de «tinta», centrada), así las tres hojas pesan
+   igual aunque cada maqueta tenga otra forma (pedido de la dueña, 2026-11-10). Se mide lo que se ve (sus hijos), no la caja. En la compu no se toca. */
+const ONE_COLUMN = '(max-width: 900px)';
+function useFitMocks(root: React.RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    const el = root.current;
+    if (!el || typeof window === 'undefined') return;
+    const mq = window.matchMedia(ONE_COLUMN);
+    let raf = 0;
+    const fit = () => {
+      el.querySelectorAll<HTMLElement>('.gift-feature-stage').forEach(stage => {
+        const mk = stage.querySelector<HTMLElement>('.mk');
+        if (!mk) return;
+        mk.style.transform = ''; mk.style.transformOrigin = '';
+        if (!mq.matches) return;
+        const sb = stage.getBoundingClientRect(); const mb = mk.getBoundingClientRect();
+        const ink = [...mk.querySelectorAll<HTMLElement>('*')].map(e => e.getBoundingClientRect()).filter(b => b.width > 4 && b.height > 4)
+          .reduce((a, b) => ({ l: Math.min(a.l, b.left), t: Math.min(a.t, b.top), r: Math.max(a.r, b.right), b: Math.max(a.b, b.bottom) }), { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity });
+        if (!Number.isFinite(ink.l) || !sb.width || !sb.height) return;
+        const w = ink.r - ink.l, h = ink.b - ink.t;
+        // Mismo «peso» para las tres: la tinta ocupa el 80 % del área del marco, sin pasarse de su ancho ni de su alto.
+        const k = Math.min(Math.sqrt((0.8 * sb.width * sb.height) / (w * h)), sb.width / w, sb.height / h);
+        // Origen arriba a la izquierda de la maqueta: se escala y se corre para que la tinta quede centrada en el marco.
+        const x = sb.left + (sb.width - w * k) / 2 - (mb.left + (ink.l - mb.left) * k);
+        const y = sb.top + (sb.height - h * k) / 2 - (mb.top + (ink.t - mb.top) * k);
+        mk.style.transformOrigin = '0 0';
+        mk.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${k.toFixed(4)})`;
+      });
+    };
+    const run = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(fit); };
+    run();
+    const ro = new ResizeObserver(run);
+    el.querySelectorAll('.gift-feature-stage').forEach(s => ro.observe(s));
+    el.querySelectorAll('img').forEach(img => { if (!img.complete) img.addEventListener('load', run, { once: true }); });
+    mq.addEventListener('change', run);
+    void document.fonts?.ready.then(run);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); mq.removeEventListener('change', run); };
+  }, [root]);
+}
+
 export function GiftFeatures({ level = 2, withCta = false, endCta, label }: { level?: 2 | 3; withCta?: boolean; endCta?: ReactNode; label?: string }) {
   const H = level === 2 ? 'h2' : 'h3';
+  const root = useRef<HTMLDivElement>(null);
+  useFitMocks(root);
   return (
-    <div className="gift-features">
+    <div className="gift-features" ref={root}>
       {ITEMS.map(({ title, text, Mock, cta }, i) => (
         <article key={title} className={`gift-feature${i % 2 ? ' is-flip' : ''}`}>
-          <Mock />
+          <div className="gift-feature-stage"><Mock /></div>
           <div className="gift-feature-copy">
             {label && i === 0 && <p className="gift-feature-label">{label}</p>}
+            {label && <p className="gift-feature-step" aria-hidden="true">{label} · {i + 1} de {ITEMS.length}</p>}
             <H>{title}</H>
             <p>{text}</p>
             {withCta && <Button variant="seed" asChild><Link to={cta.to}>{cta.label}</Link></Button>}

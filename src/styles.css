@@ -1561,29 +1561,27 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
   padding-top: clamp(72px, 9svh, 104px) !important; padding-bottom: clamp(72px, 9svh, 104px) !important;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: clamp(48px, 6vw, 96px);
 }
-.duo-section .gift-feature .mk { justify-self: center; width: min(100%, 480px); }
+.duo-section .gift-feature-stage { justify-self: center; }
+.duo-section .gift-feature .mk { width: min(100%, 480px); }
 .duo-section .gift-feature-copy { justify-self: center; width: min(100%, 440px); }
 .duo-section .gift-feature-copy p:not(.gift-feature-label) { max-width: none; }
 /* Cada maqueta se corre lo justo para que su contenido quede centrado en su caja (medido): la primera tiene la insignia a la izquierda y el contenido arriba. */
-.duo-section .gift-feature:nth-child(1) .mk { transform: translate(7.5%, 7.5%) scale(1.12); }
-.duo-section .gift-feature:nth-child(3) .mk { transform: translateX(2%); }
-@media (max-width: 1199px) { .duo-section .gift-feature:nth-child(1) .mk { transform: translate(5%, 5%) scale(1.02); } }
+@media (min-width: 901px) {
+  .duo-section .gift-feature:nth-child(1) .mk { transform: translate(7.5%, 7.5%) scale(1.12); }
+  .duo-section .gift-feature:nth-child(3) .mk { transform: translateX(2%); }
+}
+@media (min-width: 901px) and (max-width: 1199px) { .duo-section .gift-feature:nth-child(1) .mk { transform: translate(5%, 5%) scale(1.02); } }
 @media (max-width: 900px) {
   .duo-section .gift-feature { grid-template-columns: 1fr; row-gap: 28px; justify-items: center; text-align: center; }
-  .duo-section .gift-feature .mk { width: min(100%, 360px); text-align: left; }
+  .duo-section .gift-feature .mk { text-align: left; }
   .duo-section .gift-feature-copy { width: min(100%, 360px); align-items: center; }
   .duo-section .gift-feature-copy p:not(.gift-feature-label) { margin-inline: auto; }
-  .duo-section .gift-feature:nth-child(1) .mk { transform: translate(-1%, -3%) scale(.96); }
-  .duo-section .gift-feature:nth-child(2) .mk { transform: translateX(-2%); }
-  .duo-section .gift-feature:nth-child(3) .mk { transform: none; }
 }
 @media (max-width: 640px) {
   .duo-section .gift-feature { padding-top: 64px !important; padding-bottom: 64px !important; row-gap: 24px; }
 }
 /* Celulares chicos (hasta 360 px): la maqueta de los montos es la más ancha y se salía; se achica y se centra. */
 @media (max-width: 360px) {
-  .duo-section .gift-feature:nth-child(1) .mk { transform: translate(-1%, -6%) scale(.96); }
-  .duo-section .gift-feature:nth-child(2) .mk { transform: translateX(-8%) scale(.8); }
 }
 
 /* Encontrá un casamiento (boceto 2026-11-08): la barra va sobre la foto, así que el logo y la cruz quedan sin globo (transparentes). */
@@ -1597,3 +1595,20 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 .find-result strong { font-weight: 500; font-size: var(--type-body-size); overflow-wrap: anywhere; }
 .find-result small { font-size: var(--type-note-size); color: var(--text-soft); }
 .find-result svg { flex: none; color: var(--text-main); }
+
+/* =========================================================================
+   Regalos en el celular y la tablet (2026-11-10, pedido de la dueña): las tres hojas son tres tarjetas que «conversan»:
+   la misma estructura y las mismas medidas en las tres. Marco de la maqueta del mismo tamaño y a la misma altura (la maqueta se ajusta adentro),
+   debajo una etiqueta «Lista de regalos · 1 de 3», el título (reserva dos renglones, así el texto empieza siempre a la misma altura) y el texto.
+   Todo arranca arriba (no centrado en la hoja), con el mismo aire en las tres. En la compu no cambia nada.
+   ========================================================================= */
+@media (max-width: 900px) {
+  .duo-section .gift-feature { align-content: start !important; justify-items: center; row-gap: 28px; padding-top: calc(env(safe-area-inset-top) + 104px) !important; padding-bottom: 56px !important; }
+  .duo-section .gift-feature-stage { justify-self: center; }
+  .duo-section .gift-feature .mk { transform: none; }
+  .duo-section .gift-feature-label { display: none; }
+  .duo-section .gift-feature-step { display: block; margin: 0 0 12px; font-family: var(--font-mono); font-size: var(--type-label-size); letter-spacing: var(--type-label-tracking); text-transform: uppercase; color: var(--text-soft); }
+  .duo-section .gift-feature-copy { width: min(100%, 340px); }
+  .duo-split.is-path .duo-panel .gift-feature h2 { min-height: 2.2em; display: flex; align-items: flex-end; justify-content: center; text-align: center; }
+  .duo-section .gift-feature-copy p:not(.gift-feature-label):not(.gift-feature-step) { max-width: 310px; margin-inline: auto; text-wrap: balance; }
+}
