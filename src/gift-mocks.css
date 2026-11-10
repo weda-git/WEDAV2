@@ -144,8 +144,10 @@
 /* Marco de cada maqueta. En la compu solo la ubica; en una columna (celular y tablet) es un marco fijo y la maqueta se ajusta adentro
    (gift-features.tsx, useFitMocks), así las tres pesan igual y empiezan a la misma altura. */
 .gift-feature-stage { display: grid; place-items: center; min-width: 0; width: 100%; }
-.gift-feature-step { display: none; }
 @media (max-width: 900px) {
   .gift-feature-stage { position: relative; display: block; width: min(100%, 340px); height: min(78vw, 300px); margin-inline: auto; }
   .gift-feature-stage .mk { position: absolute; top: 0; left: 0; width: 360px; max-width: none; margin: 0; }
 }
+
+/* Cortes de renglón elegidos para el celular (gift-features.tsx): ocultos en la compu y donde no entran. */
+.gf-br { display: none; }

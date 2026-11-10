@@ -1599,7 +1599,9 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 /* =========================================================================
    Regalos en el celular y la tablet (2026-11-10, pedido de la dueña): las tres hojas son tres tarjetas que «conversan»:
    la misma estructura y las mismas medidas en las tres. Marco de la maqueta del mismo tamaño y a la misma altura (la maqueta se ajusta adentro),
-   debajo una etiqueta «Lista de regalos · 1 de 3», el título (reserva dos renglones, así el texto empieza siempre a la misma altura) y el texto.
+   debajo el título (reserva dos renglones, así el texto empieza siempre a la misma altura) y el texto.
+   Renglones (pedido de la dueña, 2026-11-10): el título con el renglón de arriba más largo que el de abajo (no «Regalos que se / adaptan a…»),
+   y el texto en un bloque parejo: tres renglones de largo parecido, cortados a mano (gift-features.tsx) desde 360 px de ancho.
    Todo arranca arriba (no centrado en la hoja), con el mismo aire en las tres. En la compu no cambia nada.
    ========================================================================= */
 @media (max-width: 900px) {
@@ -1607,8 +1609,8 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
   .duo-section .gift-feature-stage { justify-self: center; }
   .duo-section .gift-feature .mk { transform: none; }
   .duo-section .gift-feature-label { display: none; }
-  .duo-section .gift-feature-step { display: block; margin: 0 0 12px; font-family: var(--font-mono); font-size: var(--type-label-size); letter-spacing: var(--type-label-tracking); text-transform: uppercase; color: var(--text-soft); }
   .duo-section .gift-feature-copy { width: min(100%, 340px); }
-  .duo-split.is-path .duo-panel .gift-feature h2 { min-height: 2.2em; display: flex; align-items: flex-end; justify-content: center; text-align: center; }
-  .duo-section .gift-feature-copy p:not(.gift-feature-label):not(.gift-feature-step) { max-width: 310px; margin-inline: auto; text-wrap: balance; }
+  .duo-split.is-path .duo-panel .gift-feature h2 { min-height: 2.2em; display: flex; align-items: flex-end; justify-content: center; text-align: center; text-wrap: wrap; }
+  .duo-section .gift-feature-copy p:not(.gift-feature-label) { max-width: 310px; margin-inline: auto; text-wrap: balance; }
 }
+@media (min-width: 360px) and (max-width: 900px) { .duo-section .gf-br { display: inline; } }
