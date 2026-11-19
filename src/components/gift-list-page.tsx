@@ -1,11 +1,10 @@
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Plus } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { FloatNav } from '@/components/float-nav';
 import { GiftDemo } from '@/components/feature-demos';
 import { SiteFooter } from '@/components/site-footer';
 import { GiftFeatures } from '@/components/gift-features';
-import { faqs } from '@/lib/gift-list-faqs';
 import { useReveal } from '@/lib/reveal';
 // Los estilos de esta página viajan con su código (no con la landing, auditoría F-06).
 import '@/lista-regalos.css';
@@ -32,22 +31,10 @@ export function GiftListPage() {
         </div>
       </section>
 
-      <section className="lr-features" aria-label="Cómo funciona la lista de regalos">
-        <div className="lr-inner">
-          <GiftFeatures withCta />
-        </div>
-      </section>
-
-      <section className="lr-faq" aria-labelledby="lr-faq-title">
-        <div className="lr-inner lr-faq-inner">
-          <h2 id="lr-faq-title">Preguntas frecuentes sobre la lista de regalos</h2>
-          <div className="lr-faq-list">
-            {faqs.map(f => (
-              <details key={f.q}><summary><h3>{f.q}</h3><Plus className="lr-faq-ico" size={18} strokeWidth={1.6} aria-hidden="true" /></summary><p>{f.a}</p></details>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Las tres ventajas como hojas apiladas, igual que estaban en la landing (se mudaron acá, pedido de la dueña, 2026-11-19); el botón cierra la última. */}
+      <section className="duo-section" id="regalos" aria-label="Cómo funciona la lista de regalos"><div className="duo-split is-path"><div className="duo-panel">
+        <GiftFeatures level={2} label="Lista de regalos" endCta={<Cta />} />
+      </div></div></section>
 
       <section className="closing-section" aria-labelledby="lr-closing-title"><div className="section-inner closing-inner">
         <h2 id="lr-closing-title">Armá tu lista de regalos gratis y pagá recién al publicarla.</h2>
