@@ -17,8 +17,12 @@ Este archivo es un índice. Las reglas por área se cargan solas al trabajar en 
 - `/fabrica` lleva un pedido de punta a punta (spec, construcción, revisiones en paralelo, aprobación) con los subagentes `fabrica-*` y deja una rama para que la dueña decida. Detalle en `.claude/skills/fabrica/SKILL.md`; el estado vive en `.fabrica/` (no se versiona).
 
 ## Git y entorno
-- Cada tarea va en su rama y llega a `main` por PR. **No hagas commit, push, merge ni deploy** salvo que se pida explícitamente. Nunca force-push.
-- Los permisos reales están en `.claude/settings.json` (versionado). No subas `.claude/settings.local.json`, `analisis-confites-top50.md`, `luna-de-miel-confites.md`, `capturas/` ni las fotos sin usar de `public/` (`pareja-portada-3…7.webp`, `pareja-portada-10.png`).
+- Cada tarea va en su rama y llega a `main` por PR. Commit, push y merge de PRs a `main` están autorizados sin preguntar (dueña, 2026-11-09); avisá qué quedó publicado. Deploys por fuera de GitHub, no. Nunca force-push.
+- Los permisos reales están en `.claude/settings.json` (versionado). Como los permisos de Bash miran solo el comienzo del comando, `.claude/hooks/guard.sh` revisa la llamada entera.
+  - Bloquea siempre, entre otras cosas: secretos y `.data*/`, git destructivo (force-push, `reset --hard`, borrar ramas…), tags, escrituras por `gh api`, la base de Supabase a mano (`psql`, CLI `supabase`) y deploys por CLI.
+  - Commit, push, crear PR y mergear pasan (autorización de la dueña, 2026-11-09). El esquema (`src/server/db.ts`, `pg.ts`), la configuración de Claude Code (`.claude/`, este archivo) y lo que descarta cambios (`git restore`, `checkout --`) piden aprobación en modo default y se **bloquean en cualquier otro modo**: en modo auto, una regla `ask` no frena la llamada.
+  - Es un análisis léxico con límites (no ve lo que hace un script, por ejemplo). Qué cubre, qué no y cómo evitar sus falsos positivos: [.claude/hooks/README.md](.claude/hooks/README.md). Se prueba con `bash .claude/hooks/guard.test.sh`.
+- No subas `.claude/settings.local.json`, `analisis-confites-top50.md`, `luna-de-miel-confites.md`, `capturas/` ni las fotos sin usar de `public/` (`pareja-portada-3…7.webp`, `pareja-portada-10.png`).
 - Servidor de desarrollo en el puerto 8080 (preview «weda»). Necesita el proyecto de desarrollo de Supabase (`weda-dev`): `SUPABASE_SECRET_KEY` y `SUPABASE_DB_URL` en `.env.local` (la URL se deduce de la conexión). Al arrancar migra su base. Sin esas variables, la API responde 503 y las pruebas de servidor se saltean.
 
 ## Verificación
