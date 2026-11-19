@@ -1403,12 +1403,12 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 .seed-hero .hero-copy p { white-space: normal !important; max-width: calc(var(--h1fs) * 9.2) !important; margin-inline: auto; text-wrap: balance; }
 @media (max-width: 767px) { .seed-hero .hero-copy p { font-size: min(16px, calc(var(--h1fs) * .47)); } }
 
-/* Regalos: las tres ventajas de /lista-de-regalos (src/components/gift-features.tsx) en lugar de los cuatro pasos, una debajo de la otra. */
+/* Regalos (`.duo-section`): las tres ventajas (src/components/gift-features.tsx) en /lista-de-regalos; desde 2026-11-19 ya no van en la landing. */
 .duo-split.is-path .gift-features { width: 100%; }
 
 /* Regalos, como hojas de un libro: cada ventaja es un panel de ancho completo que queda fijo arriba y el siguiente sube y lo tapa.
    Gris (#f6f7f8), blanco y gris. `overflow: clip` (en vez de hidden) mantiene las esquinas curvas sin romper el `position: sticky`.
-   Solo en la landing; en /lista-de-regalos los bloques siguen uno debajo del otro. */
+   Se usan en /lista-de-regalos (se mudaron desde la landing el 2026-11-19). */
 .duo-section { overflow: clip; }
 .duo-split.is-path .gift-features { gap: 0; }
 .duo-section .gift-feature {

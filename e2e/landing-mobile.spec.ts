@@ -71,17 +71,10 @@ test.describe('Landing · celular 390 px', () => {
     expect(m.copy).toContain('regalos');                      // …y los regalos se mencionan desde el primer pantallazo
   });
 
-  test('regalos: sin título de sección, tres ventajas apiladas y el botón dentro de la última', async ({ page }) => {
+  test('regalos: la landing ya no tiene las tres ventajas (se mudaron a /lista-de-regalos)', async ({ page }) => {
     await goLanding(page);
-    const sec = page.locator('#regalos');
-    await expect(sec.getByRole('heading', { name: 'Una lista de regalos hecha para ustedes.' })).toHaveCount(0);   // se sacó: la sección arranca en «Sin comisión»
-    await expect(sec.locator('.gift-feature').last().getByRole('link', { name: 'Crear mi lista de regalos' })).toHaveAttribute('href', '/crear/cuenta');   // el botón cierra el último bloque
-    const blocks = sec.locator('.gift-feature');
-    await expect(blocks).toHaveCount(3);                                                   // sin comisión, cada bolsillo y quién te regaló («Pedí en grande» se sacó)
-    await expect(blocks.locator('.mk')).toHaveCount(3);
-    for (const t of ['Sin comisión: el regalo entero es para ustedes', 'Regalos que se adaptan a cada bolsillo', 'Sabé quién te regaló qué']) await expect(sec.getByRole('heading', { name: t })).toBeVisible();
-    const tops = await blocks.evaluateAll(els => els.map(e => Math.round(e.getBoundingClientRect().top)));
-    expect(tops[0]! < tops[1]! && tops[1]! < tops[2]!).toBe(true);                       // uno debajo del otro
+    await expect(page.locator('#regalos')).toHaveCount(0);
+    await expect(page.locator('.gift-feature')).toHaveCount(0);
   });
 
   test('planes: dos tarjetas (Regalos y Celebración) con todo lo que incluyen a la vista, «Empezar» al pie y «Recomendado» en Celebración', async ({ page }) => {
@@ -167,19 +160,23 @@ test.describe('Landing · datos estructurados para buscadores', () => {
 });
 
 test.describe('Página de la lista de regalos (/lista-de-regalos)', () => {
-  test('se llega desde el pie, tiene un solo h1, preguntas que se despliegan y datos estructurados para buscadores', async ({ page }) => {
+  test('se llega desde el pie: un solo h1, las tres ventajas apiladas con el botón en la última, sin preguntas frecuentes, y el cierre', async ({ page }) => {
     await goLanding(page);
     await page.locator('.seed-footer').getByRole('link', { name: 'Lista de regalos' }).click();
     await expect(page).toHaveURL(/\/lista-de-regalos$/);
     await expect(page.locator('h1')).toHaveCount(1);
     await expect(page).toHaveTitle(/Lista de regalos/);
     const types = await page.evaluate(() => [...document.querySelectorAll('script[type="application/ld+json"]')].map(s => JSON.parse(s.textContent!)['@type']));
-    expect(types).toContain('FAQPage');
+    expect(types).not.toContain('FAQPage');                          // se sacaron las preguntas frecuentes (2026-11-19)
     expect(types).toContain('WebPage');
     expect(types).not.toContain('Organization'); // los de la home no quedan pegados al navegar del lado del cliente
-    const first = page.locator('.lr-faq details').first();
-    await first.locator('summary').click();
-    await expect(first).toHaveAttribute('open', '');
+    await expect(page.locator('details')).toHaveCount(0);
+    const blocks = page.locator('#regalos .gift-feature');
+    await expect(blocks).toHaveCount(3);
+    await expect(blocks.locator('.mk')).toHaveCount(3);
+    for (const t of ['Sin comisión: el regalo entero es para ustedes', 'Regalos que se adaptan a cada bolsillo', 'Sabé quién te regaló qué']) await expect(page.getByRole('heading', { name: t })).toBeVisible();
+    await expect(blocks.last().getByRole('link', { name: 'Crear mi lista de regalos' })).toHaveAttribute('href', '/crear/cuenta');   // el botón cierra la última
+    await expect(page.getByRole('heading', { name: 'Armá tu lista de regalos gratis y pagá recién al publicarla.' })).toBeVisible();
     await expect(page.locator('.float-nav a', { hasText: 'Lista de regalos' })).toHaveCount(0); // no figura en el menú de arriba
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
   });
