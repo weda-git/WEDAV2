@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { Check, ChevronRight, Copy, Eye, Gift as GiftIcon, ImagePlus, Package, Pencil, Plus, X } from 'lucide-react';
-import { Field, Locked, useToast } from '@/components/panel/ui';
+import { Field, OperationNotice, useToast } from '@/components/panel/ui';
+import { PayoutForm } from '@/components/panel/payout-form';
 import { centerChild, useScrollFade } from '@/components/panel/scroll-row';
+import { ContributionReview } from '@/components/panel/contribution-review';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { catalog, categories, setGifts, SETS, type GiftSet } from '@/lib/weda/catalog';
 import { formatARS, type Gift } from '@/lib/demo-wedding';
 import { readImage } from '@/lib/weda/images';
 import {
-  addCatalogGift, addCustomGift, addSet, contributionsFromServer, contributionsFromState, hasCatalogGift, moveGiftTo, parseAmount, removeGift, removeSetGifts, sitePath, updateGift, type Contribution,
-  cleanCbu, validateAlias, validateCbu, validateGift,
+  addCatalogGift, addCustomGift, addSet, contributionsFromServer, contributionsFromState, countsAsGift, hasCatalogGift, moveGiftTo, parseAmount, removeGift, removeSetGifts, sitePath, updateGift, type Contribution,
+  cleanCbu, MIN_AMOUNT, validateAlias, validateCbu, validateFreeAmount, validateGift,
 } from '@/lib/weda/logic';
-import { can } from '@/lib/weda/plans';
+import { operates } from '@/lib/weda/plans';
 import { openPreview } from '@/lib/weda/preview-event';
 import { update, useAppState } from '@/lib/weda/store';
 import { api, useRemote } from '@/lib/weda/remote';
@@ -105,7 +107,7 @@ function CatalogCard({ gift, inList, onAdd, onRemove }: { gift: Gift; inList: bo
 const HOW_LABEL = { alias: 'Por alias', tarjeta: 'Con tarjeta' } as const;
 
 /** Aportes recibidos: con cuenta, los del servidor (con correo y comprobante); sin cuenta, los registrados en este navegador. */
-function useContributions(s: ReturnType<typeof useAppState>): { list: Contribution[]; loading: boolean; failed: boolean } {
+function useContributions(s: ReturnType<typeof useAppState>): { list: Contribution[]; loading: boolean; failed: boolean; setStatus: (id: string, status: Contribution['status']) => void } {
   const { user } = useRemote();
   const [server, setServer] = useState<Contribution[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -117,8 +119,10 @@ function useContributions(s: ReturnType<typeof useAppState>): { list: Contributi
       .catch(() => { if (alive) setFailed(true); });
     return () => { alive = false; };
   }, [user]);
-  if (user) return { list: server ?? [], loading: server === null && !failed, failed };
-  return { list: contributionsFromState(s), loading: false, failed: false };
+  // Después de confirmar, rechazar o volver a revisar: el servidor ya guardó el cambio; se refleja sin volver a pedir la lista.
+  const setStatus = useCallback((id: string, status: Contribution['status']) => setServer(l => l && l.map(c => (c.id === id ? { ...c, status } : c))), []);
+  if (user) return { list: server ?? [], loading: server === null && !failed, failed, setStatus };
+  return { list: contributionsFromState(s), loading: false, failed: false, setStatus };
 }
 const fmtDate = (t: number) => new Date(t).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
@@ -143,6 +147,29 @@ function BankFields({ bank, cbu, alias }: { bank: string; cbu: string; alias: st
         {a => <input id={a.id} type="text" value={al} placeholder="tomas.martina" autoComplete="off" onChange={e => { setAl(e.target.value); if (e.target.value.trim() === '' || !validateAlias(e.target.value)) save({ alias: e.target.value.trim() }); }} onBlur={() => setTouched(t => ({ ...t, alias: true }))} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
       </Field>
     </div>
+  );
+}
+
+/* Aporte libre (GIFT-09, D6): la pareja deja que sus invitados elijan cuánto regalar, con un mínimo opcional. Se guarda solo, como el
+   resto del borrador, y llega a los invitados al publicar. El mínimo inválido no se guarda (queda el último válido). */
+function FreeAmountBlock({ enabled, min }: { enabled: boolean; min: number | null }) {
+  const [raw, setRaw] = useState(min ? String(min) : '');
+  const [touched, setTouched] = useState(false);
+  const err = raw.trim() === '' ? undefined : validateFreeAmount(raw, MIN_AMOUNT) ?? undefined;
+  const save = (patch: Partial<{ enabled: boolean; min: number | null }>) => update(x => ({ ...x, gifts: { ...x.gifts, freeAmount: { ...x.gifts.freeAmount, ...patch } } }));
+  return (
+    <section className="pn-cfg-block rg-free-cfg" aria-labelledby="cfg-free">
+      <div className="pn-cfg-head"><h2 id="cfg-free">Aporte libre</h2><span className={`pn-chip${enabled ? ' is-ok' : ''}`}>{enabled ? 'Activado' : 'Desactivado'}</span></div>
+      <p className="pn-muted">Además de los regalos de tu lista, tus invitados pueden regalar el monto que quieran. Te llega igual que un regalo: con su comprobante, para que lo revises.</p>
+      <label className="pn-check"><input type="checkbox" checked={enabled} onChange={e => save({ enabled: e.target.checked })} /><span>Dejar que tus invitados elijan cuánto regalar</span></label>
+      {enabled && (
+        <Field label="Monto mínimo" optional error={touched ? err : undefined} hint="Si lo dejás vacío, el mínimo es $ 1.000.">
+          {a => <input id={a.id} type="text" inputMode="numeric" value={raw} placeholder="Por ejemplo, 20.000" autoComplete="off"
+            onChange={e => { const v = e.target.value; setRaw(v); if (v.trim() === '') save({ min: null }); else if (!validateFreeAmount(v, MIN_AMOUNT)) save({ min: parseAmount(v) }); }}
+            onBlur={() => setTouched(true)} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
+        </Field>
+      )}
+    </section>
   );
 }
 
@@ -306,6 +333,9 @@ function GiftsModule() {
   const [packOpen, setPackOpen] = useState<GiftSet | null>(null);
   const [creating, setCreating] = useState(false);
   const [cfg, setCfg] = useState<'bank' | 'mp' | null>(null);
+  // Con cuenta, el destino de cobro solo cambia con la clave (PayoutForm); sin cuenta se carga en este navegador y se confirma al crearla.
+  const remote = useRemote();
+  const payout = remote.user ? remote.payout : null;
   const [editing, setEditing] = useState<ListGift | null>(null);
   // El botón de la barra superior (panel.tsx) pide abrir la vista previa de la lista.
 
@@ -320,10 +350,11 @@ function GiftsModule() {
       toast(code === 'reminder_too_soon' ? 'Ya se lo pediste hoy. Podés volver a pedirlo mañana.' : code === 'receipt_already_attached' ? 'Ya adjuntó el comprobante: actualizá la página.' : 'No pudimos enviar el correo. Probá de nuevo en un rato.', 'error');
     }
   };
-  if (!can(s.planId, 'gifts')) return <Locked feature="gifts" />;
   const items = s.gifts.items;
   const received = contrib.list;
-  const giftCount = received.reduce((n, c) => n + c.gifts.length, 0);
+  // Los rechazados se siguen viendo (se pueden volver a revisar) pero no suman.
+  const counted = received.filter(countsAsGift);
+  const giftCount = counted.reduce((n, c) => n + c.gifts.length, 0);
 
   // Cada cambio guarda la lista anterior para poder deshacer desde el aviso.
   const withUndo = (message: string, change: () => void) => {
@@ -366,7 +397,7 @@ function GiftsModule() {
             <span className="pn-tab-long">{t.label}</span><span className="pn-tab-short">{t.short}</span>
             {t.id === 'lista' && items.length > 0 && <span className="pn-count">{items.length}</span>}
             {t.id === 'cobro' && !alias && <><span className="pn-dot-todo" aria-hidden="true" /><span className="pn-sr">(pendiente, opcional por ahora)</span></>}
-            {t.id === 'recibidos' && received.length > 0 && <span className="pn-count">{received.length}</span>}
+            {t.id === 'recibidos' && counted.length > 0 && <span className="pn-count">{counted.length}</span>}
           </button>
         ))}
       </div>
@@ -413,6 +444,7 @@ function GiftsModule() {
                   </div>
                 </>
               )} />
+              <FreeAmountBlock enabled={s.gifts.freeAmount.enabled} min={s.gifts.freeAmount.min} />
             </>
           )}
           <details className="rg-help">
@@ -489,7 +521,7 @@ function GiftsModule() {
             {/* Los tres totales están siempre, también antes del primer regalo (en cero). Los regalos se cargan en pesos y no hay cotización conectada: el total en dólares queda en «—». */}
             <ul className="gl-stats is-three" aria-label="Resumen de aportes recibidos">
               <li><span>Regalos recibidos</span><strong>{giftCount}</strong><small>{giftCount === 1 ? 'Regalo' : 'Regalos'}</small></li>
-              <li><span>Total en pesos</span><strong>{formatARS(received.reduce((n, c) => n + c.total, 0))}</strong><small>Pesos argentinos</small></li>
+              <li><span>Total en pesos</span><strong>{formatARS(counted.reduce((n, c) => n + c.total, 0))}</strong><small>Pesos argentinos</small></li>
               <li><span>Total en dólares</span><strong aria-label="Sin dato">—</strong><small>Sin cotización conectada</small></li>
             </ul>
             {contrib.failed && <p className="pn-banner" role="alert">No pudimos traer tus aportes. Revisá tu conexión y volvé a abrir esta pestaña.</p>}
@@ -502,29 +534,35 @@ function GiftsModule() {
               </div>
             ) : (
               <>
+                {/* Ver es libre; confirmar, rechazar y pedir comprobante exigen el plan publicado y vigente (BR-62). El servidor también lo exige. */}
+                {!operates(remote.access, 'contributions') && <OperationNotice id="rg-op" op="contributions" />}
+                <fieldset className="pn-readonly" disabled={!operates(remote.access, 'contributions')} aria-describedby={operates(remote.access, 'contributions') ? undefined : 'rg-op'}>
+                <legend className="pn-sr">Aportes recibidos</legend>
                 <ul className="rg-recs" aria-label="Aportes recibidos">
                   {received.map(r => (
                     <li key={r.id} className="rg-rec">
                       <div className="rg-rec-main">
-                        <p className="rg-rec-name">{r.giver}{r.how && <span className="pn-chip">{HOW_LABEL[r.how]}</span>}{r.status === 'pending_review' && <span className="pn-chip is-todo">A revisar</span>}{r.status === 'confirmed' && <span className="pn-chip is-ok">Confirmado</span>}</p>
+                        <p className="rg-rec-name">{r.giver}{r.how && <span className="pn-chip">{HOW_LABEL[r.how]}</span>}{r.status === 'pending_review' && <span className="pn-chip is-todo">A revisar</span>}{r.status === 'confirmed' && <span className="pn-chip is-ok">Confirmado</span>}{r.status === 'rejected' && <span className="pn-chip is-off">Rechazado</span>}</p>
                         {r.email && <p className="rg-rec-mail"><a className="pn-link" href={`mailto:${r.email}`}>{r.email}</a></p>}
                         <ul className="rg-rec-gifts" aria-label={`Regalos de ${r.giver}`}>
                           {r.gifts.map((g, i) => <li key={`${g.name}-${i}`}><span>{g.name}</span><span>{formatARS(g.amount)}</span></li>)}
                         </ul>
                         {r.at && <p className="rg-rec-date">{fmtDate(r.at)}</p>}
                         {r.message && <p className="rg-quote">«{r.message}»</p>}
-                        {r.receipt === 'missing' && (
+                        {r.receipt === 'missing' && r.status !== 'rejected' && (
                           <div className="rg-rec-missing">
                             <p className="rg-rec-proof is-missing">Falta el comprobante</p>
                             {r.email && <button type="button" className="pn-btn is-ghost is-small" onClick={() => void remind(r)}>Pedir comprobante</button>}
                           </div>
                         )}
                         {r.receipt && r.receipt !== 'missing' && <a className="pn-btn is-ghost is-small rg-rec-proof" href={r.receipt} target="_blank" rel="noopener noreferrer"><Eye size={15} aria-hidden="true" />Ver comprobante<span className="pn-sr"> (se abre en una pestaña nueva)</span></a>}
+                        <ContributionReview r={r} onChange={st => contrib.setStatus(r.id, st)} />
                       </div>
                       <strong className="rg-rec-amount">{formatARS(r.total)}</strong>
                     </li>
                   ))}
                 </ul>
+                </fieldset>
               </>
             )}
           </>
@@ -545,8 +583,10 @@ function GiftsModule() {
                     {s.gifts.cbu.trim() && <div><dt>CBU</dt><dd>{s.gifts.cbu.trim()}</dd></div>}
                   </dl>
                 ) : <p className="pn-muted">Configurá los datos de tu cuenta para que tus invitados puedan transferirte a esta cuenta.</p>}
+                {payout && remote.pendingPayout && <p className="pn-note" role="status">Cargaste un alias antes de crear tu cuenta ({remote.pendingPayout.alias || 'sin alias'}). Confirmalo con tu clave para que tus invitados lo vean.</p>}
+                {payout && alias && <p className="pn-hint">Por seguridad, cambiarlos pide tu clave y te avisamos por correo.</p>}
                 <div className="pn-cfg-actions">
-                  <button type="button" className="pn-btn" onClick={() => setCfg('bank')}>{alias ? 'Editar' : 'Configurar'}</button>
+                  <button type="button" className="pn-btn" onClick={() => setCfg('bank')}>{payout && remote.pendingPayout ? 'Confirmar' : alias ? (payout ? 'Cambiar' : 'Editar') : 'Configurar'}</button>
                   {alias && <button type="button" className="pn-link" onClick={() => { void navigator.clipboard?.writeText(alias).catch(() => undefined); toast('Alias copiado.'); }}><Copy size={14} aria-hidden="true" />Copiar alias</button>}
                 </div>
               </section>
@@ -566,9 +606,19 @@ function GiftsModule() {
         <Dialog open onOpenChange={o => { if (!o) setCfg(null); }}>
           <DialogContent className="pn-dialog">
             <DialogTitle>Transferencia bancaria</DialogTitle>
-            <DialogDescription>Se guarda sola mientras escribís. El alias alcanza para cobrar; el banco y el CBU son opcionales.</DialogDescription>
-            <BankFields bank={s.gifts.bank} cbu={s.gifts.cbu} alias={s.gifts.alias} />
-            <div className="pn-actions is-end"><button type="button" className="pn-btn" onClick={() => setCfg(null)}>Listo</button></div>
+            {payout ? (
+              <>
+                <DialogDescription>El alias alcanza para cobrar; el banco y el CBU son opcionales.{payout.alias || payout.bank || payout.cbu ? ' Para cambiarlos te pedimos tu clave.' : ''}</DialogDescription>
+                <PayoutForm current={payout} initial={remote.pendingPayout} onCancel={() => setCfg(null)}
+                  onDone={() => { setCfg(null); toast('Listo: guardamos tus datos de cobro. Tus invitados los ven cuando publiques los cambios.'); }} />
+              </>
+            ) : (
+              <>
+                <DialogDescription>Se guarda sola mientras escribís. El alias alcanza para cobrar; el banco y el CBU son opcionales.{remote.user ? '' : ' Al crear tu cuenta, vas a confirmarlos con tu clave.'}</DialogDescription>
+                <BankFields bank={s.gifts.bank} cbu={s.gifts.cbu} alias={s.gifts.alias} />
+                <div className="pn-actions is-end"><button type="button" className="pn-btn" onClick={() => setCfg(null)}>Listo</button></div>
+              </>
+            )}
           </DialogContent>
         </Dialog>
       )}

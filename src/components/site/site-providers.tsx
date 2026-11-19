@@ -1,12 +1,12 @@
 // Quién provee los datos de la página pública:
 //  - DemoSite: /ejemplo (Ignacio & Martina). Los regalos elegidos duran lo que dure la sesión del navegador.
-//  - AppSite: /sitio/$slug y la vista previa. Lee y escribe el estado local de la pareja (lista, invitados, respuestas).
+//  - AppSite: /sitio/$slug y la vista previa. Publicado: lee y escribe por la API. Local o vista previa: solo lee, nunca escribe (BR-62).
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { sendGift, sendRsvp } from '@/lib/weda/public-api';
 import type { PublicLookup } from '@/lib/weda/public-site';
 import { useSessionState } from '@/lib/demo-session';
-import { applyRsvp, siteSlug } from '@/lib/weda/logic';
+import { siteSlug } from '@/lib/weda/logic';
 import { isLive } from '@/lib/weda/payments';
 import { isPlanId } from '@/lib/weda/plans';
 import { demoSiteData, siteFromState, SiteProvider, type SiteActions } from '@/lib/weda/site-model';
@@ -55,7 +55,7 @@ let stickyPreview = false;
 
 /* Sitio publicado en el servidor: lo ve cualquier invitado, sin sesión y sin depender del navegador de la pareja. Los envíos son reales. */
 function PublishedSite({ slug, lookup, children }: { slug: string; lookup: Extract<PublicLookup, { status: 'live' }>; children: ReactNode }) {
-  const [taken, setTaken] = useState<string[]>(lookup.takenGiftIds);
+  // Regalos repetibles (BR-19): la página no marca ningún regalo como elegido; después de enviar, el agradecimiento confirma el envío.
   const actions = useMemo<SiteActions>(() => ({
     remote: true,
     given: [],
@@ -63,12 +63,9 @@ function PublishedSite({ slug, lookup, children }: { slug: string; lookup: Extra
     recordGift: async (gs, who, extra) => {
       if (!extra) throw new Error('No pudimos completar el envío. Probá de nuevo en un rato.');
       await sendGift(slug, gs, who, extra);
-      setTaken(t => [...new Set([...t, ...gs.map(g => g.id)])]);
     },
-  }), [slug, taken]);
-  // Los regalos que otro invitado ya eligió se ven como «Ya elegido».
-  const data = useMemo(() => ({ ...lookup.site, gifts: lookup.site.gifts.map(g => (taken.includes(g.id) ? { ...g, taken: true } : g)) }), [lookup.site, taken]);
-  return <SiteProvider data={data} actions={actions}><SiteShell>{children}</SiteShell></SiteProvider>;
+  }), [slug]);
+  return <SiteProvider data={lookup.site} actions={actions}><SiteShell>{children}</SiteShell></SiteProvider>;
 }
 
 export function AppSite({ slug, remote, children }: { slug: string; remote?: PublicLookup | undefined; children: ReactNode }) {
@@ -77,7 +74,6 @@ export function AppSite({ slug, remote, children }: { slug: string; remote?: Pub
   if (preview && typeof window !== 'undefined') stickyPreview = true;
   if (remote?.status === 'live' && !preview) return <PublishedSite slug={slug} lookup={remote}>{children}</PublishedSite>;
   if (remote?.status === 'unpublished' && !preview) return <Notice title="Esta página no está publicada" text="Sus dueños la bajaron por ahora. Volvé a probar más tarde." to="/" cta="Ir a Weda" />;
-  if (remote?.status === 'expired' && !preview) return <Notice title="Esta invitación ya no está disponible" text="Terminó el tiempo de publicación de esta página." to="/" cta="Ir a Weda" />;
   return <LocalSite slug={slug}>{children}</LocalSite>;
 }
 
@@ -90,13 +86,9 @@ function LocalSite({ slug, children }: { slug: string; children: ReactNode }) {
     const as = readPlanOverride();
     return siteFromState(as ? { ...state, planId: as } : state);
   }, [mine, state]);
-  const actions = useMemo<SiteActions>(() => ({
-    given: state.gifts.given,
-    recordGift: (gs, who) => update(s => ({
-      ...s, gifts: { ...s.gifts, given: [...s.gifts.given.filter(x => !gs.some(g => g.id === x.id)), ...(() => { const ref = `env-${Date.now().toString(36)}`; return gs.map(g => ({ id: g.id, name: who.name, message: who.message, how: who.how, giftName: g.name, amount: g.amount, at: Date.now(), email: who.email, ref })); })()] },
-    })),
-    recordRsvp: people => update(s => applyRsvp(s, people)),
-  }), [state.gifts.given]);
+  // La vista previa y la página local no escriben nada (BR-62, PAY-01 F6): la confirmación y el regalo muestran el agradecimiento, pero no
+  // crean invitados ni regalos recibidos. Lo real entra solo por la página publicada (PublishedSite → API).
+  const actions = useMemo<SiteActions>(() => ({ given: [], recordGift: () => {}, recordRsvp: () => {} }), []);
   // Los datos de la pareja solo existen en este navegador: el título con sus nombres se pone recién al hidratar (el HTML del servidor es genérico).
   const heading = data ? `${state.couple.first} y ${state.couple.second}`.trim() : '';
   useEffect(() => {

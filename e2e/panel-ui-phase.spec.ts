@@ -1,4 +1,4 @@
-import { closePreview, expect, onboard, openPreview, previewFrame, stored, test } from './helpers';
+import { closePreview, expect, onboard, publishCelebration, openPreview, previewFrame, stored, test } from './helpers';
 
 const WIDTHS = [320, 360, 390, 430];
 
@@ -70,6 +70,7 @@ test.describe('Panel · invitados, mesas y editor (390 px)', () => {
   test.beforeEach(async ({ page }) => { await onboard(page); });
 
   test('Invitados: filas compactas, edición en hoja inferior y la hoja entra en pantalla', async ({ page }) => {
+    await publishCelebration(page); // operar invitados y mesas exige Celebración publicada (BR-62)
     await page.goto('/panel/invitados', { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: 'Agregar invitado' }).first().click();
     await page.getByLabel('Nombre', { exact: true }).fill('Marta');
@@ -92,6 +93,7 @@ test.describe('Panel · invitados, mesas y editor (390 px)', () => {
   });
 
   test('Mesas: resumen de lugares, quién queda sin mesa y asignación desde el selector de cada mesa', async ({ page }) => {
+    await publishCelebration(page); // operar invitados y mesas exige Celebración publicada (BR-62)
     await page.goto('/panel/invitados', { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: 'Agregar invitado' }).first().click();
     await page.getByLabel('Nombre', { exact: true }).fill('Ana');
@@ -171,6 +173,7 @@ test.describe('Panel · invitados, mesas y editor (390 px)', () => {
   });
 
   test('Invitados: se elimina desde la hoja de edición y se puede deshacer', async ({ page }) => {
+    await publishCelebration(page); // operar invitados y mesas exige Celebración publicada (BR-62)
     await page.goto('/panel/invitados', { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: 'Agregar invitado' }).first().click();
     await page.getByLabel('Nombre', { exact: true }).fill('Lola');
@@ -183,13 +186,14 @@ test.describe('Panel · invitados, mesas y editor (390 px)', () => {
     await expect.poll(async () => (await stored(page)).guests).toHaveLength(1);
   });
 
-  test('Publicar: tres productos con precio y «Ver link», y todos los diálogos son hojas con botones a la vista', async ({ page }) => {
+  test('Publicar: dos productos (Regalos y Celebración) con precio y «Ver link», y todos los diálogos son hojas con botones a la vista', async ({ page }) => {
     await page.goto('/panel/vista-previa', { waitUntil: 'networkidle' });
     await page.locator('.pn-top').getByRole('button', { name: 'Publicar', exact: true }).click();
     const dlg = page.getByRole('dialog');
     await expect(dlg.getByRole('heading', { name: '¿Qué querés publicar?' })).toBeVisible();
-    await expect(dlg.getByRole('link', { name: /Ver el link de/ })).toHaveCount(3);
-    await expect(dlg.getByText('Publicada 6 meses')).toHaveCount(3);
+    await expect(dlg.getByRole('link', { name: /Ver el link de/ })).toHaveCount(2);
+    await expect(dlg.getByText('Sin renovaciones')).toHaveCount(2);
+    await expect(dlg.getByText('Recomendado')).toHaveCount(1);
     const box = (await dlg.boundingBox())!;
     expect(box.x).toBe(0);
     expect(Math.round(box.y + box.height)).toBe(844);

@@ -56,7 +56,6 @@
 }
 .rg-btn:hover:not(:disabled) { background: #4b545b; }
 .rg-btn:disabled { background: rgb(59 60 58 / .1); color: var(--ej-muted); cursor: default; }
-.rg-card.is-done .rg-photo img, .rg-card.is-done .rg-icon { opacity: .55; filter: grayscale(.6); }
 .rg-live { margin: 28px 0 0; text-align: center; font-size: 13px; color: var(--ej-muted); }
 .rg-next { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px 24px; margin-top: clamp(40px, 5vw, 72px); padding-top: 32px; border-top: 1px solid var(--ej-line); }
 .rg-next p { margin: 0; font-size: 18px; }
@@ -574,3 +573,62 @@
 .rg-hint { margin: 6px 0 0; font-size: 13px; line-height: 1.4; color: var(--ej-muted); }
 .rg-optin { display: flex; align-items: flex-start; gap: 10px; font-size: 13px; line-height: 1.45; color: var(--ej-muted); cursor: pointer; }
 .rg-optin input { flex: none; width: 18px; height: 18px; margin: 1px 0 0; accent-color: #3b3c3a; }
+
+/* Aporte libre (GIFT-09): primera tarjeta de la lista, con la forma de las demás; el cuadrado lleva el campo de monto en vez de la foto. */
+.rg-free-box { grid-template-columns: minmax(0, 1fr); justify-items: center; align-content: center; gap: 10px; padding: 14px; text-align: center; }
+.rg-free-box .rg-icon { width: 56px; height: 56px; }
+.rg-free-box label { max-width: 100%; font-size: 14px; line-height: 1.3; color: var(--ej-ink); text-wrap: balance; }
+.rg-free-input { display: flex; align-items: center; gap: 6px; box-sizing: border-box; width: 100%; max-width: 220px; height: 48px; margin: 0 auto; padding: 0 14px; border-radius: 14px; border: 1px solid rgb(59 60 58 / .25); background: #fff; }
+.rg-free-input:focus-within { border-color: var(--ej-slate); box-shadow: 0 0 0 3px rgb(149 149 113 / .35); }
+.rg-free-input span { color: var(--ej-muted); }
+.rg-free-input input:focus-visible { outline: none; }   /* el foco lo marca el borde del campo (:focus-within) */
+.rg-free-input input { flex: 1; min-width: 0; height: 100%; border: 0; background: none; font: inherit; font-size: 16px; color: var(--foreground); outline: none; font-variant-numeric: tabular-nums; }
+.rg-free-error, .rg-free-min { margin: 0; font-size: 12px; line-height: 1.3; color: #a1453a; }
+.rg-free-min { color: var(--ej-muted); }
+@media (max-width: 700px) { .rg-free-box { gap: 6px; padding: 10px; } .rg-free-box .rg-icon { display: none; } .rg-free-box label { font-size: 13px; } .rg-free-input { height: 44px; padding: 0 10px; } }
+
+/* =========================================================================
+   Pop-up del regalo, paso de pago (2026-11-06): en la compu es ancho y en dos columnas, para ver todo sin scrollear:
+   a la izquierda cuánto y adónde transferir (alias y CBU destacados, con «Copiar»); a la derecha el comprobante, los datos y «Enviar».
+   En el celular, una columna con el mismo orden.
+   ========================================================================= */
+.rg-dialog.is-wide { max-width: 880px !important; }
+.rg-pay { gap: 20px; }
+.rg-pay-grid { display: grid; gap: 20px; }
+.rg-fields { display: grid; gap: 14px; align-content: start; }
+.rg-transfer { display: grid; gap: 14px; align-content: start; padding: 20px; border-radius: 20px; background: var(--paper); }
+.rg-amount { margin: 0; display: grid; gap: 2px; }
+.rg-amount span { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--ej-muted); }
+.rg-amount strong { font-size: clamp(28px, 4vw, 36px); font-weight: 400; letter-spacing: -.01em; color: var(--gl-ink, #2b2b2b); }
+.rg-bankcard { margin: 0; display: grid; gap: 8px; }
+.rg-copy { display: grid; grid-template-columns: 1fr auto; grid-template-areas: 'label button' 'value button'; align-items: center; column-gap: 12px; row-gap: 2px;
+  padding: 12px 8px 12px 16px; border-radius: 14px; background: #fff; box-shadow: inset 0 0 0 1px rgb(59 60 58 / .08); }
+.rg-copy dt { grid-area: label; margin: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ej-muted); }
+.rg-copy dd { grid-area: value; margin: 0; min-width: 0; font-size: 16px; font-variant-numeric: tabular-nums; color: var(--gl-ink, #2b2b2b); overflow-wrap: anywhere; }
+.rg-copy dd code { font: inherit; letter-spacing: .01em; }
+.rg-copy button {
+  grid-area: button; display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 0; border-radius: 999px;
+  background: var(--ej-slate); color: #fff; font: inherit; font-size: 13px; cursor: pointer; touch-action: manipulation;
+}
+.rg-copy button:focus-visible { outline: 2px solid var(--ej-slate); outline-offset: 2px; }
+.rg-transfer .rg-help { margin: 0; font-size: 14px; }
+.rg-pay .rg-field textarea { width: 100%; min-height: 64px; padding: 12px 16px; border-radius: 14px; border: 1px solid rgb(59 60 58 / .25); font: inherit; font-size: 15px; resize: vertical; }
+.rg-pay-actions { display: flex; gap: 10px; }
+.rg-pay-actions .dm-ghost { flex: none; }
+.rg-pay-actions .dm-solid { flex: 1; height: 50px; }
+.rg-pay .rg-hint { margin: 6px 0 0; font-size: 13px; color: var(--ej-muted); }
+.rg-thanks p strong { font-weight: 400; color: var(--gl-ink, #2b2b2b); }
+.rg-nudge { display: grid; gap: 14px !important; }
+.rg-nudge p { margin: 0; font-size: 15px; color: var(--ej-muted); }
+/* En el celular el botón queda solo con el ícono, así el CBU (22 números) entra en un renglón. */
+@media (max-width: 480px) {
+  .rg-transfer { padding: 16px; }
+  .rg-copy { padding-left: 14px; }
+  .rg-copy dd { font-size: 15px; }
+  .rg-copy button { width: 44px; height: 44px; padding: 0; }
+  .rg-copy button span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+@media (min-width: 760px) {
+  .rg-pay-grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 28px; align-items: start; }
+  .rg-transfer { position: sticky; top: 0; }
+}

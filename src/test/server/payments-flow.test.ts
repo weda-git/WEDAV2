@@ -7,7 +7,7 @@ import { planById } from '@/lib/weda/plans';
 /* Pagos con el adaptador de PRUEBA (nunca cobra). Lo que se verifica no depende del proveedor: monto del servidor, idempotencia,
    firma, que la vuelta del navegador no cuente como pago y que publicar exija un pago confirmado. */
 let env: Env;
-beforeAll(() => { env = makeEnv({ requirePaidOrder: true, payments: { provider: 'test', webhookSecret: 'secreto-webhook-de-prueba' } }); });
+beforeAll(async () => { env = await makeEnv({ requirePaidOrder: true, payments: { provider: 'test', webhookSecret: 'secreto-webhook-de-prueba' } }); });
 afterAll(() => env.close());
 
 const notify = (c: ReturnType<Env['client']>, n: { eventId: string; orderId: string; outcome: 'paid' | 'failed' | 'cancelled' }, signature?: string) => {
@@ -63,17 +63,19 @@ describe('pagos y publicación', () => {
     expect((await o.post('/api/wedding/publish')).status).toBe(200);
   });
 
-  it('mejorar de plan cobra solo la diferencia; no se puede «pagar» un plan igual o menor', async () => {
+  it('con un plan pagado no hay cambio de plan ni cobro adicional (F8, D-05: DP-23 pendiente)', async () => {
     const o = env.client(); await signUp(o, 'mejora@correo.com');
-    await saveDraft(o, draftFor('Flor', 'Gus'));
+    await saveDraft(o, draftFor('Flor', 'Gus', { planId: 'regalos' }));
     const r = (await o.post('/api/checkout', { planId: 'regalos' })).body;
+    expect(r.amount).toBe(planById('regalos')!.price);
     await o.post(`/api/test-payments/${r.id}`, { outcome: 'paid' });
-    const up = (await o.post('/api/checkout', { planId: 'completo' })).body;
-    expect(up.amount).toBe(planById('completo')!.price - planById('regalos')!.price);
+    const orders = (await o.get('/api/orders')).body.orders.length;
+    const up = await o.post('/api/checkout', { planId: 'invitacion' });
+    expect(up.status).toBe(409); expect(up.body.error).toBe('plan_change_pending');
+    expect((await o.post('/api/orders', { planId: 'invitacion' })).body.error).toBe('plan_change_pending');
     expect((await o.post('/api/checkout', { planId: 'regalos' })).body.error).toBe('already_paid');
-    await o.post(`/api/test-payments/${up.id}`, { outcome: 'paid' });
-    expect((await o.get('/api/payments')).body.paidPlan).toBe('completo');
-    expect((await o.post('/api/wedding/publish')).body.planId).toBe('completo');
+    expect((await o.get('/api/orders')).body.orders).toHaveLength(orders);
+    expect((await o.post('/api/wedding/publish')).body.planId).toBe('regalos');
   });
 
   it('otra pareja no ve ni completa órdenes ajenas', async () => {
@@ -89,7 +91,7 @@ describe('pagos y publicación', () => {
 
 describe('sin proveedor de pagos', () => {
   let plain: Env;
-  beforeAll(() => { plain = makeEnv(); });
+  beforeAll(async () => { plain = await makeEnv(); });
   afterAll(() => plain.close());
   it('el checkout responde «no configurado» y la página de prueba no existe', async () => {
     const o = plain.client(); await signUp(o, 'sinpagos@correo.com');

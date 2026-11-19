@@ -1,8 +1,8 @@
 // Lógica de negocio del frontend de Weda: funciones puras (sin React ni almacenamiento) para poder probarlas
 // y para que, cuando exista una API, se puedan reemplazar por llamadas al servidor sin tocar los componentes.
-import { dressCode as demoDress, menus, type Category } from '@/lib/demo-wedding';
+import { dressCode as demoDress, formatARS, menus, type Category, type Gift } from '@/lib/demo-wedding';
 import { catalogGift, setGifts, type GiftSet } from './catalog';
-import { can, planFor, type Feature } from './plans';
+import { publishes, planFor, type Feature } from './plans';
 import type {
   AppState, BlockId, EventIconId, Group, Guest, GuestStatus, ListGift, PhotoChoice, PlanId, SiteConfig, SiteEvent, Swatch,
 } from './types';
@@ -115,6 +115,23 @@ export function validateGift(i: { name: string; amount: string; text: string }):
   return e;
 }
 
+/** Nombre del renglón de un aporte libre: en la página pública, la revisión de aportes y la constancia por correo (GIFT-09, D6). */
+export const FREE_AMOUNT_LABEL = 'Aporte libre';
+/** En la página pública el aporte libre viaja en el carrito como un renglón más (uno solo por aporte, D4); al enviarlo, `sendGift` lo separa de los regalos. */
+export const FREE_GIFT_ID = 'aporte-libre';
+export const isFreeGift = (g: Pick<Gift, 'id'>) => g.id === FREE_GIFT_ID;
+export const freeGift = (amount: number): Gift => ({ id: FREE_GIFT_ID, name: FREE_AMOUNT_LABEL, text: '', amount, category: 'Proyectos futuros', icon: 'home' });
+/** Mínimo efectivo del aporte libre: el que fijó la pareja, nunca menos que el mínimo general. */
+export const freeAmountMin = (min: number | null | undefined) => Math.max(min ?? MIN_AMOUNT, MIN_AMOUNT);
+/** Monto que escribe un invitado en el aporte libre (o la pareja como mínimo): pesos enteros entre `min` y el máximo. */
+export function validateFreeAmount(raw: string, min = MIN_AMOUNT): string | null {
+  const a = parseAmount(raw);
+  if (Number.isNaN(a)) return 'Escribí el monto en pesos, solo con números.';
+  if (a < min) return `El monto mínimo es ${formatARS(min)}.`;
+  if (a > MAX_AMOUNT) return 'El monto es demasiado alto: el máximo es $ 100.000.000.';
+  return null;
+}
+
 /** Correo opcional: vacío es válido; si se completa, tiene que tener formato de correo. */
 export const isValidOptionalEmail = (v: string) => v.trim() === '' || /^\S+@\S+\.\S+$/.test(v.trim());
 
@@ -134,6 +151,10 @@ export const cleanCbu = (v: string) => v.replace(/[\s-]/g, '');
 export function validateCbu(v: string): string | undefined {
   return /^\d{22}$/.test(cleanCbu(v)) ? undefined : 'El CBU tiene 22 números.';
 }
+
+/** Datos de cobro enmascarados (confirmación del cambio y avisos por correo): nunca el alias ni el CBU completos. */
+export const maskAlias = (v: string) => (v.length <= 4 ? '••••' : `${v.slice(0, 2)}•••${v.slice(-2)}`);
+export const maskCbu = (v: string) => (v ? `••••${v.slice(-4)}` : '');
 
 export function validateGroupName(v: string, groups: Group[], ignoreId?: string): string | undefined {
   const t = v.trim();
@@ -262,7 +283,7 @@ export const emptyState = (): AppState => ({
   photo: { kind: 'none' },
   preferredPlan: null,
   planId: null,
-  gifts: { cover: null, alias: '', bank: '', cbu: '', acceptCard: false, items: [], given: [] },
+  gifts: { cover: null, alias: '', bank: '', cbu: '', acceptCard: false, items: [], given: [], freeAmount: { enabled: false, min: null } },
   guests: [],
   groups: [defaultGroup()],
   site: defaultSite(),
@@ -432,7 +453,7 @@ export function draftsFor(s: AppState, planId: PlanId): { feature: Feature; labe
     ['gallery', 'La galería de fotos', s.site.gallery.photos.length > 0],
     ['message', 'El mensaje final', s.site.message.text.trim() !== ''],
   ];
-  return found.filter(([f, , has]) => has && !can(planId, f)).map(([feature, label]) => ({ feature, label, plan: planFor(feature)?.name ?? '' }));
+  return found.filter(([f, , has]) => has && !publishes(planId, f)).map(([feature, label]) => ({ feature, label, plan: planFor(feature)?.name ?? '' }));
 }
 
 /** Cambia de plan. Lo que el nuevo plan no incluye se desactiva en el sitio (los datos se conservan por si vuelve a subir). */
@@ -453,16 +474,16 @@ const mk = (t: Omit<Task, 'done'>): Task => ({ ...t, done: t.status === 'done' }
 export function tasks(s: AppState): Task[] {
   const t: Task[] = [];
   t.push(mk({ id: 'datos', label: 'Datos del casamiento', help: 'Nombres, fecha y foto de portada.', status: s.date ? 'done' : 'doing', to: '/panel', optional: true }));
-  if (can(s.planId, 'gifts')) {
+  if (publishes(s.planId, 'gifts')) {
     const items = s.gifts.items.length > 0; const alias = s.gifts.alias.trim() !== '';
     t.push(mk({ id: 'regalos', label: 'Lista de regalos', help: 'Elegí un set o sumá regalos de a uno, y cargá tu alias.', status: items && alias ? 'done' : items || alias ? 'doing' : 'todo', to: '/panel/regalos' }));
   }
-  if (can(s.planId, 'site')) {
+  if (publishes(s.planId, 'site')) {
     const ev = s.site.events;
     t.push(mk({ id: 'sitio', label: 'Tu página web', help: 'Lugares, horarios y las secciones que quieras mostrar.', status: ev.some(eventComplete) ? 'done' : ev.some(hasEventDetails) ? 'doing' : 'todo', to: '/panel/sitio' }));
   }
-  if (can(s.planId, 'guests')) t.push(mk({ id: 'invitados', label: 'Invitados', help: 'Cargá a las personas y seguí sus confirmaciones.', status: s.guests.length ? 'done' : 'todo', to: '/panel/invitados' }));
-  if (can(s.planId, 'groups')) {
+  if (publishes(s.planId, 'guests')) t.push(mk({ id: 'invitados', label: 'Invitados', help: 'Cargá a las personas y seguí sus confirmaciones.', status: s.guests.length ? 'done' : 'todo', to: '/panel/invitados' }));
+  if (publishes(s.planId, 'groups')) {
     const loose = s.guests.filter(g => g.status !== 'declined' && !g.groupId).length;
     t.push(mk({ id: 'mesas', label: 'Mesas y grupos', help: 'Organizá dónde se sienta cada persona.', status: !tablesInUse(s) ? 'todo' : loose === 0 && s.guests.length > 0 ? 'done' : 'doing', to: '/panel/mesas', optional: true }));
   }
@@ -476,7 +497,7 @@ export function readiness(s: AppState) {
 }
 
 /** Qué páginas públicas existen según el plan (el plan Regalos solo tiene la lista de regalos). */
-export const publicPages = (planId: PlanId | null) => ({ invitation: can(planId, 'site'), gifts: can(planId, 'gifts') });
+export const publicPages = (planId: PlanId | null) => ({ invitation: publishes(planId, 'site'), gifts: publishes(planId, 'gifts') });
 
 export const siteSlug = (s: AppState) => s.slug || slugify(s.couple.first, s.couple.second);
 export const sitePath = (s: AppState) => `/sitio/${siteSlug(s)}`;
@@ -516,22 +537,26 @@ export function contributionsFromState(s: AppState): Contribution[] {
   return [...out.values()];
 }
 
-/** Aportes del servidor (GET /api/contributions) en el mismo formato. Los rechazados no cuentan como recibidos. */
+/** Aportes del servidor (GET /api/contributions) en el mismo formato. Incluye los rechazados (la pareja puede volver a revisarlos);
+ *  los totales del panel los dejan afuera con `countsAsGift`. */
 export function contributionsFromServer(list: unknown): Contribution[] {
   if (!Array.isArray(list)) return [];
-  return list.filter((c): c is Record<string, unknown> => !!c && typeof c === 'object').filter(c => c['status'] !== 'rejected').map(c => {
+  return list.filter((c): c is Record<string, unknown> => !!c && typeof c === 'object').map(c => {
     const items = Array.isArray(c['items']) ? (c['items'] as Record<string, unknown>[]) : [];
     const at = typeof c['createdAt'] === 'string' ? Date.parse(c['createdAt']) : NaN;
     const id = String(c['id'] ?? '');
-    const status = c['status'] === 'confirmed' || c['status'] === 'pending_review' ? c['status'] : null;
+    const status = c['status'] === 'confirmed' || c['status'] === 'pending_review' || c['status'] === 'rejected' ? c['status'] : null;
     return {
       id, giver: String(c['giverName'] ?? '').trim() || 'Un invitado', email: String(c['giverEmail'] ?? ''), message: String(c['message'] ?? ''),
-      gifts: items.map(i => ({ name: String(i['giftName'] ?? 'Regalo'), amount: Number(i['amount']) || 0 })),
+      gifts: items.map(i => ({ name: i['kind'] === 'free' ? FREE_AMOUNT_LABEL : String(i['giftName'] ?? 'Regalo'), amount: Number(i['amount']) || 0 })),
       total: Number(c['total']) || 0, at: Number.isFinite(at) ? at : null, how: c['how'] === 'alias' ? 'alias' : null,
       receipt: c['hasReceipt'] ? `/api/contributions/${encodeURIComponent(id)}/receipt` : 'missing', status,
     };
   });
 }
+
+/** Un aporte rechazado por la pareja no suma en los totales ni en la cuenta de regalos. */
+export const countsAsGift = (c: Contribution) => c.status !== 'rejected';
 
 /** Acepta el link completo (weda.app/sitio/…, con o sin https) o solo la ruta (/sitio/…). Devuelve la ruta de la invitación o null. */
 export function invitationPath(raw: string): string | null {

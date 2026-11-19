@@ -7,17 +7,17 @@ import type { Page } from '@playwright/test';
 const noSideScroll = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
 test.describe('Persona P · invitado que llega sin link (/encontrar)', () => {
-  test('P-02/P-05: texto que no es un link → explica qué pegar; un link de invitación abre esa invitación', async ({ page }) => {
+  test('P-02/P-05: se busca por nombre (con 3 letras como mínimo) y un link de invitación pegado abre esa invitación (LAN-08)', async ({ page }) => {
     await page.goto('/encontrar', { waitUntil: 'networkidle' });
     // Ya no hay parejas inventadas que parezcan reales.
     await expect(page.getByRole('link', { name: /Ver su lista/ })).toHaveCount(0);
-    const field = page.getByLabel('Link de la invitación');
-    await field.fill('Ana y Leo');
-    await page.getByRole('button', { name: 'Abrir la invitación' }).click();
-    await expect(page.getByRole('alert')).toContainText('Pegá el link completo');
+    const field = page.getByLabel('Nombres de los novios');
+    await field.fill('Al');
+    await page.getByRole('button', { name: 'Buscar' }).click();
+    await expect(page.getByRole('alert')).toContainText('al menos 3 letras');
     await expect(field).toHaveAttribute('aria-invalid', 'true');
     await field.fill('https://weda.app/sitio/no-existe-todavia');
-    await page.getByRole('button', { name: 'Abrir la invitación' }).click();
+    await page.getByRole('button', { name: 'Buscar' }).click();
     await expect(page).toHaveURL(/\/sitio\/no-existe-todavia$/);
     await expect(page.getByRole('heading', { name: 'Este sitio no está disponible' })).toBeVisible();
   });
@@ -101,8 +101,9 @@ test.describe('Persona T · pareja con la página publicada que vuelve a editar'
     const guest = await context.newPage();
     await guest.goto(`/sitio/${slug}`, { waitUntil: 'networkidle' });
     await expect(guest.locator('body')).toContainText(/Violeta/);
-    // «Publicar los cambios» la actualiza, con el mismo link.
-    await top.getByRole('button', { name: 'Publicada', exact: true }).click();
+    // El panel avisa que hay cambios sin publicar; «Publicar los cambios» la actualiza, con el mismo link.
+    await top.getByRole('button', { name: 'Publicar cambios', exact: true }).click();
+    await expect(page.getByText('Tenés cambios guardados que todavía no se ven en tu página.', { exact: false })).toBeVisible();
     await page.getByRole('button', { name: 'Publicar los cambios' }).click();
     await expect(page.getByText('Listo: tu página ya muestra los cambios.')).toBeVisible({ timeout: 15_000 });
     expect((await stored(page)).slug).toBe(slug);

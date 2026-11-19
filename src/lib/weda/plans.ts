@@ -1,12 +1,17 @@
 // Planes de Weda: ÚNICA fuente de nombres, precios y funciones por plan. La landing, el panel y la página pública leen de acá.
-// Los planes son acumulativos: cada uno incluye lo del anterior y suma funciones.
-//   Regalos    → lista de regalos
-//   Celebración → + micrositio, confirmación de asistencia (RSVP), invitados y mesas
-//   Celebración Plus → + música de la fiesta, galería de fotos con hashtag y mensaje final
-// Precios de referencia en pesos argentinos, de PAGO ÚNICO y con la página publicada durante SEIS MESES (definiciones comerciales de la
-// autora: pago único 2026-10-21; seis meses en lugar de un año, 2026-10-28). Se cobra al publicar, y la publicación todavía no está conectada: hoy nada se publica ni vence.
-// Mientras no se elige plan (planId null) la pareja prueba todo: el plan se elige al publicar. Cambiar de plan nunca borra datos:
-// lo que el plan no incluye se conserva como borrador y solo se oculta al mostrar (editor, navegación, página pública).
+// Dos planes (decisión de la dueña, 2026-11-03), acumulativos:
+//   Regalos     → la lista de regalos
+//   Celebración → todo lo de Regalos + el sitio completo con la invitación y la gestión: confirmación de asistencia (RSVP), invitados, mesas
+//                 y grupos, música de la fiesta, galería de fotos y mensaje final
+// «Celebración Plus» (id `completo`) dejó de ofrecerse: sus funciones pasaron a Celebración. El id sigue siendo válido para no romper datos
+// guardados (borradores, órdenes, publicaciones) y se trata como Celebración (`normalizePlanId`).
+// Precios en pesos argentinos, de PAGO ÚNICO y sin renovaciones (D-01). Modelo comercial vigente (D-06, 2026-11-04, PAY-07): 14 días gratis desde que se
+// crea la celebración (BR-63); al vencer sin contratar, pausa en solo lectura con los datos guardados (BR-64); pagar publica en el momento (BR-01) y
+// lo publicado queda activo y editable indefinidamente, sin vencimiento (BR-65).
+// El plan define QUÉ SE PUBLICA (BR-14, `publishes`) y QUÉ SE OPERA (BR-62, `operates`); ver y editar contenido no dependen del plan
+// (D-02, 2026-11-03). El plan se elige al publicar; lo que no publica se conserva como borrador. Las operaciones (invitados, mesas, revisión
+// de aportes) las habilita el SERVIDOR con el plan publicado y vigente (`Access`, PAY-01); el plan del borrador nunca cuenta.
+// El cambio de Regalos a Celebración después de contratar está bloqueado mientras DP-23 siga pendiente (D-05).
 // La música es SOLO configuración y vista previa: no hay conexión real con Spotify ni con ningún servicio.
 import type { PlanId } from './types';
 
@@ -36,16 +41,31 @@ export type Plan = {
 
 export const CURRENCY = 'ARS';
 export const PRICE_UNIT = 'pago único';
-/** Cuánto tiempo queda publicada la página con cualquiera de los planes (definición comercial de la autora: 6 meses, 2026-10-28; antes 1 año). */
-export const PUBLICATION_TERM = '6 meses';
-/** La misma duración, en meses (para calcular el vencimiento). */
-export const PUBLICATION_MONTHS = 6;
+/** Días de prueba gratis desde que se crea la celebración (BR-63). El servidor calcula el vencimiento; el navegador solo lo muestra. */
+export const TRIAL_DAYS = 14;
 export const HIGHLIGHTS = 3;
+
+const HOUR = 3_600_000;
+const TRIAL_END = new Intl.DateTimeFormat('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/**
+ * Cuánto queda del trial, para mostrar: el tiempo restante en períodos de 24 h y horas (la hora en curso cuenta entera: recién creada dice «14 días»),
+ * y el momento exacto del fin en hora de Argentina, que es el que manda. No cuenta días de calendario: el vencimiento es `trialEndsAt` (UTC) del servidor.
+ */
+export function trialRemaining(trialEndsAt: string, now = Date.now()): { left: string; ends: string } {
+  const end = Date.parse(trialEndsAt);
+  const ms = Math.max(0, end - now);
+  const total = Math.ceil(ms / HOUR), days = Math.floor(total / 24), hours = total % 24;
+  const left = days > 0 ? (hours > 0 ? `${plural(days, 'día', 'días')} y ${plural(hours, 'hora', 'horas')}` : plural(days, 'día', 'días'))
+    : ms >= HOUR ? plural(hours, 'hora', 'horas') : 'menos de una hora';
+  return { left, ends: `${TRIAL_END.format(end)} (hora de Argentina)` };
+}
 
 export const PLANS: Plan[] = [
   {
-    id: 'regalos', name: 'Regalos', tagline: 'Tu lista de regalos, lista para compartir.',
-    product: 'Solo la lista de regalos',
+    id: 'regalos', name: 'Regalos', tagline: 'Tus invitados regalan desde el celular y la plata va directo a tu cuenta.',
+    product: 'La lista de regalos',
     highlights: [
       { icon: 'gift', label: 'Lista de regalos' },
       { icon: 'card', label: 'Alias y tarjeta para recibir' },
@@ -63,12 +83,13 @@ export const PLANS: Plan[] = [
     features: ['gifts'],
   },
   {
-    id: 'invitacion', name: 'Celebración', tagline: 'Tu invitación digital, con todo lo esencial para tus invitados.',
-    product: 'Sitio básico, RSVP y regalos',
+    id: 'invitacion', name: 'Celebración', tagline: 'Tu invitación digital, las confirmaciones y la organización de tus invitados, junto con la lista de regalos.',
+    product: 'Sitio completo, invitación y gestión',
     highlights: [
-      { icon: 'globe', label: 'Página con los datos de la fiesta' },
+      { icon: 'globe', label: 'Sitio con tu invitación' },
       { icon: 'check', label: 'Confirmación de asistencia' },
-      { icon: 'users', label: 'Invitados, mesas y grupos' },
+      { icon: 'users', label: 'Invitados y mesas' },
+      { icon: 'music', label: 'Música, fotos y mensaje final' },
     ],
     price: 140000, inherits: 'regalos',
     items: [
@@ -76,23 +97,10 @@ export const PLANS: Plan[] = [
       'Ceremonia y recepción, con ubicación en Google Maps',
       'Confirmación de asistencia (RSVP) online',
       'Panel para ver las respuestas y organizar a tus invitados',
+      'Mesas y grupos',
       'Foto principal',
       'Dress code',
-      'Mesas y grupos',
       'Cuenta regresiva',
-    ],
-    features: ['gifts', 'site', 'rsvp', 'guests', 'groups'],
-  },
-  {
-    id: 'completo', name: 'Celebración Plus', tagline: 'Cada detalle de su historia, en una experiencia para compartir.',
-    product: 'Sitio plus, RSVP y regalos',
-    highlights: [
-      { icon: 'music', label: 'Música de la fiesta' },
-      { icon: 'photos', label: 'Galería de fotos' },
-      { icon: 'heart', label: 'Mensaje final' },
-    ],
-    price: 150000, inherits: 'invitacion',
-    items: [
       'Música de la fiesta: tus invitados suman las canciones',
       'Galería de fotos con hashtag e Instagram',
       'Mensaje final personalizado',
@@ -101,13 +109,42 @@ export const PLANS: Plan[] = [
   },
 ];
 
-export const planById = (id: PlanId | null): Plan | undefined => PLANS.find(p => p.id === id);
+/** «Celebración Plus» (`completo`) se integró a Celebración: los datos guardados con ese id se leen como Celebración. */
+export const normalizePlanId = <T extends PlanId | null>(id: T): T => (id === 'completo' ? 'invitacion' : id) as T;
+
+export const planById = (id: PlanId | null): Plan | undefined => { const n = normalizePlanId(id); return PLANS.find(p => p.id === n); };
 
 /** «ARS 140.000». */
 export const formatPrice = (n: number) => `${CURRENCY} ${new Intl.NumberFormat('es-AR').format(n)}`;
 
-/** Sin plan elegido (prueba gratuita) todo está disponible: el plan se elige al publicar. */
-export const can = (planId: PlanId | null, feature: Feature): boolean => planId === null || !!planById(planId)?.features.includes(feature);
+/** Qué publica el plan (BR-14). Sin plan elegido (null) se muestra todo: es la vista previa de lo que se puede publicar. */
+export const publishes = (planId: PlanId | null, feature: Feature): boolean => planId === null || !!planById(planId)?.features.includes(feature);
+
+/** Lugar del plan en la herencia (Regalos 0, Celebración 1): ordena los planes sin depender del precio. */
+export const planRank = (id: PlanId | null): number => {
+  let n = -1;
+  for (let p = planById(id); p; p = p.inherits ? planById(p.inherits) : undefined) n++;
+  return n;
+};
+
+/** Operaciones de gestión (BR-62): crean o cambian datos reales, a diferencia de ver o editar contenido. */
+export type Operation = 'guests' | 'groups' | 'contributions';
+const OPERATION_FEATURE: Record<Operation, Feature> = { guests: 'guests', groups: 'groups', contributions: 'gifts' };
+
+/**
+ * Estado de la celebración que calcula el servidor (PAY-07): `trial` (14 días para armar gratis), `paused` (venció el trial sin contratar: solo lectura),
+ * `paid_unpublished` (pago confirmado y publicación pendiente: no opera, DP-25) y `active` (publicada, sin vencimiento). `trialEndsAt` es null mientras
+ * la celebración no se creó.
+ */
+export type AccessState = 'trial' | 'paused' | 'paid_unpublished' | 'active';
+export type Access = { state: AccessState; plan: PlanId | null; trialEndsAt: string | null };
+
+/** ¿Se puede ejecutar la operación? Solo con el evento activo y un plan que la incluya. Sin acceso conocido (sin cuenta), no. */
+export const operates = (access: Access | null | undefined, op: Operation): boolean =>
+  !!access && access.state === 'active' && access.plan !== null && publishes(access.plan, OPERATION_FEATURE[op]);
+
+/** Plan más barato que habilita la operación (para explicar qué la desbloquea). */
+export const planForOperation = (op: Operation): Plan | undefined => planFor(OPERATION_FEATURE[op]);
 
 /** Plan más barato que incluye la función (para decirle a la pareja dónde la encuentra). */
 export const planFor = (feature: Feature): Plan | undefined => PLANS.find(p => p.features.includes(feature));

@@ -2,17 +2,17 @@ import { trackOnce } from '@/lib/analytics';
 import { giftsStage, siteStage } from '@/lib/weda/journey';
 import { useEffect, useState } from 'react';
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { ChevronDown, CircleHelp, Eye, Gift, Globe, Heart, House, Lock, Mail, Users } from 'lucide-react';
+import { ChevronDown, CircleHelp, Eye, Gift, Globe, Heart, House, Mail, Users } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { SideMenuIcon } from '@/components/panel/side-menu-icon';
 import { PlansProvider, PreviewFrame, ToastProvider, usePlans } from '@/components/panel/ui';
 import { coupleLabel, publicPages, resolvePhoto, sitePath } from '@/lib/weda/logic';
 import { openPreview, OPEN_PREVIEW, type PreviewRequest } from '@/lib/weda/preview-event';
-import { can, formatPrice, PLANS, PUBLICATION_TERM, type Feature } from '@/lib/weda/plans';
+import { formatPrice, PLANS, TRIAL_DAYS, trialRemaining } from '@/lib/weda/plans';
 import { ensureRemote, errorText, hasUnsaved, dismissNotice, reloadFromServer, retrySave, useRemote } from '@/lib/weda/remote';
 import { useAppSelector, useAppState, useHydrated, useStorageFull } from '@/lib/weda/store';
 import { isLive } from '@/lib/weda/payments';
-import '@/panel.css';
+import { WedaLogo } from '@/components/weda-logo';
 
 export const Route = createFileRoute('/panel')({
   head: () => ({
@@ -25,12 +25,12 @@ export const Route = createFileRoute('/panel')({
   component: PanelLayout,
 });
 
-type NavItem = { to: string; label: string; icon: typeof House; feature?: Feature; end?: boolean };
+type NavItem = { to: string; label: string; icon: typeof House; end?: boolean };
 const NAV: NavItem[] = [
   { to: '/panel', label: 'Inicio', icon: House, end: true },
-  { to: '/panel/regalos', label: 'Regalos', icon: Gift, feature: 'gifts' },
-  { to: '/panel/sitio', label: 'Tu página', icon: Globe, feature: 'site' },
-  { to: '/panel/invitados', label: 'Invitados', icon: Users, feature: 'guests' },
+  { to: '/panel/regalos', label: 'Regalos', icon: Gift },
+  { to: '/panel/sitio', label: 'Tu página', icon: Globe },
+  { to: '/panel/invitados', label: 'Invitados', icon: Users },
 ];
 /* Perfil de la pareja arriba del menú: la misma foto que usa la portada, los nombres y el estado. «Publicada» solo con cuenta: la publicación
    real la hace el servidor (sin cuenta no hay página en Internet, aunque quede una publicación vieja guardada en este navegador).
@@ -96,10 +96,13 @@ function PublishButton({ className, children }: { className: string; children: R
 
 function PublishLabel() {
   const state = useAppState();
-  const online = !!useRemote().user;
+  const remote = useRemote();
+  const online = !!remote.user;
   const live = isLive(state) && online;
   const down = online && !!state.publication && !live;
-  return <><Heart size={16} aria-hidden="true" /><span>{live ? 'Publicada' : down ? 'Despublicada' : 'Publicar'}</span></>;
+  // Con cambios guardados que la página pública todavía no muestra (lo dice el servidor), el botón invita a publicarlos.
+  const pending = live && remote.publication?.pendingChanges === true;
+  return <><Heart size={16} aria-hidden="true" /><span>{pending ? 'Publicar cambios' : live ? 'Publicada' : down ? 'Despublicada' : 'Publicar'}</span></>;
 }
 
 /* Ayuda: preguntas frecuentes (cada respuesta se abre al tocar la pregunta) y el correo de consultas. Precios y duración salen de `plans.ts`.
@@ -107,13 +110,14 @@ function PublishLabel() {
 function HelpDialog({ onClose }: { onClose: () => void }) {
   const prices = PLANS.map(p => `${p.name} ${formatPrice(p.price)}`).join(', ');
   const faq: [string, string][] = [
-    ['¿Cuánto cuesta y cuándo pago?', `Armás todo gratis y pagás una sola vez, al publicar: ${prices}. Es un pago único y la página queda publicada ${PUBLICATION_TERM}.`],
-    ['¿Puedo cambiar de plan después de publicar?', 'Sí, a un plan más completo: pagás solo la diferencia. No se puede pasar a un plan más económico.'],
+    ['¿Cuánto cuesta y cuándo pago?', `Tenés ${TRIAL_DAYS} días para armar todo gratis, sin tarjeta. Cuando está lista, elegís un plan y pagás una sola vez: ${prices}. Al confirmarse el pago, tu página se publica.`],
+    ['¿Qué pasa si no contrato en esos días?', 'Tu proyecto queda guardado y en pausa: lo podés ver, pero no editar ni publicar. Elegís un plan cuando quieras y seguís desde donde lo dejaste.'],
+    ['¿Puedo cambiar de plan después de publicar?', 'Por ahora no: el plan que elegís al publicar no se puede cambiar después de contratarlo.'],
     ['¿Cómo comparto la invitación?', 'Al publicar se genera el link de tu página. Lo podés mandar a todos tus contactos.'],
     ['¿Cómo recibo los regalos?', 'Cargás el alias de tu cuenta en Regalos → Datos de cobro. Tus invitados eligen un regalo, te transfieren directo a esa cuenta y adjuntan el comprobante. No hay comisión: el dinero va directo a tu banco y podés validar cada regalo con su comprobante.'],
     ['¿Dónde veo los regalos que recibí?', 'En Regalos → Aportes recibidos: quién te hizo el regalo, qué regalos eligió (puede ser más de uno), el monto, la fecha y el comprobante.'],
-    ['¿Puedo editar la invitación después de publicarla?', 'Sí. Mientras la página esté publicada, la podés editar cuando quieras.'],
-    ['¿Cuánto tiempo queda online la página?', `${PUBLICATION_TERM[0]!.toUpperCase()}${PUBLICATION_TERM.slice(1)} desde que la publicás.`],
+    ['¿Puedo editar la invitación después de publicarla?', 'Sí, cuando quieras. Lo que cambies se ve en tu página cuando tocás «Publicar los cambios».'],
+    ['¿Cuánto tiempo queda online la página?', 'No vence: es un pago único, sin renovaciones. Tu página y tu link siguen activos y la podés seguir usando.'],
   ];
   return (
     <Dialog open onOpenChange={o => { if (!o) onClose(); }}>
@@ -149,6 +153,19 @@ function SyncBanner() {
   return null;
 }
 
+/* Trial y pausa (PAY-07, BR-63, BR-64): cuánto tiempo queda para crear gratis (períodos de 24 h y el fin exacto en hora de Argentina), o que el período terminó y el proyecto quedó guardado. El estado lo
+   calcula el servidor (`access`); acá solo se muestra, sin ventanas que interrumpan. Sin cuenta (borrador local) no hay trial que mostrar. */
+function TrialBanner() {
+  const access = useRemote().access;
+  const plans = usePlans();
+  if (!access?.trialEndsAt || (access.state !== 'trial' && access.state !== 'paused')) return null;
+  if (access.state === 'paused') return (
+    <p className="pn-banner is-info pn-trial-end" role="status"><strong>Terminó tu período gratuito.</strong> Tu proyecto está guardado. Elegí un plan para publicarlo y seguir editando. <button type="button" className="pn-link" onClick={plans.open}>Elegir plan</button></p>
+  );
+  const { left, ends } = trialRemaining(access.trialEndsAt);
+  return <p className="pn-trial" role="status">Te quedan {left} para crear gratis, hasta el {ends}. <button type="button" className="pn-link" onClick={plans.open}>Elegir plan</button></p>;
+}
+
 /** Embudo: avances que se ven en el panel (una vez por navegador). Sin efecto si la analítica está apagada (analytics.ts). */
 function FunnelProgress() {
   const s = useAppState();
@@ -165,7 +182,6 @@ function PanelLayout() {
   const navigate = useNavigate();
   // Solo lo que usa el contenedor: así escribir en el editor o los invitados no lo vuelve a dibujar.
   const onboarded = useAppSelector(s => s.onboarded);
-  const planId = useAppSelector(s => s.planId);
   const hydrated = useHydrated();
   const full = useStorageFull();
   const [help, setHelp] = useState(false);
@@ -186,9 +202,12 @@ function PanelLayout() {
   // Primero se sabe si hay sesión (y se trae el casamiento de la cuenta): recién ahí se decide si falta crearlo.
   const remote = useRemote();
   useEffect(() => { void ensureRemote(); }, []);
+  // Sin cuenta no hay panel (decisión de la dueña, 2026-11-06): se va a crear la cuenta o ingresar.
   useEffect(() => {
-    if (hydrated && remote.settled && !onboarded) void navigate({ to: '/crear', replace: true });
-  }, [hydrated, remote.settled, onboarded, navigate]);
+    if (!remote.settled) return;
+    if (!remote.user) void navigate({ to: '/crear/cuenta', search: { modo: 'ingresar' }, replace: true }); // quien entra al panel ya tiene cuenta: va a ingresar
+    else if (hydrated && !onboarded) void navigate({ to: '/crear', replace: true });
+  }, [hydrated, remote.settled, remote.user, onboarded, navigate]);
   // Cambios sin confirmar por el servidor: avisa antes de cerrar la pestaña.
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => { if (hasUnsaved()) { e.preventDefault(); e.returnValue = ''; } };
@@ -196,7 +215,7 @@ function PanelLayout() {
     return () => window.removeEventListener('beforeunload', warn);
   }, []);
 
-  if (!hydrated || !remote.settled || !onboarded) return <div className="pn-root"><p className="pn-loading" role="status">Cargando tu evento…</p></div>;
+  if (!hydrated || !remote.settled || !remote.user || !onboarded) return <div className="pn-root"><p className="pn-loading" role="status">Cargando tu evento…</p></div>;
 
   return (
     <ToastProvider>
@@ -205,7 +224,7 @@ function PanelLayout() {
       <div className="pn-root pn-app" data-side={collapsed ? 'collapsed' : 'open'}>
         <a className="skip-link" href="#main">Ir al contenido</a>
         <header className="pn-top">
-          <Link to="/panel" className="seed-logo" aria-label="Weda, ir al inicio">Weda<i aria-hidden="true" /></Link>
+          <Link to="/panel" className="seed-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link>
           {/* Vista previa en todas las secciones: abre la página pública en un pop-up. «Regalos» va directo a la lista; el resto, al inicio de la invitación. */}
           <Profile compact />
           <div className="pn-top-actions">
@@ -217,18 +236,16 @@ function PanelLayout() {
         <aside className="pn-side">
           <div className="pn-side-top">
             <button type="button" className="pn-side-toggle" onClick={toggleSide} aria-expanded={!collapsed} aria-controls="pn-side-nav" aria-label={collapsed ? 'Abrir el menú' : 'Recoger el menú'} title={collapsed ? 'Abrir el menú' : 'Recoger el menú'}><SideMenuIcon /></button>
-            <Link to="/panel" className="seed-logo pn-side-logo" aria-label="Weda, ir al inicio">Weda<i aria-hidden="true" /></Link>
+            <Link to="/panel" className="seed-logo pn-side-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link>
           </div>
           <Profile />
           <nav aria-label="Secciones del panel" className="pn-nav" id="pn-side-nav">
             <div className="pn-nav-group">
               {NAV.map(n => {
-                const locked = !!n.feature && !can(planId, n.feature);
                 return (
                   <Link key={n.to} to={n.to as never} activeOptions={{ exact: !!n.end }} activeProps={{ 'aria-current': 'page' }} className="pn-nav-link" title={n.label}>
                     <n.icon size={20} strokeWidth={1.5} aria-hidden="true" />
                     <span>{n.label}</span>
-                    {locked && <><Lock size={13} aria-hidden="true" className="pn-nav-lock" /><span className="pn-sr">(no incluido en tu plan)</span></>}
                   </Link>
                 );
               })}
@@ -239,8 +256,12 @@ function PanelLayout() {
 
         <main id="main" className="pn-main">
           <SyncBanner />
+          <TrialBanner />
           {full && <p className="pn-banner" role="alert">No hay más lugar para guardar fotos en este navegador. Quitá alguna foto: los últimos cambios no se guardaron.</p>}
-          <Outlet />
+          {/* BR-64: en pausa todo el panel queda en solo lectura (se ve, no se edita); contratar sigue disponible desde «Elegir plan» y «Publicar». */}
+          {remote.access?.state === 'paused'
+            ? <fieldset className="pn-readonly" disabled><legend className="pn-sr">Solo lectura: terminó el período gratuito</legend><Outlet /></fieldset>
+            : <Outlet />}
         </main>
       </div>
       {help && <HelpDialog onClose={() => setHelp(false)} />}

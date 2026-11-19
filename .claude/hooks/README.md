@@ -25,7 +25,7 @@ Además, **en modo `auto` (y en `acceptEdits`) una regla `ask` no frena la llama
 | Lecturas de rutas no literales (`cat $X`, `cat $(…)`, `. $X`) | deny | No se puede saber qué leen. |
 | `grep -r`, `rg --hidden`/`--no-ignore`, `tar`, `cp -r`, `rsync`, `zip -r`, `find -exec` sobre una carpeta con `.env*`, `.data*` u otras credenciales | deny | Solo mira el primer nivel de la carpeta, o el proyecto si la carpeta lo contiene. |
 | `printenv`, `env` sin comando, `export -p`, `set`, `gh auth token`, `gh auth status --show-token`, `gh auth login/logout/…` | deny | Muestran o cambian credenciales. |
-| `sqlite3`, `node:sqlite`, `--experimental-sqlite` | deny | |
+| La base de Supabase a mano: `psql`, `pgcli`, `pg_restore`, la CLI `supabase` | deny | Desde OPS-08 la base es Supabase; SQLite ya no existe en el código. |
 | `git push`: `--force`, `--force-with-lease`, `--mirror`, `--delete`, `--prune`, `-f`, `-d`, `+ref`, `:ref` | deny | En cualquier posición y abreviados (`--forc`). |
 | `git push` de tags: `--tags`, `--follow-tags`, `refs/tags/…`, o un ref que no es una rama confirmada | deny | |
 | `git reset --hard` (y `--har`), `git clean`, `git branch -D/-M/-C/--force`, `rm -rf` | deny | |
@@ -33,16 +33,16 @@ Además, **en modo `auto` (y en `acceptEdits`) una regla `ask` no frena la llama
 | `git -c` con claves que no son de la lista segura (`user.*`, `color.*`, `advice.*`, `init.defaultBranch`, `log.*`, `i18n.*`, `core.quotepath`); `git config alias.*`, `core.*`, `remote.*`, `url.*`, `push.*`, etc. | deny | Evita alias e inyección de comandos. |
 | `--upload-pack`, `--receive-pack`, `--exec`, `git clone -u`, `git log/diff/show --output`, `git fetch +ref` o `-f` | deny | Ejecutan programas, escriben archivos o pisan ramas. |
 | Crear, mover o borrar tags (con la regla real de git: `--sort`, `--format`, `--column` o `-i` con un nombre **crean** un tag) | deny | Leer tags pasa. |
-| Merge de PR (`gh pr merge`) | deny | |
 | `gh api`: método distinto de GET/HEAD, campos sin `-X GET`, `--input`; en GraphQL, `mutation` o una consulta no literal (`$`, `@archivo`) | deny | |
 | `curl`/`wget` con escritura a `github.com` | deny | |
 | `gh repo delete/edit/rename/archive/create/fork/sync…`, `secret`, `variable`, `release`, `workflow`, `extension`, `gist`, `alias`, `config`, `ssh-key`… (salvo listar o ver) | deny | |
 | Deploys: `vercel`, `vc`, `wrangler`, `netlify`, `netlify-cli`, `ntl`, `fly`, `flyctl`, `railway`, `@railway/cli` (también con `@versión`) | deny | |
 | Texto `disableAllHooks` en un comando o en el contenido de un archivo | deny | Apagaría todos los hooks. |
 | Comandos de más de 64 KB | deny | No se podrían revisar antes del timeout (10 s). El peor caso admitido tarda unos 3 s. |
-| **Según el modo**: `git commit`, `git push` normal, `gh pr create`, `gh pr close/reopen`, `git merge/rebase/pull/cherry-pick/revert/am/apply`, `git stash pop/apply`, `git restore`, `git checkout -- …`, `git switch -f`, `git rm -r` | ask en `default`, **deny** en cualquier otro modo o si el modo no llega | |
+| **Pasan** (autorización de la dueña, 2026-11-09): `git commit`, `git push` normal, `gh pr create`, `gh pr merge`, `git merge/rebase/pull/cherry-pick/revert/am/apply`, `git stash pop/apply` | — | Mezclar ramas se puede deshacer; lo que no, sigue frenado. |
+| **Según el modo**: `gh pr close/reopen`, `git restore`, `git checkout -- …`, `git switch -f`, `git rm -r` | ask en `default`, **deny** en cualquier otro modo o si el modo no llega | |
 | **Según el modo**: escribir la configuración de Claude Code (`.claude/settings*.json`, también `~/.claude/settings*.json`; `.claude/hooks/`, `.claude/rules/`; `CLAUDE.md`, `AGENTS.md`), con Edit/Write o desde Bash | ask en `default`, **deny** en otro modo | La guardia se protege a sí misma. Leer esos archivos pasa. |
-| **Según el modo**: escribir `src/server/db.ts` (esquema), con Edit/Write o desde Bash (`sed -i`, `>`, `cp`, `git checkout --`…) | ask en `default`, **deny** en otro modo | |
+| **Según el modo**: escribir `src/server/db.ts` o `src/server/pg.ts` (esquema y `PG_MIGRATIONS`), con Edit/Write o desde Bash (`sed -i`, `>`, `cp`, `git checkout --`…) | ask en `default`, **deny** en otro modo | |
 
 Cómo encuentra los comandos:
 - Separa el comando en tramos por `;`, `&`, `|`, saltos de línea, `$(…)`, comillas invertidas y paréntesis.
@@ -81,7 +81,7 @@ Cómo encuentra los comandos:
 | `git push --dry-run`, `git push origin <sha>:rama`, rama que no existe localmente | Se tratan como push o como ref no confirmado | Hacerlo en modo `default` o pedírselo a la dueña. |
 | `cat "$(git rev-parse --show-toplevel)/README.md"` | Ruta no literal | Escribir la ruta. |
 | `grep -r` sobre el repo cuando existen `.env` o `.data` | Leería secretos | Buscar en una subcarpeta o usar la herramienta Grep (respeta `.gitignore`). |
-| Commit, push y PR fuera del modo `default` | Por diseño | Pasar la sesión a `default`. Ojo: la app a veces la devuelve sola a `auto` o `acceptEdits`. |
+| Descartar cambios, el esquema o la configuración de Claude fuera del modo `default` | Por diseño | Pasar la sesión a `default`. Ojo: la app a veces la devuelve sola a `auto` o `acceptEdits`. |
 
 ## Probar
 

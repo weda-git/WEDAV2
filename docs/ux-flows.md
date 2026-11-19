@@ -437,3 +437,94 @@ Esta decisión **reemplaza** el modelo anterior (plan de 6 meses, permanencia p�
 - **Lo que nunca se contrató (P19, adoptada):** el borrador sin contratación se elimina por inactividad (inicio de sesión o escritura efectiva): cuenta sin evento 12 meses; evento creado sin contratación 6 meses; onboarding incompleto 6 meses; borrador avanzado nunca contratado 12 meses. Contratar saca el evento del régimen de borradores. Eliminar un borrador no es eliminar la cuenta ni ejercer un derecho legal. Los avisos previos (30, 7 y 1 día) son una recomendación por confirmar; el fundamento legal está pendiente.
 - Pendientes (`02d` §10 y `06` §2): **P30, P6, P26 y P5** requieren asesoramiento legal, contable o de seguridad; **P35** (requisitos mínimos de publicación) requiere definición; ninguna se implementa hasta resolverse.
 - **El código y los textos actuales NO coinciden** (no se cambió código): hoy el pago confirmado solo habilita el botón «Publicar mi página» (dos acciones separadas); la vigencia es de **6 meses** (`PUBLICATION_MONTHS = 6` y `PUBLICATION_TERM = '6 meses'` en `plans.ts`, textos en la landing, el diálogo de publicar y Ayuda); la página, el RSVP y los regalos devuelven `410` a los 6 meses; el servidor bloquea publicar pero no editar al vencer; no existe el estado «finalizado», el cierre del panel ni las exportaciones; y cada cuenta tiene un solo casamiento. Lo descripto en «Pagos» y «Vencimiento» más arriba es el comportamiento **actual**.
+
+## Revisión manual de aportes en el panel (2026-10-31, IC-08)
+
+- En «Aportes», cada aporte con cuenta muestra sus acciones según el estado (BR-24): «A revisar» → «Confirmar» (solo si tiene comprobante; sin él queda «Pedir comprobante») y «Rechazar»; «Confirmado» → «Rechazar»; «Rechazado» → «Volver a revisar».
+- «Rechazar» pide confirmación en el lugar («Sus regalos vuelven a quedar libres para otros invitados») porque libera los regalos en la página pública.
+- Los rechazados siguen en la lista con la etiqueta «Rechazado», sin «Pedir comprobante», y no suman en los totales ni en el contador de la pestaña.
+- «Volver a revisar» falla con un aviso si otro invitado eligió alguno de sus regalos mientras tanto: un regalo nunca queda tomado dos veces.
+- Supuesto: los textos de la sección («Aportes recibidos», «Regalos recibidos») no se tocaron; su redacción definitiva sigue pendiente (IC-07).
+
+## Cambiar la clave desde el perfil (2026-10-31, pedido de la dueña)
+
+Reemplaza, para quien tiene cuenta, el supuesto de «Perfil (2026-10-21)» (la clave no se guardaba y el cambio avisaba que no se aplicó).
+- En «Tu cuenta», debajo del correo, la fila **Clave** (`••••••••`) con «Cambiar». Al tocarlo se abre ahí mismo el formulario (sin diálogo ni pantalla nueva), con el foco en «Clave actual».
+- Campos: clave actual, clave nueva (mismas reglas que al registrarse y distinta de la actual) y su repetición; un solo «ojo» muestra u oculta las tres. Validación en el navegador antes de enviar; el servidor vuelve a validar y exige la clave actual.
+- Mientras espera: «Un momento…» y los dos botones desactivados. Clave actual equivocada: el error va en su campo, que se vacía. Demasiados intentos, sesión vencida o sin conexión: aviso arriba de los botones.
+- Al terminar: «Listo: cambiaste tu clave. Cerramos las sesiones abiertas en otros dispositivos; en este seguís adentro.» El servidor cierra las demás sesiones y anula los enlaces de recuperación pendientes.
+- «Si no recordás tu clave, pedí un enlace por correo» sigue disponible (`/clave`). Sin cuenta, el perfil no muestra la fila Clave.
+
+## Cerrar las demás sesiones (2026-10-31, siguiente incremento del backend)
+
+- En «Tu cuenta», debajo de «Clave», la fila **Sesiones**: «Solo en este dispositivo» o «Abierta también en N lugares más» con «Cerrar las demás». Al tocarlo: «Listo: cerramos las demás. Acá seguís adentro.»
+- Es solo un número: el servidor no guarda navegador ni lugar de cada sesión, así que no hay lista por dispositivo (requeriría cambiar el esquema).
+- Después de cambiar la clave, la fila se vuelve a consultar (el cambio de clave ya cerró las demás).
+
+## Aviso de «cambios sin publicar» (2026-10-31, implementación de DASH-04 / NE-03)
+- **Quién lo decide:** el servidor. Al guardar el borrador y al abrir el panel compara la página que publicaría ahora con la que está publicada (`pendingChanges`). Solo cuenta lo que ve un invitado: cambiar la lista de invitados no genera aviso; cambiar textos, fotos, regalos o el plan, sí.
+- **Arriba a la derecha:** con la página publicada y cambios pendientes, el botón «Publicada» pasa a decir «Publicar cambios» y abre «Tu publicación». Al publicar vuelve a «Publicada».
+- **En «Tu publicación»:** el estado dice «Publicada, con cambios sin publicar» y un texto explica que la página todavía muestra la versión anterior, con el botón «Publicar los cambios». Si está al día dice «Tu página ya muestra todo lo que guardaste» y no ofrece volver a publicar lo mismo. Mientras no llegó el dato del servidor, se mantiene el texto y el botón anteriores, sin afirmar nada.
+- **Supuesto:** con la página dada de baja no hay aviso; «Volver a publicar» ya publica lo último guardado.
+
+## Datos de cobro protegidos (2026-10-31, GIFT-14 / BR-30 nivel base; decisiones D1–D8 aprobadas por la dueña en el plan)
+- **Con cuenta**, en Regalos → Datos de cobro: «Cambiar» (o «Configurar» la primera vez) abre dos pasos. Primero el alias (obligatorio en el formulario), el banco y el CBU (opcionales), validados antes de seguir. Después, la confirmación: «Antes» enmascarado (`an•••mp`) y «Ahora» completo, para revisar que no haya errores de tipeo; la clave actual y «Confirmar cambio». La primera carga (todavía no había datos) solo pide revisar y «Confirmar», **sin clave** (decisión de la dueña, 2026-11-06: no hay nada que desviar y era fricción); el correo de aviso sale igual.
+- **Errores:** si la clave es incorrecta, se avisa en el campo y se vacía. En un aviso aparte: los mismos datos que ya estaban, que cambiaron desde otro dispositivo (hay que recargar) o más de 3 cambios en el día.
+- **Al guardar:** el aviso dice «Tus invitados los ven cuando publiques los cambios» (la página pública es una copia, PUB-04) y llega un correo al dueño con los datos enmascarados y «Cambiar mi clave». Si la página ya está publicada, se enciende «Publicar cambios» (DASH-04). Un alias que llegue dentro del borrador no lo enciende, porque se descarta.
+- **Sin cuenta:** ya no se puede cargar nada (2026-11-06): el panel y el armado del casamiento piden cuenta, y al ingresar se abre solo lo guardado en la cuenta, sin mezclar borradores del navegador.
+- **Cambio respecto del plan aprobado:** en la confirmación, el destino **nuevo** se muestra completo (no enmascarado), porque la persona lo acaba de escribir en la pantalla anterior y así puede detectar errores de tipeo. El anterior y el correo sí van enmascarados.
+
+## Regalos repetibles (2026-10-31, GIFT-08 / BR-19; decisión Q1 de la dueña, plan aprobado)
+- **Reemplaza** lo anterior sobre «Ya elegido» y la nota de la revisión de aportes («Volver a revisar falla si otro invitado eligió alguno de sus regalos»): **ningún regalo se agota**. El mismo regalo se puede regalar las veces que quieran los invitados, y una persona puede hacer los aportes que quiera.
+- **Página publicada:** todas las tarjetas dicen «Regalar», aunque el regalo ya tenga aportes. Después de enviar, el agradecimiento confirma el envío y la tarjeta no cambia. La página no muestra cuántos regalaron ni quiénes (BR-27).
+- **Panel:** cada aporte se ve por separado, aunque varios tengan el mismo regalo. Al rechazar se pregunta «¿Rechazar el aporte? Deja de sumar en tus totales; si te equivocás, podés volver a revisarlo.» y se avisa «Rechazaste el aporte de … Ya no suma en tus totales.». «Volver a revisar» ya no depende de otros aportes.
+- **Aclaración de la dueña (2026-10-31):** los regalos son conceptos simbólicos de contribución, sin inventario ni unidades. Un mismo regalo admite aportes ilimitados e independientes, de distintos invitados o de la misma persona, y los aportes anteriores nunca cambian su disponibilidad. No se muestra «Ya elegido», «Agotado», «Reservado» ni porcentajes de stock. Por eso `/ejemplo` tampoco marca «Elegido por vos»: lo que ya regaló ese navegador se puede regalar otra vez.
+
+## Planes: alcance de publicación y de operación (2026-11-03, decisión de la dueña D-01 y D-02)
+
+Origen: decisiones de la dueña registradas en [`product-blueprint/03`](product-blueprint/03-open-decisions-and-risks.md) §4. **Reemplaza** lo anterior sobre planes en este documento: la matriz de tres planes (§3), «Incluido en Celebración Plus» en Tu página, los tres cuadrados de «¿Qué querés publicar?», «Qué hay en Celebración Plus» y «Publicación: 6 meses» (hoy el código usa 1 año).
+
+- **Dos planes** de pago único (BR-13): **Regalos ARS 95.000** (la lista de regalos y su gestión) y **Celebración ARS 140.000** (todo lo de Regalos y el micrositio completo). El plan se elige solo al publicar.
+- **Qué se publica** (BR-14): Regalos publica solo la lista; Celebración, la lista y el micrositio.
+- **Ver, editar y operar** (BR-62): la pareja recorre y arma todo desde el inicio, pero las operaciones de gestión (agregar o importar invitados, crear mesas, asignar personas, RSVP) solo funcionan con Celebración contratada y vigente; la lista, los datos de cobro y los aportes funcionan con cualquiera de los dos. Lo bloqueado se ve deshabilitado, con la explicación de qué lo desbloquea. La vista previa no escribe nada.
+- **Pendientes:** cambio de Regalos a Celebración (DP-23), qué se permite al vencer (DP-24), si una orden pagada sin publicar ya habilita las operaciones (DP-25), cómo se registra la modalidad publicada (DP-26), qué incluye «agradecimientos» (DP-27) y si el contenido del micrositio se edita sin Celebración (DP-28; supuesto: sí).
+- **Cambio de plan (D-05, 2026-11-03):** mientras DP-23 siga pendiente, **no** se puede pasar de Regalos a Celebración después de contratar; no hay mejoras ni cobros adicionales. **Reemplaza** «mejorar de plan (se paga solo la diferencia…)» de «Tu publicación» y «Cambio de plan: solo a uno más completo, pagando la diferencia» de «Publicación: 6 meses».
+- **Operaciones después de pagar (D-05):** se habilitan recién cuando la publicación con ese plan se completó. Si falla, «Publicar mi página» se puede reintentar con el mismo pago.
+- **El código todavía no lo hace** (IC-25, IC-26, IC-27): se construye en [PAY-01](../specs/PAY-01-plan-alcance/spec.md).
+
+## Panel: ver, editar y operar (2026-11-04, PAY-01, decisión de la dueña D-02 y D-05)
+
+Origen: [PAY-01](../specs/PAY-01-plan-alcance/spec.md), aprobada por la dueña. **Reemplaza** el estado bloqueado «… se activa con el plan …» (`Locked`) y la opción «Volver a probar todo».
+
+- **Tu página y Regalos** se editan siempre, con cualquier plan o sin plan. Lo que el plan elegido no publica se conserva y no se publica.
+- **Invitados y Mesas** se ven siempre. Sin Celebración publicada y vigente: «Agregar invitado», «Importar», editar, borrar, «Crear mesa» y asignar quedan deshabilitados, con el aviso «Se habilita al publicar con Celebración. Mientras tanto podés ver cómo funciona.» y «Ver qué incluye» (abre «Publicar»). Sin invitados se muestran tres filas marcadas «Ejemplo». «Exportar» sigue disponible.
+- **Aportes recibidos**: con Regalos o Celebración vigentes se confirman, rechazan y se pide el comprobante; si no, se ven con las acciones deshabilitadas y el aviso. «Ver comprobante» sigue disponible.
+- **Pagado y sin publicar:** el aviso dice «Tu pago está confirmado: se habilita cuando publiques tu página.» Si la publicación falla, «Publicar mi página» se reintenta con el mismo pago.
+- **Vencido:** el aviso dice «Tu publicación venció: ya no se pueden hacer cambios de gestión.»
+- **Inicio:** las tarjetas de Invitados y Mesas llevan «Se habilita con Celebración» mientras no se puedan operar. La navegación ya no muestra candados.
+- **Publicar:** sin «Mejorar tu plan». Con un plan ya contratado, elegir el otro muestra «Ya contrataste … Por ahora el plan no se puede cambiar después de contratarlo» y ofrece publicar el contratado. Preguntas frecuentes y términos: «Por ahora el plan no se puede cambiar después de contratarlo».
+- **Vista previa:** confirmar asistencia o regalar muestra el agradecimiento sin guardar nada.
+- **Supuesto (S-1):** con la página dada de baja y vigente se sigue operando.
+
+## Trial de 14 días, pausa, contratar y publicar en un paso, permanencia (2026-11-04, decisión de la dueña D-06, PAY-07)
+
+Origen: [PAY-07](../specs/PAY-07-trial-contratacion-permanencia/spec.md). **Reemplaza** todo lo anterior de este documento sobre duración de la publicación («Publicada 1 año», «Publicación: 6 meses», «Vigente hasta», vencimiento a los 6 o 12 meses, «vencida no se reabre»), sobre pagar y después publicar como dos acciones, y el cartel «Más elegido».
+
+- **Landing:** «14 días para crear gratis, sin tarjeta». Las tarjetas dicen «Pago único · sin renovaciones», y Celebración lleva «Recomendado».
+- **Registro y creación:** como antes, con correo y clave; la fecha de la boda se puede dejar vacía. El trial empieza al guardar la celebración con los nombres, no al registrarse.
+- **Panel durante el trial:** una línea discreta arriba del contenido: «Te quedan 13 días y 5 horas para crear gratis, hasta el 18 de noviembre a las 09:00 (hora de Argentina). Elegir plan». Cuenta períodos de 24 h desde que se guardó la celebración en la cuenta (la hora en curso cuenta entera) y muestra el fin exacto en hora de Argentina; no usa días de calendario. El primer paso recomendado sigue siendo la lista de regalos.
+- **Pausa (venció el trial sin contratar):**
+  - Aviso: «Terminó tu período gratuito. Tu proyecto está guardado. Elegí un plan para publicarlo y seguir editando.»
+  - Todo el panel queda en solo lectura (`fieldset.pn-readonly`), y «Elegir plan» y «Publicar» siguen disponibles.
+  - Si otra pestaña intenta guardar, se avisa una vez y no se reintenta.
+- **Contratar = publicar:** al volver del pago confirmado, «Tu pago» muestra «¡Tu página está publicada!» con el link. Si la publicación falló, explica que el pago está confirmado y ofrece «Publicar mi página» sin volver a cobrar.
+- **Publicado:** sin fechas de vencimiento. «Tu publicación» dice desde cuándo está publicada, y al bajarla dice que el plan sigue contratado.
+- **Textos:** las preguntas frecuentes («¿Qué pasa si no contrato en esos días?», «No vence») y los borradores de términos y privacidad cuentan lo mismo.
+
+## Aporte libre (2026-11-05, GIFT-09 / BR-20; spec y plan aprobados por la dueña el 2026-11-01)
+- **Panel:** en Regalos → Mis regalos, debajo de la lista, el bloque «Aporte libre» con «Dejar que tus invitados elijan cuánto regalar» (apagado por defecto) y «Monto mínimo · opcional» (si queda vacío, el mínimo es $ 1.000). Se guarda solo y llega a los invitados al publicar; si la página ya está publicada, se enciende «Publicar cambios».
+- **Página pública:** si está habilitado en lo publicado y la lista tiene regalos, la primera tarjeta es «Aporte libre»: «Elegí cuánto querés regalar», el campo de monto y, si la pareja fijó uno, «Mínimo $ …». «Agregar» (o Enter) lo suma al carrito; un monto inválido se explica debajo del campo. La tarjeta no aparece mientras se busca o se filtra por categoría.
+- **Carrito:** un solo renglón «Aporte libre» con «Cambiar» (vuelve a la tarjeta con el monto para editarlo) y «Quitar»; se combina con regalos y el total los suma. El resto del flujo no cambia: alias, comprobante obligatorio y aporte pendiente de revisión.
+- **Revisión y correo:** el renglón se ve como «Aporte libre» con su monto, en «Aportes recibidos» y en la constancia que recibe el invitado.
+- **`/ejemplo`:** sin cambios.
+

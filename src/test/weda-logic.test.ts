@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   addCatalogGift, addCustomGift, addGroup, addGuest, addSet, applyRsvp, assignGuest, emptyState, guestStats, isSafeMapsUrl, mapsLink,
   updateGroup, validateCapacity, cleanCbu, validateCbu, isSamplePhoto, isValidOptionalEmail, moveGift, moveGiftTo, resolvePhoto, parseAmount, receivedGifts, receivedTotal, removeSetGifts, readiness, tasks, removeGift, removeGroup, removeSet, setPlan, slugify, updateGuest, validateAlias, validateGift,
-  validateGroupName, validateOnboarding, draftsFor, spotifyEmbed, contributionsFromState, contributionsFromServer, invitationPath,
+  validateGroupName, validateOnboarding, draftsFor, spotifyEmbed, contributionsFromState, contributionsFromServer, countsAsGift, invitationPath,
 } from '@/lib/weda/logic';
 import { SETS } from '@/lib/weda/catalog';
-import { can, formatPrice, PLANS, type Feature } from '@/lib/weda/plans';
+import { formatPrice, normalizePlanId, operates, planById, planForOperation, planRank, PLANS, publishes, trialRemaining, type Access, type Feature } from '@/lib/weda/plans';
 import { parseStored, sanitize, STORAGE_VERSION } from '@/lib/weda/store';
 import { accountDestination, hasEvent } from '@/lib/weda/account';
 import { seedState } from '@/lib/weda/seed';
@@ -35,52 +35,62 @@ describe('slug y onboarding', () => {
 });
 
 describe('planes', () => {
-  it('define los tres planes acumulativos con sus precios en un solo lugar', () => {
-    expect(PLANS.map(p => p.name)).toEqual(['Regalos', 'Celebración', 'Celebración Plus']);
-    expect(PLANS.map(p => p.price)).toEqual([95000, 140000, 150000]);
+  it('define los dos planes acumulativos (Regalos y Celebración) con sus precios en un solo lugar', () => {
+    expect(PLANS.map(p => p.name)).toEqual(['Regalos', 'Celebración']);
+    expect(PLANS.map(p => p.price)).toEqual([95000, 140000]);
     expect(formatPrice(95000)).toBe('ARS 95.000');
-    // cada plan incluye todas las funciones del anterior y suma al menos una
-    PLANS.slice(1).forEach((p, i) => {
-      const prev = PLANS[i]!;
-      expect(p.inherits).toBe(prev.id);
-      prev.features.forEach(f => expect(p.features).toContain(f));
-      expect(p.features.length).toBeGreaterThan(prev.features.length);
-    });
+    // Celebración incluye todo lo de Regalos y suma el sitio completo
+    const [basico, celebracion] = PLANS;
+    expect(celebracion!.inherits).toBe(basico!.id);
+    basico!.features.forEach(f => expect(celebracion!.features).toContain(f));
+    expect(celebracion!.features.length).toBeGreaterThan(basico!.features.length);
   });
-  it('respeta la matriz de funciones por plan', () => {
-    expect(can('regalos', 'gifts')).toBe(true);
-    expect(can('regalos', 'site')).toBe(false);
-    expect(can('regalos', 'rsvp')).toBe(false);
-    expect(can('invitacion', 'site')).toBe(true);
-    expect(can('invitacion', 'rsvp')).toBe(true);
-    expect(can('invitacion', 'playlist')).toBe(false);
-    expect(can('invitacion', 'gallery')).toBe(false);
-    expect(can('invitacion', 'message')).toBe(false);
-    ['playlist', 'gallery', 'message'].forEach(f => expect(can('completo', f as Feature)).toBe(true));
+  it('respeta la matriz de funciones por plan: Celebración incluye todo el sitio (también lo que era Celebración Plus)', () => {
+    expect(publishes('regalos', 'gifts')).toBe(true);
+    expect(publishes('regalos', 'site')).toBe(false);
+    expect(publishes('regalos', 'rsvp')).toBe(false);
+    (['site', 'rsvp', 'guests', 'groups', 'playlist', 'gallery', 'message'] as Feature[]).forEach(f => expect(publishes('invitacion', f)).toBe(true));
+    // el id viejo de Celebración Plus se lee como Celebración
+    ['playlist', 'gallery', 'message'].forEach(f => expect(publishes('completo', f as Feature)).toBe(true));
+    expect(planById('completo')?.id).toBe('invitacion');
+    expect(normalizePlanId('completo')).toBe('invitacion');
   });
   it('sin plan elegido (prueba gratuita) todo está disponible', () => {
-    PLANS.flatMap(p => p.features).forEach(f => expect(can(null, f)).toBe(true));
+    PLANS.flatMap(p => p.features).forEach(f => expect(publishes(null, f)).toBe(true));
+    // BR-62: operar depende del acceso que calcula el servidor, nunca del plan del borrador.
+    const at = (state: Access['state'], plan: Access['plan']): Access => ({ state, plan, trialEndsAt: null });
+    expect(operates(null, 'guests')).toBe(false);
+    expect(operates(at('trial', null), 'contributions')).toBe(false);
+    expect(operates(at('paid_unpublished', null), 'guests')).toBe(false);
+    expect(operates(at('active', 'regalos'), 'contributions')).toBe(true);
+    expect(operates(at('active', 'regalos'), 'guests')).toBe(false);
+    expect(operates(at('active', 'regalos'), 'groups')).toBe(false);
+    expect(operates(at('active', 'invitacion'), 'guests')).toBe(true);
+    expect(operates(at('active', 'completo'), 'groups')).toBe(true);
+    expect(operates(at('paused', null), 'guests')).toBe(false);
+    expect(operates(at('paused', null), 'contributions')).toBe(false);
+    expect(planForOperation('guests')?.id).toBe('invitacion');
+    expect(planForOperation('contributions')?.id).toBe('regalos');
+    expect([planRank('regalos'), planRank('invitacion'), planRank('completo'), planRank(null)]).toEqual([0, 1, 1, -1]);
   });
-  it('el plan Regalos no publica el sitio; Celebración sí, sin música, galería ni mensaje final', () => {
+  it('el plan Regalos no publica el sitio; Celebración sí, con música, galería y mensaje final', () => {
     const s = { ...seedState(), planId: 'regalos' as const };
     expect(siteFromState(s).blocks.invitation).toBe(false);
     const inv = siteFromState({ ...s, planId: 'invitacion' }).blocks;
     expect(inv.invitation).toBe(true);
-    expect([inv.playlist, inv.photos, inv.message]).toEqual([false, false, false]);
-    const full = siteFromState({ ...s, planId: 'completo' }).blocks;
-    expect(full.playlist).toBe(true);
-    expect(full.photos).toBe(seedState().site.gallery.photos.length > 0);
-    expect(full.message).toBe(true);
+    expect(inv.playlist).toBe(true);
+    expect(inv.photos).toBe(seedState().site.gallery.photos.length > 0);
+    expect(inv.message).toBe(true);
   });
-  it('bajar de Celebración Plus a Celebración oculta lo extra sin borrarlo y lo informa como borrador', () => {
-    const p = { ...seedState(), planId: 'completo' as const };
+  it('bajar de Celebración a Regalos oculta el sitio sin borrarlo y lo informa como borrador', () => {
+    const p = { ...seedState(), planId: 'invitacion' as const };
     const n = p.site.playlist.tracks.length;
-    const down = setPlan(p, 'invitacion');
-    expect(siteFromState(down).blocks.playlist).toBe(false);
+    const down = setPlan(p, 'regalos');
+    expect(siteFromState(down).blocks.invitation).toBe(false);
     expect(down.site.playlist.tracks).toHaveLength(n);
-    expect(draftsFor(down, 'invitacion').map(d => d.feature)).toContain('playlist');
-    expect(draftsFor(down, 'completo')).toEqual([]);
-    expect(siteFromState(setPlan(down, 'completo')).blocks.playlist).toBe(n > 0);
+    expect(draftsFor(down, 'regalos').length).toBeGreaterThan(0);
+    expect(draftsFor(down, 'invitacion')).toEqual([]);
+    expect(siteFromState(setPlan(down, 'invitacion')).blocks.playlist).toBe(n > 0);
   });
   it('cambiar de plan conserva los datos', () => {
     const s = setPlan(seedState(), 'regalos');
@@ -236,13 +246,15 @@ describe('persistencia local', () => {
   it('descarta datos de una versión anterior', () => {
     expect(sanitize({ version: 0, onboarded: true }).onboarded).toBe(false);
   });
-  it('migra los planes de la versión 1 (completo→invitacion, premium→completo) sin perder el evento', () => {
+  it('migra los planes guardados (versión 1 y Celebración Plus) a los planes actuales sin perder el evento', () => {
     const s = JSON.parse(JSON.stringify(seedState())) as Record<string, unknown>;
     const v1 = (planId: string) => parseStored(JSON.stringify({ ...s, version: 1, planId, preferredPlan: planId }));
+    const v2 = (planId: string) => parseStored(JSON.stringify({ ...s, version: STORAGE_VERSION, planId, preferredPlan: planId }));
     expect(v1('completo').planId).toBe('invitacion');
-    expect(v1('premium').planId).toBe('completo');
-    expect(v1('premium').preferredPlan).toBe('completo');
+    expect(v1('premium').planId).toBe('invitacion');        // premium → Celebración Plus → hoy Celebración
+    expect(v1('premium').preferredPlan).toBe('invitacion');
     expect(v1('regalos').planId).toBe('regalos');
+    expect(v2('completo').planId).toBe('invitacion');       // quien tenía guardado Celebración Plus queda en Celebración
     expect(v1('premium').couple).toEqual(seedState().couple);
     expect(v1('premium').version).toBe(STORAGE_VERSION);
   });
@@ -434,10 +446,9 @@ describe('recorrido guiado (journey)', () => {
     expect(progress(stages(s))).toBe(100);
     expect(headline(100)).toContain('preparado');
   });
-  it('con plan Regalos la invitación queda bloqueada y no cuenta para el progreso', () => {
+  it('con plan Regalos la invitación se sigue armando: editar no depende del plan (BR-62, F5)', () => {
     const s = { ...seedState(), planId: 'regalos' as const };
-    expect(stages(s)[1]!.locked).toBe(true);
-    expect(nextAction(s).stage).not.toBe('sitio');
+    expect(stages(s).every(x => !x.locked)).toBe(true);
   });
 });
 
@@ -506,12 +517,11 @@ describe('mesas con lugares', () => {
 import { publishedPagesText } from '@/lib/weda/publish';
 
 describe('qué se publica con cada plan (publishedPagesText)', () => {
-  it('Regalos: solo la lista; Celebración: invitación + lista; Celebración Plus: el sitio completo', () => {
+  it('Regalos: solo la lista; Celebración: el sitio completo (también con el id viejo de Celebración Plus)', () => {
     expect(publishedPagesText('regalos')).toBe('solo la lista de regalos.');
-    expect(publishedPagesText('invitacion')).toContain('la invitación');
-    expect(publishedPagesText('invitacion')).not.toContain('música');
-    expect(publishedPagesText('completo')).toContain('sitio completo');
-    expect(publishedPagesText('completo')).toContain('música');
+    expect(publishedPagesText('invitacion')).toContain('sitio completo');
+    expect(publishedPagesText('invitacion')).toContain('música');
+    expect(publishedPagesText('completo')).toBe(publishedPagesText('invitacion'));
   });
 });
 
@@ -552,7 +562,8 @@ describe('aportes recibidos', () => {
       { id: 'apo_2', giverName: 'Leo', giverEmail: 'leo@correo.com', message: '', how: 'alias', status: 'confirmed', total: 30, createdAt: '2026-10-27T12:00:00.000Z', hasReceipt: false, items: [{ giftName: 'Vino', amount: 30 }] },
       { id: 'apo_3', giverName: 'X', status: 'rejected', total: 10, items: [] },
     ]);
-    expect(list.map(c => [c.giver, c.receipt, c.status])).toEqual([['Ana', '/api/contributions/apo_1/receipt', 'pending_review'], ['Leo', 'missing', 'confirmed']]);
+    expect(list.map(c => [c.giver, c.receipt, c.status])).toEqual([['Ana', '/api/contributions/apo_1/receipt', 'pending_review'], ['Leo', 'missing', 'confirmed'], ['X', 'missing', 'rejected']]);
+    expect(list.filter(countsAsGift).map(c => c.giver)).toEqual(['Ana', 'Leo']);
     expect(list[0]!.gifts).toHaveLength(2);
   });
 });
@@ -565,5 +576,25 @@ describe('encontrar: el link de la invitación', () => {
     expect(invitationPath('Ana y Leo')).toBeNull();
     expect(invitationPath('https://weda.app/panel')).toBeNull();
     expect(invitationPath('')).toBeNull();
+  });
+});
+
+describe('tiempo restante del trial (BR-63)', () => {
+  const END = '2026-11-18T12:00:00.000Z';            // 09:00 en Argentina (UTC-3)
+  const at = (ms: number) => Date.parse(END) - ms;
+  const H = 3_600_000, D = 24 * H;
+  it('cuenta períodos de 24 h y horas (la hora en curso entera) y muestra el fin exacto en hora de Argentina', () => {
+    expect(trialRemaining(END, at(14 * D))).toEqual({ left: '14 días', ends: '18 de noviembre a las 09:00 (hora de Argentina)' });
+    expect(trialRemaining(END, at(14 * D - 5_000)).left).toBe('14 días');          // recién creada
+    expect(trialRemaining(END, at(13 * D + 22 * H + 30 * 60_000)).left).toBe('13 días y 23 horas');
+    expect(trialRemaining(END, at(D + H)).left).toBe('1 día y 1 hora');
+    expect(trialRemaining(END, at(5 * H + 30 * 60_000)).left).toBe('6 horas');
+    expect(trialRemaining(END, at(H)).left).toBe('1 hora');
+    expect(trialRemaining(END, at(59 * 60_000)).left).toBe('menos de una hora');
+    expect(trialRemaining(END, at(-D)).left).toBe('menos de una hora');
+  });
+  it('el fin no se corre de día aunque en UTC ya sea otra fecha', () => {
+    // 02:30 UTC del 19 = 23:30 del 18 en Argentina.
+    expect(trialRemaining('2026-11-19T02:30:00.000Z', Date.parse('2026-11-10T00:00:00.000Z')).ends).toBe('18 de noviembre a las 23:30 (hora de Argentina)');
   });
 });

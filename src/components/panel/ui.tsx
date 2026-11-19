@@ -1,25 +1,28 @@
-// Piezas chicas compartidas por el flujo de creación y el panel: campos, avisos, confirmaciones, módulos bloqueados y vista previa.
+// Piezas chicas compartidas por el flujo de creación y el panel: campos, avisos, confirmaciones, operaciones bloqueadas y vista previa.
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { Lock, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { coupleLabel, dateLabel, isSamplePhoto, photoPosition, resolvePhoto } from '@/lib/weda/logic';
-import { planFor, type Feature } from '@/lib/weda/plans';
+import { planForOperation, type Operation } from '@/lib/weda/plans';
+import { useRemote } from '@/lib/weda/remote';
 import { PublishDialog } from '@/components/panel/publish-dialog';
 import { update, useAppState } from '@/lib/weda/store';
+// Estilos del panel: viajan con el código de las pantallas que usan estos componentes, no con la landing (auditoría F-06).
+import '@/panel.css';
 
 /* ------------------------------------------------------------------ campos */
 
-type FieldProps = { label: string; /** Id del control si ya tiene uno fijo (lo usan tests y el foco al validar): la etiqueta queda asociada a ese. Sin él se genera uno. */ id?: string; error?: string | undefined; hint?: string | undefined; optional?: boolean; children: (a: { id: string; describedBy: string | undefined; invalid: boolean }) => ReactNode };
+type FieldProps = { label: string; /** Id del control si ya tiene uno fijo (lo usan tests y el foco al validar): la etiqueta queda asociada a ese. Sin él se genera uno. */ id?: string; error?: string | undefined; hint?: string | undefined; optional?: boolean; /** El nombre del campo se ve dentro del campo (como texto de ejemplo) y la etiqueta queda solo para lectores de pantalla. */ labelInside?: boolean; children: (a: { id: string; describedBy: string | undefined; invalid: boolean }) => ReactNode };
 
 /** Etiqueta + control + ayuda + error, con los ids bien asociados (lectores de pantalla). */
-export function Field({ label, id: fixedId, error, hint, optional, children }: FieldProps) {
+export function Field({ label, id: fixedId, error, hint, optional, labelInside, children }: FieldProps) {
   const auto = useId();
   const id = fixedId ?? auto;
   const describedBy = [hint ? `${id}-h` : '', error ? `${id}-e` : ''].filter(Boolean).join(' ') || undefined;
   return (
     <div className={`pn-field${error ? ' has-error' : ''}`}>
-      <label htmlFor={id}>{label}{optional && <span className="pn-opt"> · opcional</span>}</label>
+      <label htmlFor={id} className={labelInside ? 'pn-sr' : undefined}>{label}{optional && <span className="pn-opt"> · opcional</span>}</label>
       {children({ id, describedBy, invalid: !!error })}
       {hint && !error && <p className="pn-hint" id={`${id}-h`}>{hint}</p>}
       {error && <p className="pn-error" id={`${id}-e`} role="alert">{error}</p>}
@@ -106,26 +109,27 @@ export function ConfirmDialog({ open, title, text, confirmLabel, onConfirm, onCa
 
 /* ------------------------------------------------------------------ módulos que el plan no incluye */
 
-const FEATURE_NAMES: Record<Feature, string> = {
-  gifts: 'La lista de regalos', site: 'El sitio del casamiento', rsvp: 'La confirmación de asistencia',
-  guests: 'La gestión de invitados', groups: 'Los grupos y las mesas', playlist: 'La música de la fiesta',
-  gallery: 'La galería de fotos', message: 'El mensaje final',
-};
-
-/** Estado bloqueado: explica qué falta y a qué plan pertenece. Lo cargado se conserva como borrador. */
-export function Locked({ feature, children }: { feature: Feature; children?: ReactNode }) {
-  const plan = planFor(feature);
+/**
+ * Aviso de una operación bloqueada (BR-62): la sección se sigue viendo y los botones de gestión quedan deshabilitados; esto explica qué los
+ * desbloquea. `id` va en el `aria-describedby` de esos botones. Con el trial vencido (BR-64) explica cómo seguir.
+ */
+export function OperationNotice({ id, op }: { id: string; op: Operation }) {
   const plans = usePlans();
-  const planId = useAppState().planId;
+  const access = useRemote().access;
+  const plan = planForOperation(op);
+  const paused = access?.state === 'paused';
+  const paidWaiting = access?.state === 'paid_unpublished';
   return (
-    <div className="pn-locked">
-      <span className="pn-locked-icon" aria-hidden="true"><Lock size={22} strokeWidth={1.5} /></span>
-      <h2>{FEATURE_NAMES[feature]} se activa con el plan {plan?.name ?? 'Celebración Plus'}</h2>
-      <p>{children ?? 'Lo que ya cargaste se conserva como borrador. Podés cambiar de plan cuando quieras: no se cobra nada al elegirlo.'}</p>
-      <div className="pn-actions is-tight">
-        <button type="button" className="pn-btn" onClick={plans.open}>Ver los planes</button>
-        {planId && <button type="button" className="pn-link" onClick={() => update(x => ({ ...x, planId: null }))}>Volver a probar todo</button>}
-      </div>
+    <div className="pn-opnotice" id={id} role="note">
+      <Lock size={16} strokeWidth={1.6} aria-hidden="true" />
+      <p>
+        {paused
+          ? `Terminó tu período gratuito. Se habilita al contratar y publicar con ${plan?.name ?? 'Celebración'}.`
+          : paidWaiting
+            ? `Tu pago está confirmado: se habilita cuando publiques tu página.`
+            : `Se habilita al publicar con ${plan?.name ?? 'Celebración'}. Mientras tanto podés ver cómo funciona.`}
+      </p>
+      <button type="button" className="pn-link" onClick={plans.open}>{paidWaiting ? 'Publicar' : paused ? 'Elegir plan' : 'Ver qué incluye'}</button>
     </div>
   );
 }

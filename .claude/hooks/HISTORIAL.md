@@ -401,3 +401,11 @@ Quedan sin cubrir, documentados en el README:
 - las herramientas MCP;
 - la integración de Vercel;
 - la CLI 2.1.84 sin verificar.
+
+
+## 2026-11-19 · Adaptación a Supabase y a la autorización de git
+
+- **Commit, push, crear PR y mergear pasan en cualquier modo**, por la autorización de la dueña del 2026-11-09 («Pusheá todo a main, no me pidas más autorizaciones»). Mezclar ramas (`merge`, `pull`, `rebase`, `cherry-pick`, `revert`, `am`, `apply`, `stash pop/apply`) también pasa, porque se puede deshacer.
+- **Sigue igual:** lo destructivo (force-push, borrados, `reset --hard`, `clean`), los tags, los secretos, las escrituras por `gh api` y `curl`, y los deploys por CLI. Descartar cambios, cerrar PRs, el esquema y la configuración de Claude siguen pidiendo aprobación en `default` y se bloquean en otro modo.
+- **Base:** desde OPS-08 la base es Supabase. Se bloquean `psql`, `pgcli`, `pg_restore` y la CLI `supabase`, y se quitaron `sqlite3` y `node:sqlite`. El esquema protegido suma `src/server/pg.ts` (`PG_MIGRATIONS`).
+- `guard.test.sh` actualizado: las reglas que cambiaron se invirtieron y se sumaron casos de Supabase y `pg.ts`. Pasa completo.

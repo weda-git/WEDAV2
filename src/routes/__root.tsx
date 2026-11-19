@@ -85,7 +85,7 @@ export const Route = createRootRoute({
         { rel: "preload", href: "/fonts/geist/geist-latin-wght-normal.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
         { rel: "stylesheet", href: typographyCss },
         { rel: "stylesheet", href: appCss },
-        { rel: "icon", href: "/favicon.svg?v=3", type: "image/svg+xml" },
+        { rel: "icon", href: "/favicon.svg?v=4", type: "image/svg+xml" },
         { rel: "icon", href: "/favicon.ico?v=3", sizes: "any" },
         { rel: "apple-touch-icon", href: "/apple-touch-icon.png?v=3" },
       ],

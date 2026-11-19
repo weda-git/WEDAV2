@@ -79,8 +79,8 @@ run deny  Bash  'git push origin +main'
 run deny  Bash  'git -C . push origin main --force'
 run deny  Bash  'git status && git push origin main --force'
 run deny  Bash  'bash -c "git push origin main --force"'
-run ask   Bash  'git push --dry-run -u origin chore/claude-hooks'
-run ask   Bash  'git push origin chore/claude-hooks'
+run allow Bash  'git push --dry-run -u origin chore/claude-hooks'
+run allow Bash  'git push origin chore/claude-hooks'
 
 # Otros comandos destructivos
 run deny  Bash  'git reset --hard'
@@ -100,8 +100,14 @@ run deny  Bash  'rm -Rf dist'
 run deny  Bash  'rm --recursive --force dist'
 run deny  Bash  'npm run build && rm -rf dist'
 run allow Bash  'rm dist/index.html'
-run deny  Bash  'sqlite3 --version'
-run deny  Bash  '/usr/bin/sqlite3 x.db ".tables"'
+# La base es Supabase (OPS-08): tocarla a mano se bloquea; SQLite ya no es la base de Weda.
+run deny  Bash  'psql "$SUPABASE_DB_URL" -c "select 1"'
+run deny  Bash  '/opt/homebrew/bin/psql -h db -U postgres'
+run deny  Bash  'pgcli postgres://x'
+run deny  Bash  'pg_restore -d x dump'
+run deny  Bash  'npx supabase db reset'
+run deny  Bash  'supabase db push'
+run allow Bash  'sqlite3 --version'
 run deny  Bash  'vercel --prod'
 run deny  Bash  'npx vercel deploy'
 run deny  Bash  'npx wrangler deploy'
@@ -161,32 +167,32 @@ run deny  Bash  'git push origin --follow-tags'
 run deny  Bash  'git push origin refs/tags/v1'
 run deny  Bash  'git push origin v1'                     "$tags"
 run deny  Bash  'git push origin v1:v1'                  "$tags"
-run ask   Bash  'git push origin main'                   "$tags"
-run ask   Bash  'git push -u origin HEAD'                "$tags"
-run ask   Bash  'git push origin main 2>&1 | tail -1'    "$tags"
-run ask   Bash  'git push origin main >&2'               "$tags"
+run allow Bash  'git push origin main'                   "$tags"
+run allow Bash  'git push -u origin HEAD'                "$tags"
+run allow Bash  'git push origin main 2>&1 | tail -1'    "$tags"
+run allow Bash  'git push origin main >&2'               "$tags"
 run deny  Bash  'git push origin v1 2>&1 | tail -1'      "$tags"
 run deny  Bash  'git push --force 2>/dev/null'
 run deny  Bash  'git push origin main --force &> /dev/null'
 # El hook tiene que seguir el cd o el -C del comando, no la carpeta de la sesión.
 run deny  Bash  "cd $tags && git push origin v1"
 run deny  Bash  "git -C $tags push origin v1"
-run ask   Bash  "cd $tags && git push origin main"
+run allow Bash  "cd $tags && git push origin main"
 run deny  Bash  "cd $tags && git push origin rama-que-no-existe"
 rm -r "$tags"
 
-# FN-1: merge de PR, también envuelto
-run deny  Bash  'gh pr merge 99999'
-run deny  Bash  'gh pr merge --squash 99999'
-run deny  Bash  'gh pr -R violetasicilia4/WEDAV2 merge 99999'
-run deny  Bash  'git status && gh pr merge 99999'
-run deny  Bash  'bash -c "gh pr merge 99999"'
-run deny  Bash  'sh -c "gh pr merge 99999"'
-run deny  Bash  'zsh -c "gh pr merge 99999"'
-run deny  Bash  'eval "gh pr merge 99999"'
-run deny  Bash  'echo 99999 | xargs gh pr merge'
-run deny  Bash  'env GH_REPO=x/y gh pr merge 99999'
-run deny  Bash  '/opt/homebrew/bin/gh pr merge 99999'
+# FN-1: merge de PR, también envuelto. Desde 2026-11-09 la dueña autoriza commit, push, PR y merge: pasan.
+run allow Bash  'gh pr merge 99999'
+run allow Bash  'gh pr merge --squash 99999'
+run allow Bash  'gh pr -R violetasicilia4/WEDAV2 merge 99999'
+run allow Bash  'git status && gh pr merge 99999'
+run allow Bash  'bash -c "gh pr merge 99999"'
+run allow Bash  'sh -c "gh pr merge 99999"'
+run allow Bash  'zsh -c "gh pr merge 99999"'
+run allow Bash  'eval "gh pr merge 99999"'
+run allow Bash  'echo 99999 | xargs gh pr merge'
+run allow Bash  'env GH_REPO=x/y gh pr merge 99999'
+run allow Bash  '/opt/homebrew/bin/gh pr merge 99999'
 run deny  Bash  'gh alias set m "pr merge"'
 run allow Bash  'gh pr view 2 --json mergedAt'
 run allow Bash  'gh pr list --state all'
@@ -218,31 +224,33 @@ run allow Bash  'gh api graphql -f query="query { viewer { login } }"'
 
 # Esquema
 run ask   Edit  "$root/src/server/db.ts"
+run ask   Edit  "$root/src/server/pg.ts"
 run ask   Write "$root/src/server/db.ts"
 run allow Read  "$root/src/server/db.ts"
 run allow Edit  "$root/src/server/service.ts"
 
-# Opción A: commit, push, crear PR y esquema preguntan en modo default y se bloquean en cualquier otro
-# modo (o si el modo no llega), porque ahí la pregunta no frena la llamada.
-run ask   Bash  'gh pr create --title x --body y'
-run ask   Bash  'gh pr -R violetasicilia4/WEDAV2 create --fill'
-run ask   Bash  'bash -c "git commit -m x"'
-run ask   Bash  'git add -A && git commit -m x'
+# Commit, push, crear PR y mergear pasan en cualquier modo (autorización de la dueña, 2026-11-09). El esquema y la
+# configuración de Claude preguntan en modo default y se bloquean en cualquier otro (ahí la pregunta no frena la llamada).
+run allow Bash  'gh pr create --title x --body y'
+run allow Bash  'gh pr -R violetasicilia4/WEDAV2 create --fill'
+run allow Bash  'bash -c "git commit -m x"'
+run allow Bash  'git add -A && git commit -m x'
 run deny  Bash  'git commit -m x && git push --force'
-run deny  Bash  'git commit -m x && gh pr merge 1'
+run allow Bash  'git commit -m x && gh pr merge 1'
 run allow Bash  'git status'
 for mode in auto acceptEdits bypassPermissions dontAsk plan ''; do
-  run deny  Bash  'git commit -m x'
-  run deny  Bash  'git commit --amend --no-edit'
-  run deny  Bash  'bash -c "git commit -m x"'
-  run deny  Bash  'git push origin chore/claude-hooks'
-  run deny  Bash  'git push --dry-run -u origin chore/claude-hooks'
-  run deny  Bash  'sh -c "git push origin chore/claude-hooks"'
-  run deny  Bash  'gh pr create --title x --body y'
-  run deny  Bash  'eval "gh pr create --fill"'
+  run allow Bash  'git commit -m x'
+  run allow Bash  'git commit --amend --no-edit'
+  run allow Bash  'bash -c "git commit -m x"'
+  run allow Bash  'git push origin chore/claude-hooks'
+  run allow Bash  'git push --dry-run -u origin chore/claude-hooks'
+  run allow Bash  'sh -c "git push origin chore/claude-hooks"'
+  run allow Bash  'gh pr create --title x --body y'
+  run allow Bash  'eval "gh pr create --fill"'
   run deny  Edit  "$root/src/server/db.ts"
   run deny  Write "$root/src/server/db.ts"
   run deny  MultiEdit "$root/src/server/db.ts"
+  run deny  Edit  "$root/src/server/pg.ts"
   run allow Bash  'git status'
   run allow Bash  'git log --oneline -3'
   run allow Bash  'gh pr view 2'
@@ -260,9 +268,9 @@ mode=auto
 run deny  Bash  'if true; then git push origin main --force; fi'
 run deny  Bash  'for i in 1; do git push origin main --force; done'
 run deny  Bash  '! git push origin main --force'
-run deny  Bash  'if true; then git commit -m x; fi'
+run allow Bash  'if true; then git commit -m x; fi'
 run deny  Bash  'then git reset --hard'
-run deny  Bash  'if true; then gh pr merge 3; fi'
+run allow Bash  'if true; then gh pr merge 3; fi'
 
 # A2. Envoltorios con argumento o fuera de la lista
 run deny  Bash  'timeout 60 git push origin main --force'
@@ -274,7 +282,7 @@ run deny  Bash  'bash -o pipefail -c "git push origin main --force"'
 run deny  Bash  'caffeinate -i git push origin main --force'
 run deny  Bash  'arch -arm64 git push origin main --force'
 run deny  Bash  'find . -maxdepth 0 -exec git push origin main --force ;'
-run deny  Bash  'timeout 60 gh pr merge 3'
+run allow Bash  'timeout 60 gh pr merge 3'
 run deny  Bash  'python3 -c "import subprocess; subprocess.run([\"git\",\"push\",\"--force\"])"'
 
 # A3. Autoprotección: la guardia, los permisos y las instrucciones
@@ -376,9 +384,7 @@ run deny  Bash  'cat $(echo LmVudg== | base64 -d)'
 run deny  Bash  'cat .ENV'
 run deny  Bash  'cat .Env.local'
 run deny  Bash  'ls .DATA'
-run deny  Bash  'python3 -c "import sqlite3; sqlite3.connect(x)"'
-run deny  Bash  'node --experimental-sqlite -e "x"'
-run deny  Bash  'node -e "require(\"node:sqlite\")"'
+run allow Bash  'python3 -c "import sqlite3; sqlite3.connect(x)"'
 run allow Bash  'gh auth status'
 run allow Bash  'env FOO=1 npm test'
 # Lectura recursiva: se bloquea si la carpeta tiene secretos o datos.
@@ -417,14 +423,14 @@ run allow Bash  'gh secret list'
 run deny  Bash  "sed -i '' 's/a/b/' src/server/db.ts"
 run deny  Bash  'cat migracion.sql >> src/server/db.ts'
 run deny  Bash  'git checkout otra-rama -- src/server/db.ts'
-run deny  Bash  'git apply cambio.patch'
+run allow Bash  'git apply cambio.patch'
 run deny  Bash  'cp /tmp/db.ts src/server/db.ts'
 run allow Bash  'grep -n MIGRATIONS src/server/db.ts'
 run allow Bash  'git diff src/server/db.ts'
 run allow Bash  "sed -n '1,20p' src/server/db.ts"
 mode=default
 run ask   Bash  "sed -i '' 's/a/b/' src/server/db.ts"
-run ask   Bash  'git apply cambio.patch'
+run allow Bash  'git apply cambio.patch'
 mode=auto
 
 # B6. Opciones de git que ejecutan programas, escriben archivos o mueven ramas
@@ -467,8 +473,8 @@ run deny  Bash  'git reflog expire --expire=now --all'
 run deny  Bash  'git gc --prune=now'
 run deny  Bash  'git restore .'
 run deny  Bash  'git checkout -- .'
-run deny  Bash  'git rebase main'
-run deny  Bash  'git merge otra'
+run allow Bash  'git rebase main'
+run allow Bash  'git merge otra'
 run deny  Bash  'git rm -r -q src'
 run allow Bash  'git restore --staged x.ts'
 run allow Bash  'git checkout chore/x'
@@ -480,9 +486,9 @@ largo=$(printf 'x%.0s' $(seq 1 70000))
 run deny  Bash  "echo $largo"
 
 # Falsos positivos corregidos o aceptados
-run deny  Bash  'gh pr create --title "merge de ramas" --body x'
+run allow Bash  'gh pr create --title "merge de ramas" --body x'
 mode=default
-run ask   Bash  'gh pr create --title "merge de ramas" --body x'
+run allow Bash  'gh pr create --title "merge de ramas" --body x'
 run allow Bash  'gh pr comment 3 --body "listo para merge"'
 run allow Bash  'gh pr list --search merge'
 run allow Bash  'gh pr view 3 --json mergeable'

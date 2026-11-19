@@ -1,6 +1,7 @@
 // Recorridos contra el BACKEND REAL (servidor + base de datos SQLite temporal): sin mocks de autorización ni de persistencia.
 // Cada test usa correos únicos. Solo se interceptan las llamadas para SIMULAR UNA RED CAÍDA (la falla es del cliente, no del servidor).
 import { expect, test, type APIRequestContext, type Browser, type Page } from '@playwright/test';
+import { publishCelebration } from './helpers';
 
 const PASS = 'Clave1234';
 const uniq = (p: string) => `${p}-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}@example.com`;
@@ -40,6 +41,8 @@ async function prepareAndPublish(api: APIRequestContext) {
     { id: 'g2', name: 'Spa para dos', text: '', amount: 300000, category: 'Luna de miel', icon: 'compass' },
   ] }, site: { ...w.draft.site, rsvp: { ...w.draft.site.rsvp, enabled: true } } };
   expect((await api.put('/api/wedding', { data: { baseRevision: w.revision, draft } })).status()).toBe(200);
+  // El alias no viaja en el borrador: se carga aparte, con la clave (GIFT-14).
+  expect((await api.post('/api/wedding/payout', { data: { alias: 'ana.luis.mp', currentPassword: PASS, baseVersion: w.payout.version } })).status()).toBe(200);
   const p = await api.post('/api/wedding/publish');
   expect(p.status()).toBe(200);
   return (await p.json()).slug as string;
@@ -92,6 +95,7 @@ test.describe('multiusuario con servidor real', () => {
   test('un guardado que falla NO aparenta éxito: avisa, reintenta y recién ahí queda guardado', async ({ page }) => {
     const email = uniq('red');
     await signUpAndOnboard(page, email, 'Rita', 'Santi');
+    await publishCelebration(page); // operar invitados exige Celebración publicada (BR-62)
     await page.route('**/api/wedding', r => (r.request().method() === 'PUT' ? r.abort('failed') : r.continue()));
     await page.goto('/panel/perfil', { waitUntil: 'networkidle' });
     // Cualquier cambio de datos dispara el guardado automático: se edita un invitado nuevo.
@@ -192,7 +196,9 @@ test.describe('sitio publicado, confirmaciones y regalos', () => {
     await page.unroute('**/api/public/*/contributions');
     await dlg.getByRole('button', { name: 'Reintentar' }).click();
     await expect(dlg.getByRole('heading', { name: /¡Gracias, Nora!/ })).toBeVisible();
-    await expect(dlg).toContainText('pendiente');
+    // El agradecimiento habla de quien regala: cuánto regaló, sin detalles internos de la revisión (2026-11-06).
+    await expect(dlg).toContainText(/Le regalaste \$\s?180\.000/);
+    await expect(dlg).not.toContainText('pendiente');
 
     const list = (await (await api.get('/api/contributions')).json()).contributions;
     expect(list).toHaveLength(1);
@@ -201,10 +207,11 @@ test.describe('sitio publicado, confirmaciones y regalos', () => {
     const anon = await guest.request.get(`/api/contributions/${list[0].id}/receipt`);
     expect(anon.status()).toBe(401);
     expect((await (await guest.request.get(`/api/public/${slug}`)).text())).not.toContain('comprobante');
-    // El regalo elegido ya no se ofrece a otros invitados.
+    // Regalos repetibles (BR-19): otro invitado ve todos los regalos disponibles, el ya regalado incluido.
     const other = await (await browser.newContext({ baseURL: baseURL! })).newPage();
     await other.goto(`/sitio/${slug}/regalos`, { waitUntil: 'networkidle' });
-    await expect(other.getByRole('button', { name: /Ya elegido/ })).toHaveCount(1);
+    await expect(other.getByRole('button', { name: /Ya elegido/ })).toHaveCount(0);
+    await expect(other.getByRole('button', { name: 'Regalar', exact: true })).toHaveCount(2);
     await owner.close(); await guest.close();
   });
 

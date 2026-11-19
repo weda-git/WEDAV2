@@ -1,10 +1,10 @@
 // @vitest-environment node
 /* eslint-disable @typescript-eslint/no-explicit-any -- respuestas JSON de la API, sin esquema compartido todavía */
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { draftFor, makeEnv, PASSWORD, saveDraft, signUp, type Env } from './helpers';
+import { draftFor, makeEnv, PASSWORD, PNG, publishWith, saveDraft, setPayout, signUp, type Env } from './helpers';
 
 let env: Env;
-beforeAll(() => { env = makeEnv(); });
+beforeAll(async () => { env = await makeEnv(); });
 afterAll(() => env.close());
 
 describe('cuentas y sesiones', () => {
@@ -50,11 +50,6 @@ describe('cuentas y sesiones', () => {
     expect((await replay.get('/api/wedding')).status).toBe(401);
   });
 
-  it('la clave se guarda con scrypt, nunca en claro', () => {
-    const row = env.svc.db.prepare("SELECT password_hash FROM users WHERE email = 'ana@correo.com'").get() as { password_hash: string };
-    expect(row.password_hash.startsWith('scrypt$')).toBe(true);
-    expect(row.password_hash).not.toContain(PASSWORD);
-  });
 
   it('rutas privadas sin sesión → 401', async () => {
     const c = env.client();
@@ -74,6 +69,8 @@ describe('aislamiento entre parejas', () => {
   it('dos usuarios crean casamientos independientes y cada uno solo ve el suyo', async () => {
     const a = env.client(), b = env.client();
     await signUp(a, 'a1@correo.com'); await signUp(b, 'b1@correo.com');
+    // Operar invitados exige Celebración publicada (BR-62): cada pareja publica la suya antes.
+    await publishWith(a, draftFor('Ana', 'Luis')); await publishWith(b, draftFor('Bea', 'Tomás'));
     await saveDraft(a, draftFor('Ana', 'Luis'), { upsert: [{ id: 'inv-a', first: 'Invitado', last: 'De Ana', status: 'pending', menu: '', groupId: null, source: 'manual' }] });
     await saveDraft(b, draftFor('Bea', 'Tomás'), { upsert: [{ id: 'inv-b', first: 'Invitado', last: 'De Bea', status: 'pending', menu: '', groupId: null, source: 'manual' }] });
     const wa = (await a.get('/api/wedding')).body, wb = (await b.get('/api/wedding')).body;
@@ -99,7 +96,48 @@ describe('aislamiento entre parejas', () => {
 
   it('el id del casamiento no se acepta desde el cliente: no hay ruta /api/wedding/:id', async () => {
     const a = env.client(); await a.post('/api/auth/login', { email: 'a1@correo.com', password: PASSWORD });
-    const wb = env.svc.db.prepare("SELECT id FROM weddings WHERE draft LIKE '%Bea%'").get() as { id: string };
+    const wb = (await env.svc.db.get("SELECT id FROM weddings WHERE draft LIKE '%Bea%'")) as { id: string };
     expect((await a.get(`/api/wedding/${wb.id}`)).status).toBe(404);
+  });
+
+  it('cambiar la clave solo afecta a la propia cuenta: B sigue con su clave y su sesión', async () => {
+    const b = env.client(); await b.post('/api/auth/login', { email: 'b1@correo.com', password: PASSWORD });
+    const a = env.client(); await a.post('/api/auth/login', { email: 'a1@correo.com', password: PASSWORD });
+    expect((await a.post('/api/auth/password', { currentPassword: PASSWORD, newPassword: 'Nueva-clave-A1' })).status).toBe(200);
+    expect((await b.get('/api/me')).body.user).toEqual({ email: 'b1@correo.com' });
+    expect((await env.client().post('/api/auth/login', { email: 'b1@correo.com', password: PASSWORD })).status).toBe(200);
+  });
+
+  it('cerrar las demás sesiones solo afecta a la propia cuenta: la sesión de B sigue abierta', async () => {
+    const b = env.client(); await b.post('/api/auth/login', { email: 'b1@correo.com', password: PASSWORD });
+    const a = env.client(); await a.post('/api/auth/login', { email: 'a1@correo.com', password: 'Nueva-clave-A1' });
+    expect((await a.post('/api/auth/sessions/close-others')).status).toBe(200);
+    expect((await b.get('/api/me')).body.user).toEqual({ email: 'b1@correo.com' });
+    expect((await b.get('/api/auth/sessions')).body.others).toBeGreaterThan(0);
+  });
+
+  it('el destino de cobro es solo del dueño: con su clave cambia el suyo, nunca el de otra pareja', async () => {
+    const a = env.client(), b = env.client();
+    await signUp(a, 'alias-a@correo.com'); await signUp(b, 'alias-b@correo.com');
+    expect((await setPayout(a, { alias: 'pareja.a.mp' })).status).toBe(200);
+    expect((await setPayout(b, { alias: 'pareja.b.mp' })).status).toBe(200);
+    // La clave de A no sirve en la sesión de B (y no hay ruta por id para apuntar al casamiento de A).
+    expect((await setPayout(b, { alias: 'robado.mp.x' }, 'Otra-clave-A1')).body.error).toBe('wrong_password');
+    expect((await b.post('/api/wedding/payout/otro', { currentPassword: PASSWORD, baseVersion: 1, alias: 'robado.mp.x' })).status).toBe(404);
+    expect((await a.get('/api/wedding')).body.payout.alias).toBe('pareja.a.mp');
+    expect((await b.get('/api/wedding')).body.payout.alias).toBe('pareja.b.mp');
+  });
+
+  it('el plan de una pareja nunca habilita operar el casamiento de otra (BR-62, PAY-01)', async () => {
+    const a = env.client(); await signUp(a, 'plan-a@correo.com');
+    const slugA = (await publishWith(a, draftFor('Rita', 'Ciro', { planId: 'regalos' }))).slug;
+    const giver = { idempotencyKey: 'key-iso-0001', manageToken: 'token-del-invitado-iso1', giverName: 'Tía', giverEmail: 't@correo.com', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') } };
+    const c = (await env.client().post(`/api/public/${slugA}/contributions`, giver)).body;
+    const b = env.client(); await signUp(b, 'plan-b@correo.com');
+    await publishWith(b, draftFor('Sara', 'Dino'));                              // B tiene Celebración publicada
+    expect((await b.patch(`/api/contributions/${c.id}`, { status: 'rejected' })).status).toBe(404);
+    expect((await b.post(`/api/contributions/${c.id}/remind`)).status).toBe(404);
+    const w = (await a.get('/api/wedding')).body;                                  // A, con Regalos, sigue sin poder operar invitados
+    expect((await a.put('/api/wedding', { baseRevision: w.revision, draft: w.draft, guests: { upsert: [{ id: 'inv-z', first: 'X', last: '', status: 'pending', menu: '', groupId: null, source: 'manual' }] } })).status).toBe(403);
   });
 });

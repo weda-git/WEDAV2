@@ -99,7 +99,7 @@ protected() {
   esac
   return 1
 }
-dbfile() { [[ /$1 == */src/server/db.ts ]]; }
+dbfile() { [[ /$1 == */src/server/db.ts || /$1 == */src/server/pg.ts ]]; }
 
 # Ruta de un argumento de cd, git -C o una lectura recursiva, relativa a la carpeta del comando ($wd).
 resolve() {
@@ -193,8 +193,7 @@ analyze_git() {
             fi ;;
         esac
       done
-      add_gate 'git push' 'Commit, push y PR los aprueba la dueña (CLAUDE.md).' ;;
-    commit) add_gate 'git commit' 'Commit, push y PR los aprueba la dueña (CLAUDE.md).' ;;
+      ;; # push normal: autorizado por la dueña (2026-11-09)
     reset)
       for t in "${A[@]}"; do
         is_opt "$t" --hard && { rule="git reset $t"; return 0; }
@@ -250,7 +249,7 @@ analyze_git() {
           esac
         fi
       done
-      [[ $sub == pull ]] && add_gate 'git pull' 'Mezcla cambios en la rama y puede tocar el esquema.' ;;
+      ;;
     log|diff|show|format-patch|whatchanged|range-diff)
       for t in "${A[@]}"; do
         is_opt "$t" --output && { rule="git $sub $t (escribe un archivo)"; return 0; }
@@ -261,7 +260,6 @@ analyze_git() {
     stash)
       case ${A[0]} in
         clear|drop) rule="git stash ${A[0]} (borra cambios guardados)"; return 0 ;;
-        pop|apply) add_gate "git stash ${A[0]}" 'Aplica cambios guardados y puede tocar el esquema.' ;;
       esac ;;
     restore)
       local staged=0 worktree=0
@@ -281,7 +279,6 @@ analyze_git() {
           add_gate 'git switch forzado' 'Descarta cambios o pisa una rama.'; break
         fi
       done ;;
-    merge|rebase|cherry-pick|revert|am|apply) add_gate "git $sub" 'Cambia el historial o los archivos de la rama y puede tocar el esquema.' ;;
     rm)
       local rec=0 cached=0
       for t in "${A[@]}"; do
@@ -321,8 +318,6 @@ analyze_gh() {
   case $g in
     pr)
       case $s in
-        merge) rule='merge de PR (gh pr merge)'; reason=$needs_owner; return 0 ;;
-        create|new) add_gate 'crear un PR (gh pr create)' 'Commit, push y PR los aprueba la dueña (CLAUDE.md).' ;;
         close|reopen) add_gate "gh pr $s" 'Cambia el estado de un PR.' ;;
       esac ;;
     api)
@@ -518,7 +513,7 @@ check_segment() {
       git) analyze_git $((i + 1)) && return 0 ;;
       gh) analyze_gh $((i + 1)) && return 0 ;;
       rm) analyze_rm $((i + 1)) && return 0 ;;
-      sqlite3|sqlite|litecli) rule="$name (SQL a mano sobre la base)"; return 0 ;;
+      psql|pgcli|pg_restore|supabase) rule="$name (la base de Supabase a mano)"; return 0 ;;
       vercel|vc|wrangler|netlify|netlify-cli|ntl|fly|flyctl|railway) rule="deploy con $name"; return 0 ;;
       printenv) rule='printenv (muestra variables de entorno, que pueden tener secretos)'; return 0 ;;
       env) env_bare $((i + 1)) && return 0 ;;
@@ -553,7 +548,7 @@ case $tool in
         mode_gate 'Configuración de Claude Code (.claude/, CLAUDE.md)' 'Cambia la guardia, los permisos o las instrucciones con que trabaja Claude.'
       fi
       if [[ -n $lp ]] && dbfile "$lp"; then
-        mode_gate 'Cambio de esquema (src/server/db.ts)' 'Ese archivo define la base y sus MIGRATIONS. Las migraciones corren solas al abrir la base y son de solo agregado: no se edita ni se reordena una existente, la nueva va al final.'
+        mode_gate 'Cambio de esquema (src/server/db.ts o pg.ts)' 'Esos archivos definen la base y sus migraciones (PG_MIGRATIONS en pg.ts): corren solas al arrancar y son de solo agregado; no se edita ni se reordena una existente, la nueva va al final.'
       fi
     fi
     ;;
@@ -566,7 +561,6 @@ case $tool in
     fi
     lowcmd=$(lower "$fullcmd")
     if [[ $lowcmd == *disableallhooks* ]]; then block 'disableAllHooks' 'Apagaría esta guardia y todos los hooks del proyecto.'; fi
-    if [[ $lowcmd == *node:sqlite* || $lowcmd == *experimental-sqlite* ]]; then block 'node:sqlite (SQL a mano sobre la base)' 'Es destructivo o difícil de revertir.'; fi
     mutation=0; [[ $lowcmd == *mutation* ]] && mutation=1
     # ${IFS} y $IFS separan palabras igual que un espacio.
     norm=$(printf '%s' "$fullcmd" | sed -E 's/\$\{?IFS\}?/ /g')
@@ -611,7 +605,7 @@ case $tool in
       done < <(printf '%s' "$fullcmd" | tr -d "\"'" | grep -oE '>>?[[:space:]]*[^[:space:]&|;<>()]+')
       if (( ! readonly_all )); then
         (( prot )) && add_gate 'Configuración de Claude Code (.claude/, CLAUDE.md)' 'Cambia la guardia, los permisos o las instrucciones con que trabaja Claude.'
-        (( db )) && add_gate 'Cambio de esquema (src/server/db.ts)' 'Ese archivo define la base y sus MIGRATIONS (de solo agregado).'
+        (( db )) && add_gate 'Cambio de esquema (src/server/db.ts o pg.ts)' 'Esos archivos definen la base y sus migraciones (de solo agregado).'
       fi
     fi
     [[ -n $gate ]] && mode_gate "$gate" "$gate_why"
