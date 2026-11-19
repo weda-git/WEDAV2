@@ -8,10 +8,11 @@ import { SideMenuIcon } from '@/components/panel/side-menu-icon';
 import { PlansProvider, PreviewFrame, ToastProvider, usePlans } from '@/components/panel/ui';
 import { coupleLabel, publicPages, resolvePhoto, sitePath } from '@/lib/weda/logic';
 import { openPreview, OPEN_PREVIEW, type PreviewRequest } from '@/lib/weda/preview-event';
-import { formatPrice, PLANS, PUBLICATION_TERM } from '@/lib/weda/plans';
+import { formatPrice, PLANS, TRIAL_DAYS, trialRemaining } from '@/lib/weda/plans';
 import { ensureRemote, errorText, hasUnsaved, dismissNotice, reloadFromServer, retrySave, useRemote } from '@/lib/weda/remote';
 import { useAppSelector, useAppState, useHydrated, useStorageFull } from '@/lib/weda/store';
 import { isLive } from '@/lib/weda/payments';
+import { WedaLogo } from '@/components/weda-logo';
 
 export const Route = createFileRoute('/panel')({
   head: () => ({
@@ -109,13 +110,14 @@ function PublishLabel() {
 function HelpDialog({ onClose }: { onClose: () => void }) {
   const prices = PLANS.map(p => `${p.name} ${formatPrice(p.price)}`).join(', ');
   const faq: [string, string][] = [
-    ['¿Cuánto cuesta y cuándo pago?', `Armás todo gratis y pagás una sola vez, al publicar: ${prices}. Es un pago único y la página queda publicada ${PUBLICATION_TERM}.`],
+    ['¿Cuánto cuesta y cuándo pago?', `Tenés ${TRIAL_DAYS} días para armar todo gratis, sin tarjeta. Cuando está lista, elegís un plan y pagás una sola vez: ${prices}. Al confirmarse el pago, tu página se publica.`],
+    ['¿Qué pasa si no contrato en esos días?', 'Tu proyecto queda guardado y en pausa: lo podés ver, pero no editar ni publicar. Elegís un plan cuando quieras y seguís desde donde lo dejaste.'],
     ['¿Puedo cambiar de plan después de publicar?', 'Por ahora no: el plan que elegís al publicar no se puede cambiar después de contratarlo.'],
     ['¿Cómo comparto la invitación?', 'Al publicar se genera el link de tu página. Lo podés mandar a todos tus contactos.'],
     ['¿Cómo recibo los regalos?', 'Cargás el alias de tu cuenta en Regalos → Datos de cobro. Tus invitados eligen un regalo, te transfieren directo a esa cuenta y adjuntan el comprobante. No hay comisión: el dinero va directo a tu banco y podés validar cada regalo con su comprobante.'],
     ['¿Dónde veo los regalos que recibí?', 'En Regalos → Aportes recibidos: quién te hizo el regalo, qué regalos eligió (puede ser más de uno), el monto, la fecha y el comprobante.'],
-    ['¿Puedo editar la invitación después de publicarla?', 'Sí. Mientras la página esté publicada, la podés editar cuando quieras.'],
-    ['¿Cuánto tiempo queda online la página?', `${PUBLICATION_TERM[0]!.toUpperCase()}${PUBLICATION_TERM.slice(1)} desde que la publicás.`],
+    ['¿Puedo editar la invitación después de publicarla?', 'Sí, cuando quieras. Lo que cambies se ve en tu página cuando tocás «Publicar los cambios».'],
+    ['¿Cuánto tiempo queda online la página?', 'No vence: es un pago único, sin renovaciones. Tu página y tu link siguen activos y la podés seguir usando.'],
   ];
   return (
     <Dialog open onOpenChange={o => { if (!o) onClose(); }}>
@@ -149,6 +151,19 @@ function SyncBanner() {
   if (r.notice) return <p className="pn-banner is-info" role="status">{r.notice} <button type="button" className="pn-link" onClick={dismissNotice}>Entendido</button></p>;
   if (r.user) return <p className="pn-sr" role="status" aria-live="polite">{r.save === 'saving' ? 'Guardando…' : r.save === 'saved' ? 'Cambios guardados en tu cuenta' : ''}</p>;
   return null;
+}
+
+/* Trial y pausa (PAY-07, BR-63, BR-64): cuánto tiempo queda para crear gratis (períodos de 24 h y el fin exacto en hora de Argentina), o que el período terminó y el proyecto quedó guardado. El estado lo
+   calcula el servidor (`access`); acá solo se muestra, sin ventanas que interrumpan. Sin cuenta (borrador local) no hay trial que mostrar. */
+function TrialBanner() {
+  const access = useRemote().access;
+  const plans = usePlans();
+  if (!access?.trialEndsAt || (access.state !== 'trial' && access.state !== 'paused')) return null;
+  if (access.state === 'paused') return (
+    <p className="pn-banner is-info pn-trial-end" role="status"><strong>Terminó tu período gratuito.</strong> Tu proyecto está guardado. Elegí un plan para publicarlo y seguir editando. <button type="button" className="pn-link" onClick={plans.open}>Elegir plan</button></p>
+  );
+  const { left, ends } = trialRemaining(access.trialEndsAt);
+  return <p className="pn-trial" role="status">Te quedan {left} para crear gratis, hasta el {ends}. <button type="button" className="pn-link" onClick={plans.open}>Elegir plan</button></p>;
 }
 
 /** Embudo: avances que se ven en el panel (una vez por navegador). Sin efecto si la analítica está apagada (analytics.ts). */
@@ -187,9 +202,12 @@ function PanelLayout() {
   // Primero se sabe si hay sesión (y se trae el casamiento de la cuenta): recién ahí se decide si falta crearlo.
   const remote = useRemote();
   useEffect(() => { void ensureRemote(); }, []);
+  // Sin cuenta no hay panel (decisión de la dueña, 2026-11-06): se va a crear la cuenta o ingresar.
   useEffect(() => {
-    if (hydrated && remote.settled && !onboarded) void navigate({ to: '/crear', replace: true });
-  }, [hydrated, remote.settled, onboarded, navigate]);
+    if (!remote.settled) return;
+    if (!remote.user) void navigate({ to: '/crear/cuenta', search: { modo: 'ingresar' }, replace: true }); // quien entra al panel ya tiene cuenta: va a ingresar
+    else if (hydrated && !onboarded) void navigate({ to: '/crear', replace: true });
+  }, [hydrated, remote.settled, remote.user, onboarded, navigate]);
   // Cambios sin confirmar por el servidor: avisa antes de cerrar la pestaña.
   useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => { if (hasUnsaved()) { e.preventDefault(); e.returnValue = ''; } };
@@ -197,7 +215,7 @@ function PanelLayout() {
     return () => window.removeEventListener('beforeunload', warn);
   }, []);
 
-  if (!hydrated || !remote.settled || !onboarded) return <div className="pn-root"><p className="pn-loading" role="status">Cargando tu evento…</p></div>;
+  if (!hydrated || !remote.settled || !remote.user || !onboarded) return <div className="pn-root"><p className="pn-loading" role="status">Cargando tu evento…</p></div>;
 
   return (
     <ToastProvider>
@@ -206,7 +224,7 @@ function PanelLayout() {
       <div className="pn-root pn-app" data-side={collapsed ? 'collapsed' : 'open'}>
         <a className="skip-link" href="#main">Ir al contenido</a>
         <header className="pn-top">
-          <Link to="/panel" className="seed-logo" aria-label="Weda, ir al inicio">Weda<i aria-hidden="true" /></Link>
+          <Link to="/panel" className="seed-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link>
           {/* Vista previa en todas las secciones: abre la página pública en un pop-up. «Regalos» va directo a la lista; el resto, al inicio de la invitación. */}
           <Profile compact />
           <div className="pn-top-actions">
@@ -218,7 +236,7 @@ function PanelLayout() {
         <aside className="pn-side">
           <div className="pn-side-top">
             <button type="button" className="pn-side-toggle" onClick={toggleSide} aria-expanded={!collapsed} aria-controls="pn-side-nav" aria-label={collapsed ? 'Abrir el menú' : 'Recoger el menú'} title={collapsed ? 'Abrir el menú' : 'Recoger el menú'}><SideMenuIcon /></button>
-            <Link to="/panel" className="seed-logo pn-side-logo" aria-label="Weda, ir al inicio">Weda<i aria-hidden="true" /></Link>
+            <Link to="/panel" className="seed-logo pn-side-logo" aria-label="Weda, ir al inicio"><WedaLogo /></Link>
           </div>
           <Profile />
           <nav aria-label="Secciones del panel" className="pn-nav" id="pn-side-nav">
@@ -238,8 +256,12 @@ function PanelLayout() {
 
         <main id="main" className="pn-main">
           <SyncBanner />
+          <TrialBanner />
           {full && <p className="pn-banner" role="alert">No hay más lugar para guardar fotos en este navegador. Quitá alguna foto: los últimos cambios no se guardaron.</p>}
-          <Outlet />
+          {/* BR-64: en pausa todo el panel queda en solo lectura (se ve, no se edita); contratar sigue disponible desde «Elegir plan» y «Publicar». */}
+          {remote.access?.state === 'paused'
+            ? <fieldset className="pn-readonly" disabled><legend className="pn-sr">Solo lectura: terminó el período gratuito</legend><Outlet /></fieldset>
+            : <Outlet />}
         </main>
       </div>
       {help && <HelpDialog onClose={() => setHelp(false)} />}

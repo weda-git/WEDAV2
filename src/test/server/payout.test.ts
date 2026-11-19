@@ -1,16 +1,15 @@
 // @vitest-environment node
-// Destino de cobro protegido (GIFT-14, BR-30): solo con la clave, con versiones, aviso por correo y sin que un guardado del borrador lo cambie.
+// Destino de cobro protegido (GIFT-14, BR-30): cambiar datos ya cargados pide la clave (la primera carga no), con versiones, aviso por correo y sin que un guardado del borrador lo cambie.
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { migrate } from '@/server/db';
 import { draftFor, makeEnv, saveDraft, setPayout, signUp, type Env } from './helpers';
 
 let env: Env;
-beforeEach(() => { env = makeEnv(); });
+beforeEach(async () => { env = await makeEnv(); });
 afterEach(() => env.close());
 
 const CBU = '0170099220000067797370';
 const payoutOf = async (c: ReturnType<Env['client']>) => (await c.get('/api/wedding')).body.payout;
-const versions = (wid: string) => env.svc.db.prepare('SELECT version, alias, source FROM payout_methods WHERE wedding_id = ? ORDER BY version').all(wid) as { version: number; alias: string; source: string }[];
+const versions = async (wid: string) => (await env.svc.db.all('SELECT version, alias, source FROM payout_methods WHERE wedding_id = ? ORDER BY version', wid)) as { version: number; alias: string; source: string }[];
 
 async function couple(email = 'pareja@correo.com') {
   const c = env.client(); await signUp(c, email);
@@ -36,10 +35,19 @@ describe('cambiar el destino de cobro', () => {
     expect(after.draft.gifts.cbu).toBe('');
   });
 
-  it('pide la clave y valida los datos sin tocar el destino vigente', async () => {
+  it('la primera carga no pide la clave; cambiar datos ya cargados sí', async () => {
     const c = await couple();
-    expect((await setPayout(c, { alias: 'ana.leo.mp' }, 'Otra-clave-1')).body.error).toBe('wrong_password');
-    expect((await setPayout(c, { alias: 'ana.leo.mp' }, '')).body.error).toBe('wrong_password');
+    expect((await setPayout(c, { alias: 'ana.leo.mp' }, '')).status).toBe(200);
+    expect((await setPayout(c, { alias: 'otro.alias.mp' }, 'Otra-clave-1')).body.error).toBe('wrong_password');
+    expect((await setPayout(c, { alias: 'otro.alias.mp' }, '')).body.error).toBe('wrong_password');
+    // Simular una primera carga (baseVersion 0) cuando ya hay datos no saltea la clave: la versión no coincide y se rechaza.
+    const sneaky = await c.post('/api/wedding/payout', { currentPassword: '', baseVersion: 0, alias: 'otro.alias.mp' });
+    expect([sneaky.status, sneaky.body.error]).toEqual([409, 'payout_changed']);
+    expect((await payoutOf(c))).toMatchObject({ version: 1, alias: 'ana.leo.mp' });
+  });
+
+  it('valida los datos sin tocar el destino vigente', async () => {
+    const c = await couple();
     expect((await setPayout(c, { alias: 'no' })).body.error).toBe('invalid_alias');
     expect((await setPayout(c, { alias: 'ana leo mp' })).body.error).toBe('invalid_alias');
     expect((await setPayout(c, { alias: 'ana.leo.mp', cbu: '123' })).body.error).toBe('invalid_cbu');
@@ -61,7 +69,7 @@ describe('cambiar el destino de cobro', () => {
     await c.post('/api/wedding/publish');
     expect((await site()).alias).toBe('nuevo.alias.mp');
     const wid = (await c.get('/api/wedding')).body.id as string;
-    expect(versions(wid).map(v => [v.version, v.alias, v.source])).toEqual([[1, 'ana.leo.mp', 'owner'], [2, 'nuevo.alias.mp', 'owner']]);
+    expect((await versions(wid)).map(v => [v.version, v.alias, v.source])).toEqual([[1, 'ana.leo.mp', 'owner'], [2, 'nuevo.alias.mp', 'owner']]);
   });
 
   it('un cambio hecho desde otro dispositivo no se pisa (versión vieja → 409) y repetir lo mismo no cuenta', async () => {
@@ -94,17 +102,4 @@ describe('cambiar el destino de cobro', () => {
     for (const m of sent) { expect(m.text).not.toContain('ana.leo.mp'); expect(m.text).not.toContain(CBU); }
   });
 
-  it('la migración copia el alias que ya estaba en los borradores como versión 1', async () => {
-    const c = await couple();
-    const db = env.svc.db;
-    const wid = (await c.get('/api/wedding')).body.id as string;
-    // Simula una base de antes de la migración 7: el alias vive solo en el borrador.
-    const draft = JSON.parse((db.prepare('SELECT draft FROM weddings WHERE id = ?').get(wid) as { draft: string }).draft);
-    draft.gifts = { ...draft.gifts, alias: 'viejo.alias.mp', bank: 'Banco Viejo', cbu: CBU };
-    db.prepare('UPDATE weddings SET draft = ? WHERE id = ?').run(JSON.stringify(draft), wid);
-    db.exec('DROP TABLE payout_methods; PRAGMA user_version = 6;');
-    migrate(db);
-    expect(versions(wid)).toEqual([{ version: 1, alias: 'viejo.alias.mp', source: 'migrated' }]);
-    expect(await payoutOf(c)).toMatchObject({ version: 1, alias: 'viejo.alias.mp', bank: 'Banco Viejo', cbu: CBU });
-  });
 });

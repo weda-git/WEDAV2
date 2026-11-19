@@ -9,7 +9,7 @@ import {
   type Category, type Gift, type WeddingEvent,
 } from '@/lib/demo-wedding';
 import { publishes } from './plans';
-import { DEFAULT_GIFTS_BUTTON, DEFAULT_GIFTS_TEXT, DEFAULT_GIFTS_TITLE, DEFAULT_ORDER, normalizeOrder, shortAddress, coupleLabel, dateLabel, dateShort, dayMonth, isSamplePhoto, mapsLink, parseDate, photoPosition, resolvePhoto, sitePath, spotifyEmbed } from './logic';
+import { DEFAULT_GIFTS_BUTTON, DEFAULT_GIFTS_TEXT, DEFAULT_GIFTS_TITLE, DEFAULT_ORDER, freeAmountMin, MIN_AMOUNT, normalizeOrder, shortAddress, coupleLabel, dateLabel, dateShort, dayMonth, isSamplePhoto, mapsLink, parseDate, photoPosition, resolvePhoto, sitePath, spotifyEmbed } from './logic';
 import type { AppState, BlockId, GivenGift } from './types';
 
 export type SiteData = {
@@ -34,8 +34,12 @@ export type SiteData = {
   events: WeddingEvent[];
   /** Orden de las secciones reordenables (ver `BlockId`). */
   order: BlockId[];
-  /** `gifts`: hay lista de regalos; `giftsSection`: se muestra el acceso a la lista dentro de la invitación; `note`: se muestra la caja de texto libre. */
-  blocks: { invitation: boolean; save: boolean; countdown: boolean; day: boolean; rsvp: boolean; dress: boolean; photos: boolean; playlist: boolean; message: boolean; gifts: boolean; giftsSection: boolean; note: boolean };
+  /**
+   * `gifts`: hay lista de regalos con al menos un regalo; `giftsPage`: el plan incluye la lista, así que su página existe (aunque esté vacía, con su estado
+   * «Esta lista todavía se está armando») y se llega desde el menú; `giftsSection`: se muestra el acceso a la lista dentro de la invitación; `note`: caja de texto libre.
+   * `giftsPage` es opcional porque las publicaciones anteriores no lo guardaron: para ellas vale `gifts.length > 0` (ver `hasGiftsPage`).
+   */
+  blocks: { invitation: boolean; save: boolean; countdown: boolean; day: boolean; rsvp: boolean; dress: boolean; photos: boolean; playlist: boolean; message: boolean; gifts: boolean; giftsPage?: boolean | undefined; giftsSection: boolean; note: boolean };
   giftsSection: { title: string; text: string; button: string };
   note: { title: string; text: string };
   rsvp: { deadline: string | null; menus: readonly { id: string; name: string }[] | null };
@@ -45,6 +49,8 @@ export type SiteData = {
   playlist: { name: string; tracks: { title: string; artist: string }[]; embed?: string | null | undefined };
   message: { title: string; text: string };
   gifts: Gift[];
+  /** Aporte de importe libre (GIFT-09): si los invitados pueden elegir cuánto regalar, y el mínimo efectivo. */
+  freeAmount: { enabled: boolean; min: number };
   giftCategories: Category[];
   giftsCover: string | null;
   alias: string;
@@ -91,7 +97,7 @@ export const demoSiteData: SiteData = {
   calendarTitle: calendar.title,
   events: demoEvents,
   order: DEFAULT_ORDER,
-  blocks: { invitation: true, save: true, countdown: true, day: true, rsvp: true, dress: true, photos: true, playlist: true, message: true, gifts: false, giftsSection: false, note: false },
+  blocks: { invitation: true, save: true, countdown: true, day: true, rsvp: true, dress: true, photos: true, playlist: true, message: true, gifts: false, giftsPage: true, giftsSection: false, note: false },
   giftsSection: { title: DEFAULT_GIFTS_TITLE, text: DEFAULT_GIFTS_TEXT, button: DEFAULT_GIFTS_BUTTON },
   note: { title: '', text: '' },
   rsvp: { deadline: demoDeadline, menus: demoMenus },
@@ -100,6 +106,7 @@ export const demoSiteData: SiteData = {
   playlist: demoPlaylist,
   message: { title: 'Que vengas ya es un regalo.', text: '' },
   gifts: demoGifts,
+  freeAmount: { enabled: false, min: MIN_AMOUNT }, // /ejemplo no cambia (D7)
   giftCategories: demoCategories,
   giftsCover: null,
   alias: demoAlias,
@@ -161,6 +168,7 @@ export function siteFromState(s: AppState): SiteData {
       message: publishes(s.planId, 'message') && s.site.message.enabled,
       // La lista de regalos que incluye el plan se ve también en la invitación (una muestra y el acceso a la lista completa).
       gifts: publishes(s.planId, 'gifts') && gifts.length > 0,
+      giftsPage: publishes(s.planId, 'gifts'),
       giftsSection: publishes(s.planId, 'gifts') && gifts.length > 0 && s.site.giftsSection.enabled,
       note: publishes(s.planId, 'site') && s.site.note.enabled && (s.site.note.title.trim() !== '' || s.site.note.text.trim() !== ''),
     },
@@ -172,6 +180,8 @@ export function siteFromState(s: AppState): SiteData {
     playlist: { name: s.site.playlist.name.trim() || `Nuestra fiesta · ${names}`, tracks: s.site.playlist.tracks, embed: spotify },
     message: { title: s.site.message.title.trim() || 'Que vengas ya es un regalo.', text: s.site.message.text.trim() },
     gifts,
+    // Opción dentro de la lista (D5): solo si la lista se publica y tiene al menos un regalo.
+    freeAmount: { enabled: publishes(s.planId, 'gifts') && gifts.length > 0 && s.gifts.freeAmount.enabled, min: freeAmountMin(s.gifts.freeAmount.min) },
     giftCategories: present,
     giftsCover: s.gifts.cover,
     alias: s.gifts.alias.trim(),
@@ -180,6 +190,9 @@ export function siteFromState(s: AppState): SiteData {
     acceptCard: s.gifts.acceptCard,
   };
 }
+
+/** Si el sitio tiene página de regalos (y por eso «Regalá» en el menú): la tiene todo plan que incluye la lista, aunque todavía esté vacía. */
+export const hasGiftsPage = (site: SiteData) => site.blocks.giftsPage ?? site.gifts.length > 0;
 
 const SiteContext = createContext<SiteData>(demoSiteData);
 export const useSite = () => useContext(SiteContext);

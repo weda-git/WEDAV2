@@ -222,7 +222,7 @@ const actions: Action[] = [
       await plan.nth(r.int(0, 1)).click();
       // Sin sesión (auditoría 2026-10-28): se pide crear la cuenta y nunca se promete publicar.
       await expect(dlg.getByText('Para publicar necesitás una cuenta'), 'sin sesión se pide crear una cuenta').toBeVisible();
-      await expect(dlg.getByText('Al publicar, cualquiera que tenga el link'), 'sin sesión no se promete publicar').toHaveCount(0);
+      await expect(dlg.getByText('Al publicar, tu página se puede abrir con el link'), 'sin sesión no se promete publicar').toHaveCount(0);
       await dlg.getByRole('button', { name: 'Volver', exact: true }).click();
       shown = 'sin sesión: pide crear la cuenta';
     }

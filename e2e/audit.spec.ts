@@ -7,17 +7,17 @@ import type { Page } from '@playwright/test';
 const noSideScroll = (page: Page) => page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 
 test.describe('Persona P · invitado que llega sin link (/encontrar)', () => {
-  test('P-02/P-05: texto que no es un link → explica qué pegar; un link de invitación abre esa invitación', async ({ page }) => {
+  test('P-02/P-05: se busca por nombre (con 3 letras como mínimo) y un link de invitación pegado abre esa invitación (LAN-08)', async ({ page }) => {
     await page.goto('/encontrar', { waitUntil: 'networkidle' });
     // Ya no hay parejas inventadas que parezcan reales.
     await expect(page.getByRole('link', { name: /Ver su lista/ })).toHaveCount(0);
-    const field = page.getByLabel('Link de la invitación');
-    await field.fill('Ana y Leo');
-    await page.getByRole('button', { name: 'Abrir la invitación' }).click();
-    await expect(page.getByRole('alert')).toContainText('Pegá el link completo');
+    const field = page.getByLabel('Nombres de los novios');
+    await field.fill('Al');
+    await page.getByRole('button', { name: 'Buscar' }).click();
+    await expect(page.getByRole('alert')).toContainText('al menos 3 letras');
     await expect(field).toHaveAttribute('aria-invalid', 'true');
     await field.fill('https://weda.app/sitio/no-existe-todavia');
-    await page.getByRole('button', { name: 'Abrir la invitación' }).click();
+    await page.getByRole('button', { name: 'Buscar' }).click();
     await expect(page).toHaveURL(/\/sitio\/no-existe-todavia$/);
     await expect(page.getByRole('heading', { name: 'Este sitio no está disponible' })).toBeVisible();
   });

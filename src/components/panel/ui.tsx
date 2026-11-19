@@ -13,16 +13,16 @@ import '@/panel.css';
 
 /* ------------------------------------------------------------------ campos */
 
-type FieldProps = { label: string; /** Id del control si ya tiene uno fijo (lo usan tests y el foco al validar): la etiqueta queda asociada a ese. Sin él se genera uno. */ id?: string; error?: string | undefined; hint?: string | undefined; optional?: boolean; children: (a: { id: string; describedBy: string | undefined; invalid: boolean }) => ReactNode };
+type FieldProps = { label: string; /** Id del control si ya tiene uno fijo (lo usan tests y el foco al validar): la etiqueta queda asociada a ese. Sin él se genera uno. */ id?: string; error?: string | undefined; hint?: string | undefined; optional?: boolean; /** El nombre del campo se ve dentro del campo (como texto de ejemplo) y la etiqueta queda solo para lectores de pantalla. */ labelInside?: boolean; children: (a: { id: string; describedBy: string | undefined; invalid: boolean }) => ReactNode };
 
 /** Etiqueta + control + ayuda + error, con los ids bien asociados (lectores de pantalla). */
-export function Field({ label, id: fixedId, error, hint, optional, children }: FieldProps) {
+export function Field({ label, id: fixedId, error, hint, optional, labelInside, children }: FieldProps) {
   const auto = useId();
   const id = fixedId ?? auto;
   const describedBy = [hint ? `${id}-h` : '', error ? `${id}-e` : ''].filter(Boolean).join(' ') || undefined;
   return (
     <div className={`pn-field${error ? ' has-error' : ''}`}>
-      <label htmlFor={id}>{label}{optional && <span className="pn-opt"> · opcional</span>}</label>
+      <label htmlFor={id} className={labelInside ? 'pn-sr' : undefined}>{label}{optional && <span className="pn-opt"> · opcional</span>}</label>
       {children({ id, describedBy, invalid: !!error })}
       {hint && !error && <p className="pn-hint" id={`${id}-h`}>{hint}</p>}
       {error && <p className="pn-error" id={`${id}-e`} role="alert">{error}</p>}
@@ -111,25 +111,25 @@ export function ConfirmDialog({ open, title, text, confirmLabel, onConfirm, onCa
 
 /**
  * Aviso de una operación bloqueada (BR-62): la sección se sigue viendo y los botones de gestión quedan deshabilitados; esto explica qué los
- * desbloquea. `id` va en el `aria-describedby` de esos botones. Con el evento vencido explica eso en lugar del plan.
+ * desbloquea. `id` va en el `aria-describedby` de esos botones. Con el trial vencido (BR-64) explica cómo seguir.
  */
 export function OperationNotice({ id, op }: { id: string; op: Operation }) {
   const plans = usePlans();
   const access = useRemote().access;
   const plan = planForOperation(op);
-  const expired = access?.state === 'expired';
+  const paused = access?.state === 'paused';
   const paidWaiting = access?.state === 'paid_unpublished';
   return (
     <div className="pn-opnotice" id={id} role="note">
       <Lock size={16} strokeWidth={1.6} aria-hidden="true" />
       <p>
-        {expired
-          ? 'Tu publicación venció: ya no se pueden hacer cambios de gestión.'
+        {paused
+          ? `Terminó tu período gratuito. Se habilita al contratar y publicar con ${plan?.name ?? 'Celebración'}.`
           : paidWaiting
             ? `Tu pago está confirmado: se habilita cuando publiques tu página.`
             : `Se habilita al publicar con ${plan?.name ?? 'Celebración'}. Mientras tanto podés ver cómo funciona.`}
       </p>
-      {!expired && <button type="button" className="pn-link" onClick={plans.open}>{paidWaiting ? 'Publicar' : 'Ver qué incluye'}</button>}
+      <button type="button" className="pn-link" onClick={plans.open}>{paidWaiting ? 'Publicar' : paused ? 'Elegir plan' : 'Ver qué incluye'}</button>
     </div>
   );
 }
