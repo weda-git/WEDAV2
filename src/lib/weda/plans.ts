@@ -116,6 +116,8 @@ export const planById = (id: PlanId | null): Plan | undefined => { const n = nor
 
 /** «ARS 140.000». */
 export const formatPrice = (n: number) => `${CURRENCY} ${new Intl.NumberFormat('es-AR').format(n)}`;
+/** «ARS $140.000»: las tarjetas de planes de la landing llevan también el signo $ (pedido de la dueña, 2026-11-20). */
+export const formatPriceWithSign = (n: number) => `${CURRENCY} $${new Intl.NumberFormat('es-AR').format(n)}`;
 
 /** Qué publica el plan (BR-14). Sin plan elegido (null) se muestra todo: es la vista previa de lo que se puede publicar. */
 export const publishes = (planId: PlanId | null, feature: Feature): boolean => planId === null || !!planById(planId)?.features.includes(feature);
