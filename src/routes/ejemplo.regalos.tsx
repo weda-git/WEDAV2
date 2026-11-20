@@ -6,7 +6,7 @@ import { pageMeta } from '@/lib/site';
 export const Route = createFileRoute('/ejemplo/regalos')({
   head: () => ({
     ...pageMeta({
-      title: 'Lista de regalos • Ignacio & Martina',
+      title: 'Lista de regalos • Vera & Santiago',
       description: 'La lista de regalos de un casamiento ficticio: categorías, búsqueda por monto y un flujo de regalo simulado, creado con Weda.',
       ogDescription: 'La lista de regalos de un casamiento ficticio, creada con Weda.',
       image: wedding.photo,

@@ -23,6 +23,8 @@ export type SiteData = {
   photoAlt: string;
   /** Imagen de muestra de Weda (no es una foto de la pareja): decorativa y con encuadre propio. */
   coverSample?: string | undefined;
+  /** Encuadre propio de la foto de portada (object-position), sin las marcas de una imagen de muestra. Lo usa el ejemplo. */
+  coverPosition?: string | undefined;
   coverText: string;
   /** AAAA-MM-DD o null (todavía sin fecha). */
   eventDate: string | null;
@@ -79,7 +81,7 @@ export type SiteActions = {
 
 const SLOT: Record<string, number> = { ceremonia: 1, recepcion: 2, fiesta: 3, civil: 4, brunch: 5 };
 
-/** Datos de la demo /ejemplo (Ignacio & Martina): exactamente lo que ya se mostraba. */
+/** Datos de la demo /ejemplo (Vera & Santiago): exactamente lo que ya se mostraba. */
 export const demoSiteData: SiteData = {
   kind: 'demo',
   homePath: '/ejemplo',
@@ -87,7 +89,8 @@ export const demoSiteData: SiteData = {
   exit: { href: '/', label: 'Volver a Weda' },
   names: demoWedding.couple,
   coverPhoto: demoWedding.photo,
-  photoAlt: 'Ignacio y Martina abrazándose entre sus invitados, en blanco y negro',
+  coverPosition: '50% 24%', // la foto es vertical: en pantallas anchas el recorte sube para que se vean las caras
+  photoAlt: 'Vera y Santiago sonriendo juntos en una selfie',
   coverText: '¡Nos casamos!',
   eventDate: demoEventDate,
   eventOffset: demoOffset,

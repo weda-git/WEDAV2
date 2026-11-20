@@ -498,7 +498,7 @@ html:has(.dm-root), body:has(.dm-root), .dm-root, .dm-root main, .dm-root .iv-se
 .dm-root .iv-dress .iv-swatches i { width: 56px; height: 56px; }
 .dm-root .iv-dress .iv-swatches span { font-size: 14px; }
 
-/* Fotos: "#IgnacioYMartina · Subí tus fotos…" más grande y centrado */
+/* Fotos: "#VeraYSantiago · Subí tus fotos…" más grande y centrado */
 .dm-root .iv-hashtag { flex-direction: column; align-items: center; text-align: center; gap: 8px; margin-top: clamp(32px, 4vw, 56px); }
 .dm-root .iv-hashtag strong { font-size: clamp(30px, 3.6vw, 46px); line-height: 1.1; }
 .dm-root .iv-hashtag span { font-size: clamp(16px, 1.5vw, 20px); }
