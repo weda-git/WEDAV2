@@ -1470,11 +1470,11 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 .pl-intro { margin: 12px 0 0; max-width: 34em; font-size: var(--fs-16); line-height: 1.5; color: var(--muted-foreground, #6f7070); }
 .pl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 40px; align-items: stretch; }
 .pl-card { position: relative; display: flex; flex-direction: column; gap: 28px; padding: 36px; border-radius: var(--r-2xl); background: #fff; color: var(--text-main); }
-.pl-card.is-featured { background: #959571; color: #fff; }
+.pl-card.is-featured { background: var(--foreground); color: #fff; } /* Sin verde (2026-11-20): Celebración se destaca en gris oscuro */
 .pl-head h3 { margin: 0; font-size: clamp(28px, 2.6vw, 36px); line-height: 1.05; letter-spacing: -.03em; font-weight: var(--w-medium, 500); }
 .pl-product { margin: 10px 0 0; font-size: var(--fs-16); font-weight: var(--w-medium, 500); }
 .pl-tagline { margin: 6px 0 0; font-size: var(--fs-15); line-height: 1.45; opacity: .78; max-width: 30em; }
-.pl-badge { position: absolute; top: 28px; right: 28px; padding: 7px 14px; border-radius: var(--r-pill); background: #fff; color: #6f6f50; font-size: var(--fs-13); font-weight: var(--w-medium, 500); line-height: 1.2; }
+.pl-badge { position: absolute; top: 28px; right: 28px; padding: 7px 14px; border-radius: var(--r-pill); background: #fff; color: var(--text-main); font-size: var(--fs-13); font-weight: var(--w-medium, 500); line-height: 1.2; }
 .pl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .pl-list li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 12px; align-items: start; font-size: var(--fs-16); line-height: 1.35; }
 .pl-list li svg { margin-top: 1px; }
