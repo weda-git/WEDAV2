@@ -102,7 +102,7 @@ Se mantienen la tipografía (Geist), la paleta, el video, las fotos, la barra (`
 - **Testimonios (`.tk`):** como The Knot: título centrado y una fila de tarjetas grises (cita, foto chica y nombre) que se desplaza de costado; 3 por pantalla en compu, 2 en tablet y una y algo en celular. Las flechas, a la derecha, avanzan de a una tarjeta y al llegar a una punta vuelven a la otra.
 - **Tarjetas de «Todo para compartir»:** son enlaces a `/crear/cuenta`; al pasar el mouse la demo se agranda un 5 % (sin efecto en pantallas táctiles ni con «reducir movimiento»).
 - **Ritmo de secciones (como The Knot):** bloques planos, sin curvas entre secciones, alternando blanco y el gris casi imperceptible de las demos de «Todo para compartir» (`#f6f7f8`): funciones blanco · regalos gris · testimonios blanco (sin foto de fondo, letras oscuras) · planes gris (tarjetas blancas) · cierre verde oscuro · pie gris oscuro (`--foreground`).
-- **Cierre (`.closing-section`):** franja `#959571` con letras blancas antes del pie: la frase «Weda reúne la lista de regalos, el sitio y las confirmaciones de tu casamiento.», «Crear mi evento» (píldora blanca) y el enlace «Encontrá una lista de regalos» (`/encontrar`). Por eso el pie ya no repite «Crear mi evento».
+- **Cierre (`.closing-section`):** franja `#959571` con letras blancas antes del pie: la frase «Empezá a armar tu casamiento hoy.» (2026-11-20; antes «Weda reúne la lista de regalos, el sitio y las confirmaciones de tu casamiento.», «Crear mi evento» (píldora blanca) y el enlace «Encontrá una lista de regalos» (`/encontrar`). Por eso el pie ya no repite «Crear mi evento».
 - **Regalos (`#regalos`, `.duo-split.is-path`)** *(desde 2026-11-19 está en `/lista-de-regalos`, no en la landing)*: sin foto (pedido de la dueña); todo va centrado sobre el gris `#f6f7f8`. Los cuatro pasos forman un recorrido: cada ícono va en un círculo blanco de 64 px y una línea fina los une. El botón va en el verde oscuro `#959571` con letras blancas, como el cierre (pedido de la dueña); fuera de esos dos lugares la landing no usa verde. En compu van en fila; hasta 900 px, en columna con la línea vertical y el texto a la derecha. El número de cada paso queda solo para lectores de pantalla (el orden lo da la lista). El botón «Crear mi lista de regalos» va centrado debajo.
 - **Testimonios (`.tq.is-people`):** rótulo «Testimonios» en minúscula y sin barra, sin comillas decorativas ni barra de progreso. Bajo la cita va solo la foto de la pareja que habla, con su nombre al lado (`.tq-by`, nombre con `aria-live`). Las cuatro fotos ocupan el mismo lugar (`.tq-avatar`) y cambian con un fundido junto con la cita; no hay fila con todas las parejas (pedido de la dueña). Se pasa de una a otra con las flechas. La sección usa `overflow: clip` (con `hidden` se desplazaba de costado al hacer clic).
 - **Planes:** ver `LandingPlans` en la tabla de componentes.
@@ -244,6 +244,7 @@ Enlace «Ir al contenido», `aria-current` en la navegación, `aria-live` en avi
 - Son excepciones pedidas a la paleta neutra del panel; no extender a otros botones o fondos sin pedido.
 
 ### Página «Lista de regalos» (`/lista-de-regalos`, 2026-11-03)
+- **Cambio 2026-11-20 (pedido de la dueña):** la página es solo las tres hojas apiladas. El `h1` «Lista de regalos» va centrado arriba, dentro de la primera hoja (`GiftFeatures` con `heading`). Los fondos alternan: blanca, gris `#f6f7f8` y blanca. Se sacaron la portada con la animación (`GiftDemo`) y el cierre. Cada hoja mide exactamente una pantalla, con el contenido centrado, para que el scroll mueva la página desde el primer momento. La maqueta se achica en pantallas bajas y por debajo de 600 px de alto las hojas dejan de quedar fijas. El `h1` va de 32 a 48 px, un poco más chico que el `h1` global; los `h2` usan la escala global. Lo que sigue abajo es historia.
 - **Cambio 2026-11-19 (pedido de la dueña):** las tres ventajas (sin comisión, cada bolsillo y quién te regaló qué) **salieron de la landing** y quedaron solo en esta página, con el mismo formato de hojas apiladas (`.duo-section`, botón «Crear mi lista de regalos» dentro de la última). Se sacaron las preguntas frecuentes y su `FAQPage`. La página queda: portada con el botón, las tres hojas y el cierre «Armá tu lista de regalos gratis y pagá recién al publicarla». Donde abajo dice «en la landing» sobre las hojas de Regalos, hoy aplica a esta página.
 - Página informativa para SEO y GEO, armada con la estructura de la página de registro de The Knot: portada con la maqueta real (`GiftDemo`), tres ventajas al estilo The Knot (título grande, botón y maqueta: foto inclinada con una pieza de la interfaz encima) —sin comisión, regalos para cada bolsillo (filtros por monto reales) y quién te regaló qué—, preguntas frecuentes en `<details>` y el cierre verde.
 - No figura en el menú de arriba: se llega desde «Lista de regalos» del pie (`src/components/site-footer.tsx`, compartido con la landing) y está en `SITEMAP_PATHS`.
@@ -270,3 +271,16 @@ Enlace «Ir al contenido», `aria-current` en la navegación, `aria-live` en avi
 - Dos planes, de `src/lib/weda/plans.ts`: **Regalos** (lista de regalos, ARS 95.000) y **Celebración** (sitio completo con invitación y gestión + lista de regalos, ARS 140.000), publicados 1 año, pago único. «Celebración Plus» se integró a Celebración (`normalizePlanId`).
 - `src/components/landing-plans.tsx`: dos tarjetas lado a lado (`.pl-card`), con todo lo que incluye cada una a la vista (sin «Ver lo que incluye»). Regalos en blanco con botón oscuro; Celebración en el verde #959571 con texto blanco, botón blanco y el cartel «Más elegido». Celebración muestra «Todo lo de Regalos, y además:». Precio, «Pago único · Publicada 1 año» y «Empezar» al pie. En celular van una debajo de la otra y Celebración se ve primero (`order: -1`).
 - Se quitaron las reglas viejas de `.plan-card`, `.plan-media`, `.plan-dialog` y afines (74 reglas).
+
+### Pie de página (2026-11-20)
+- Toma la estructura del pie de Seed, con lo que tiene Weda.
+- **Fondo:** negro `#161615`.
+- **Izquierda:** el logo y la frase «Tu casamiento empieza antes del gran día.», los dos chicos.
+- **Derecha:** columnas con un título chico en mayúsculas.
+  - **Producto:** Lista de regalos.
+  - **Legal:** Términos y condiciones y Privacidad.
+  - **Contacto:** hola@weda.app (`mailto`).
+- **Abajo:** una línea fina y «© 2026 Weda».
+- **Alineación:** todo a la izquierda, también en el celular. Ahí las columnas van de a dos.
+- Se sacaron «Sitio del casamiento», «Confirmación de asistencia» y «Ver ejemplo» hasta que lleven a una página propia.
+- No tiene newsletter: Weda no tiene uno.

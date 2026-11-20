@@ -70,7 +70,8 @@ function useFitMocks(root: React.RefObject<HTMLDivElement | null>) {
   }, [root]);
 }
 
-export function GiftFeatures({ level = 2, withCta = false, endCta, label }: { level?: 2 | 3; withCta?: boolean; endCta?: ReactNode; label?: string }) {
+/** `heading`: título que va arriba de todo dentro de la primera hoja, centrado (en /lista-de-regalos, el h1 de la página). */
+export function GiftFeatures({ level = 2, withCta = false, endCta, label, heading }: { level?: 2 | 3; withCta?: boolean; endCta?: ReactNode; label?: string; heading?: ReactNode }) {
   const H = level === 2 ? 'h2' : 'h3';
   const root = useRef<HTMLDivElement>(null);
   useFitMocks(root);
@@ -78,6 +79,7 @@ export function GiftFeatures({ level = 2, withCta = false, endCta, label }: { le
     <div className="gift-features" ref={root}>
       {ITEMS.map(({ title, text, Mock, cta }, i) => (
         <article key={title} className={`gift-feature${i % 2 ? ' is-flip' : ''}`}>
+          {heading && i === 0 && <div className="gift-feature-heading">{heading}</div>}
           <div className="gift-feature-stage"><Mock /></div>
           <div className="gift-feature-copy">
             {label && i === 0 && <p className="gift-feature-label">{label}</p>}
