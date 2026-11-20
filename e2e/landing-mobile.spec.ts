@@ -103,12 +103,14 @@ test.describe('Landing · celular 390 px', () => {
     expect(all.join('\n')).not.toMatch(/Publicada \d|vence/);
   });
 
-  test('Testimonios: una cita a la vez sobre blanco, con la foto y el contador de la pareja y flechas a la derecha', async ({ page }) => {
+  test('Testimonios: una cita a la vez sobre la foto difuminada, con la foto y el contador de la pareja y flechas a la derecha', async ({ page }) => {
     await goLanding(page);
     const tq = page.locator('.tq');
     await tq.scrollIntoViewIfNeeded();
     await expect(page.getByText('Por qué Weda')).toHaveCount(0);
-    expect(await page.locator('#por-que-weda').evaluate(e => getComputedStyle(e).backgroundColor)).toBe('rgb(255, 255, 255)');   // fondo blanco, sin foto
+    // Fondo: la foto de la pareja difuminada con un velo blanco encima (2026-11-19).
+    const bg = await page.locator('#por-que-weda').evaluate(e => ({ img: getComputedStyle(e, '::before').backgroundImage, blur: getComputedStyle(e, '::before').filter, veil: getComputedStyle(e, '::after').backgroundColor }));
+    expect(bg.img).toContain('testimonios-fondo.webp'); expect(bg.blur).toContain('blur'); expect(bg.veil).toBe('rgba(255, 255, 255, 0.62)');
     await expect(tq.locator('blockquote.on')).toHaveCount(1);
     await expect(tq.locator('.tq-who strong')).toHaveText('Camila & Lucas');
     await expect(tq.locator('.tq-who span')).toHaveText('01 / 04');
