@@ -1619,7 +1619,12 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
    encima para que el texto oscuro se lea igual que sobre blanco. La foto va en ::before (más grande que la sección, así el desenfoque no
    deja bordes) y el velo en ::after; la sección ya recorta lo que sobra (`overflow: clip`). */
 .viacap-section { background: #f6f7f8; }
-.viacap-section::before { content: ""; position: absolute; inset: -40px; z-index: -2; background: url("/testimonios-fondo.webp") center 45% / cover no-repeat; filter: blur(10px) grayscale(1); }
+/* Ventana (2026-11-20): la foto es fija y ocupa toda la pantalla (`.tq-bg`, position: fixed) y la sección la recorta con `clip-path`, así al
+   scrollear se ve primero la parte de arriba y después la de abajo. Funciona sin JavaScript y también en iPhone (a diferencia de
+   `background-attachment: fixed`). `contain: none` hace falta: `contain: paint` convertiría a la sección en el marco de la foto fija. */
+.viacap-section { clip-path: inset(0); contain: none; }
+.viacap-section::before { content: none; }
+.tq-bg { position: fixed; inset: -40px; z-index: -2; background: url("/testimonios-fondo.webp") center 45% / cover no-repeat; filter: blur(10px) grayscale(1); pointer-events: none; }
 .viacap-section::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgb(255 255 255 / .62); }
 
 /* Inicio con foto fija (2026-11-20): la foto ocupa exactamente el inicio (sin el 114 % que recortaba los íconos del video) y el recorte

@@ -133,7 +133,8 @@ function Index() {
       <div className="feat-head"><h2>Todo para compartir su casamiento.</h2><div className="feat-head-side"><p>Una forma simple de reunir los regalos, la información del evento y las confirmaciones de sus invitados.</p><div className="feat-cta"><SeedLink to="/crear/cuenta">Crear mi evento</SeedLink></div></div></div>
       <div className="feat-grid">{features.map((f)=><Link to="/crear/cuenta" className="feat-card is-link" key={f.title}><span className="feat-stage fd-stage" aria-hidden="true">{f.icon}</span><h3>{f.title}</h3><p>{f.note}</p></Link>)}</div>
     </div></section>
-    <section className="viacap-section" id="por-que-weda"><div className="section-inner">{testimonials.length > 0 ? <Testimonials/> : <Benefits/>}</div></section>
+    {/* La foto queda fija en la pantalla y la sección se mueve encima, como una ventana (pedido de la dueña, 2026-11-20). */}
+    <section className="viacap-section" id="por-que-weda"><div className="tq-bg" aria-hidden="true"/><div className="section-inner">{testimonials.length > 0 ? <Testimonials/> : <Benefits/>}</div></section>
     <LandingPlans />
     {/* Cierre antes del pie: una frase grande con la acción principal y el acceso para invitados. */}
     <section className="closing-section" aria-labelledby="closing-title"><div className="section-inner closing-inner">
