@@ -24,7 +24,8 @@ test.describe('Recuperar la clave', () => {
     })).toBe(201);
     await page.getByLabel('Correo electrónico').fill('olvido-e2e@example.com');
     await page.getByRole('button', { name: 'Mandarme el enlace' }).click();
-    await expect(page.getByText(/Revisá tu correo/)).toBeVisible();
+    await expect(page.locator('.fg-note')).toContainText('Revisá tu correo');
+    await expect(page.locator('.fg-note')).toContainText('te va a llegar un correo con el enlace');
     await expect(page.getByText(/Si hay una cuenta/)).toHaveCount(0);
   });
 
