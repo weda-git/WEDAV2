@@ -3,7 +3,7 @@ import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 
 import { LandingPlans } from '@/components/landing-plans';
-import { formatPrice, PLANS } from '@/lib/weda/plans';
+import { formatPriceWithSign, PLANS } from '@/lib/weda/plans';
 
 // Router mínimo: la sección de planes solo necesita poder armar enlaces a /crear/cuenta.
 async function renderPlans() {
@@ -28,13 +28,13 @@ describe('Planes en la landing', () => {
     PLANS.forEach((plan, i) => {
       const card = within(cards[i]!);
       expect(card.getByRole('heading', { level: 3, name: plan.name })).toBeTruthy();
-      expect(card.getByText(formatPrice(plan.price))).toBeTruthy();
+      expect(card.getByText(formatPriceWithSign(plan.price))).toBeTruthy();   // «ARS $140.000»
       expect(card.getByText('Pago único')).toBeTruthy();
       expect(card.getByText(plan.product)).toBeTruthy();
     });
     expect(screen.getByText(/Armá tu casamiento gratis/)).toBeTruthy();
-    // PAY-07: 14 días gratis y pago único sin renovaciones; ninguna duración de publicación (BR-65).
-    expect(screen.getByText(/14 días para crear todo gratis, sin tarjeta/)).toBeTruthy();
+    // Pago único sin renovaciones; ninguna duración de publicación (BR-65). La bajada de los 14 días se sacó (pedido de la dueña, 2026-11-20).
+    expect(screen.queryByText(/14 días para crear todo gratis/)).toBeNull();
     expect(screen.getAllByText(/sin renovaciones/)).toHaveLength(2);
     expect(screen.queryByText(/Publicada|1 año|vence/i)).toBeNull();
   });

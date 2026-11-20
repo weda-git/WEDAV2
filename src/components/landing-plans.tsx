@@ -1,11 +1,11 @@
 import { Link } from '@tanstack/react-router';
 import { ArrowRight, Plus } from 'lucide-react';
 import { HIGHLIGHT_ICON } from '@/components/plan-icons';
-import { formatPrice, PLANS, planById, TRIAL_DAYS, type Plan } from '@/lib/weda/plans';
+import { formatPriceWithSign, PLANS, planById, type Plan } from '@/lib/weda/plans';
 
 /* Planes de la landing (2026-11-03): dos tarjetas, con todo lo que incluye cada una a la vista para no tener que abrir nada.
    Regalos es la lista de regalos; Celebración, el sitio completo con la invitación y la gestión, destacado como «Recomendado» (PAY-07: no se afirma
-   una popularidad que no está medida). 14 días gratis, pago único, sin renovaciones (BR-63, BR-65).
+   una popularidad que no está medida). Pago único, sin renovaciones (BR-65). Sin la bajada de los 14 días (pedido de la dueña, 2026-11-20).
    Todo sale de `src/lib/weda/plans.ts`: no se repite ningún precio ni función acá. */
 
 function PlanCard({ plan }: { plan: Plan }) {
@@ -27,7 +27,7 @@ function PlanCard({ plan }: { plan: Plan }) {
       </ul>
       <footer className="pl-foot">
         <div className="pl-price">
-          <strong>{formatPrice(plan.price)}</strong>
+          <strong>{formatPriceWithSign(plan.price)}</strong>
           <span><b>Pago único</b> · sin renovaciones</span>
         </div>
         <Link to="/crear/cuenta" className="pl-cta">Empezar<ArrowRight size={16} aria-hidden="true" /></Link>
@@ -42,7 +42,6 @@ export function LandingPlans() {
       <div className="section-inner">
         <div className="plans-head">
           <h2><span className="plans-l1">Armá tu casamiento gratis.</span> <span className="plans-l2">Publicalo cuando estés listo.</span></h2>
-          <p className="pl-intro">Tenés {TRIAL_DAYS} días para crear todo gratis, sin tarjeta. Cuando esté listo, elegís un plan, pagás una sola vez y se publica.</p>
         </div>
         <div className="pl-grid">{PLANS.map(p => <PlanCard key={p.id} plan={p} />)}</div>
       </div>

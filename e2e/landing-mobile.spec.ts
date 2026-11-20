@@ -83,9 +83,11 @@ test.describe('Landing · celular 390 px', () => {
     await expect(cards).toHaveCount(2);
     await expect(cards.locator('h3')).toHaveText(['Regalos', 'Celebración']);
     const prices = await cards.locator('.pl-price strong').allInnerTexts();
-    expect(prices.map(p => p.replace(/\s/g, ' '))).toEqual(['ARS 95.000', 'ARS 140.000']);
+    expect(prices.map(p => p.replace(/\s/g, ' '))).toEqual(['ARS $95.000', 'ARS $140.000']);
     const [b0, b1] = [await cards.nth(0).boundingBox(), await cards.nth(1).boundingBox()];
-    expect(b1!.y).toBeLessThan(b0!.y);                     // en celular Celebración se ve primero
+    expect(b1!.y).toBeGreaterThan(b0!.y);                  // en celular va primero Regalos y después Celebración (2026-11-20)
+    const badge = await cards.nth(1).evaluate(c => { const cr = c.getBoundingClientRect(), b = c.querySelector('.pl-badge')!.getBoundingClientRect(); return { top: b.top - cr.top, bottom: b.bottom - cr.top, right: cr.right - b.right }; });
+    expect(badge.top).toBeLessThan(0); expect(badge.bottom).toBeGreaterThan(0); expect(badge.right).toBeLessThan(40);   // «Recomendado» monta el borde, en la esquina derecha
     for (let i = 0; i < 2; i++) {
       const card = cards.nth(i);
       const cta = card.getByRole('link', { name: 'Empezar', exact: true });

@@ -1467,34 +1467,36 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 
 /* Planes (2026-11-03): dos tarjetas lado a lado (una debajo de la otra en celular, con Celebración primero). Regalos en blanco;
    Celebración en el verde de Weda con texto blanco y el cartel «Recomendado» (PAY-07). Precio y botón al pie de cada una. */
-.pl-intro { margin: 12px 0 0; max-width: 34em; font-size: var(--fs-16); line-height: 1.5; color: var(--muted-foreground, #6f7070); }
 .pl-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 40px; align-items: stretch; }
 .pl-card { position: relative; display: flex; flex-direction: column; gap: 28px; padding: 36px; border-radius: var(--r-2xl); background: #fff; color: var(--text-main); }
-.pl-card.is-featured { background: #959571; color: #fff; }
+/* Celebración (recomendado), sin verde ni fondo oscuro (2026-11-20): blanca como Regalos, pero delineada, más alta y con sombra, para que
+   se lea como la tarjeta que hay que mirar. La sombra tiene función: marca la jerarquía. */
+.pl-card.is-featured { background: #fff; color: var(--text-main); outline: 1.5px solid var(--foreground); outline-offset: -1.5px; box-shadow: 0 2px 4px rgb(0 0 0 / .04), 0 18px 40px -12px rgb(30 30 28 / .22); }
+@media (min-width: 641px) { .pl-card.is-featured { transform: translateY(-10px); } }
 .pl-head h3 { margin: 0; font-size: clamp(28px, 2.6vw, 36px); line-height: 1.05; letter-spacing: -.03em; font-weight: var(--w-medium, 500); }
 .pl-product { margin: 10px 0 0; font-size: var(--fs-16); font-weight: var(--w-medium, 500); }
 .pl-tagline { margin: 6px 0 0; font-size: var(--fs-15); line-height: 1.45; opacity: .78; max-width: 30em; }
-.pl-badge { position: absolute; top: 28px; right: 28px; padding: 7px 14px; border-radius: var(--r-pill); background: #fff; color: #6f6f50; font-size: var(--fs-13); font-weight: var(--w-medium, 500); line-height: 1.2; }
+.pl-badge { position: absolute; top: 28px; right: 28px; padding: 7px 14px; border-radius: var(--r-pill); background: var(--foreground); color: #fff; font-size: var(--fs-13); font-weight: var(--w-medium, 500); line-height: 1.2; }
+/* «Recomendado» en la esquina de arriba a la derecha, montado sobre el borde de la tarjeta (2026-11-20). */
+.pl-badge { top: 0; right: 24px; transform: translateY(-50%); }
 .pl-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .pl-list li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 12px; align-items: start; font-size: var(--fs-16); line-height: 1.35; }
 .pl-list li svg { margin-top: 1px; }
 .pl-list .pl-inherit { padding-bottom: 14px; border-bottom: 1px solid rgb(59 60 58 / .12); }
-.pl-card.is-featured .pl-inherit { border-bottom-color: rgb(255 255 255 / .28); }
 .pl-foot { margin-top: auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 24px; border-top: 1px solid rgb(59 60 58 / .12); }
-.pl-card.is-featured .pl-foot { border-top-color: rgb(255 255 255 / .28); }
 .pl-price { display: grid; gap: 6px; }
 .pl-price strong { font-size: clamp(30px, 3vw, 42px); line-height: 1; letter-spacing: -.03em; font-weight: var(--w-medium, 500); }
 .pl-price span { font-size: var(--fs-13); opacity: .8; }
 .pl-cta { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 24px; border-radius: var(--r-pill); background: var(--foreground); color: #fff; font-size: var(--fs-15); font-weight: var(--w-medium, 500); text-decoration: none; transition: background .2s ease; }
 .pl-cta:hover { background: #2b2c2a; }
-.pl-card.is-featured .pl-cta { background: #fff; color: var(--text-main); }
-.pl-card.is-featured .pl-cta:hover { background: var(--paper, #f3f0e8); }
+/* «Empezar» delineado (2026-11-20): sin el relleno oscuro, más suave; se llena apenas al pasar. */
+.pl-cta { background: transparent; color: var(--text-main); box-shadow: inset 0 0 0 1.5px var(--foreground); }
+.pl-cta:hover { background: rgb(59 60 58 / .07); color: var(--text-main); }
 .pl-cta:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
 @media (max-width: 760px) {
   .pl-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 28px; }
-  .pl-card.is-featured { order: -1; }
   .pl-card { padding: 28px 22px; gap: 24px; }
-  .pl-badge { top: 24px; right: 22px; }
+  .pl-badge { right: 18px; }
   .pl-foot { flex-direction: column; align-items: stretch; }
   .pl-cta { min-height: 52px; font-size: var(--fs-16); }
 }
