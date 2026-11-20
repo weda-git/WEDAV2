@@ -1625,4 +1625,4 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 /* Inicio con foto fija (2026-11-20): la foto ocupa exactamente el inicio (sin el 114 % que recortaba los íconos del video) y el recorte
    se centra en las manos de la pareja, debajo del título. En pantallas verticales manda el 52 % horizontal; en las anchas, el 30 % vertical
    deja las caras arriba del título. */
-.seed-hero .hero-photo { inset: 0; width: 100%; height: 100%; object-position: 52% 30%; }
+.seed-hero .hero-photo { inset: 0; width: 100%; height: 100%; object-position: 54% 30%; }
