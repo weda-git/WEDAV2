@@ -117,12 +117,12 @@ describe('contratar y publicar en un solo momento (con compuerta y pago de prueb
     expect([again.status, again.body.slug]).toEqual([200, w.slug]);
   });
 
-  it('CA-10 · Regalos cobra 95.000 y al pagar publica solo la lista', async () => {
+  it('CA-10 · Regalos cobra 120.000 y al pagar publica solo la lista', async () => {
     clock();
     const c = env.client(); await signUp(c, 'regalos@correo.com');
     await saveDraft(c, draftFor('Ivo', 'Sol', { planId: 'regalos' }));
     const ord = (await c.post('/api/checkout', { planId: 'regalos' })).body;
-    expect(ord.amount).toBe(95000);
+    expect(ord.amount).toBe(120000);
     await c.post(`/api/test-payments/${ord.id}`, { outcome: 'paid' });
     const w = (await c.get('/api/wedding')).body;
     expect(w.access).toMatchObject({ state: 'active', plan: 'regalos' });

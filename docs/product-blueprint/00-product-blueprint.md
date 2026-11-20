@@ -5,7 +5,7 @@
 > **Actualización 2026-11-04 (D-06, [PAY-07](../../specs/PAY-07-trial-contratacion-permanencia/spec.md)): modelo comercial vigente.** Trial de 14 días desde que se crea la celebración (BR-63) → pausa en solo lectura si no se contrata, sin perder datos (BR-64) → contratar = pagar y publicar en un solo momento (BR-01) → **permanencia indefinida, sin vencimiento ni renovación** (BR-65). Todo lo que este documento diga sobre vigencia de 6 o 12 meses, cierre del evento, archivo, avisos de vencimiento o condiciones de vigencia queda **reemplazado**; se conserva como historia.
 >
 > **Actualización 2026-11-03 (decisiones de la dueña, [anexo 03 §4](03-open-decisions-and-risks.md)).** Lo que sigue se escribió el 2026-10-31; donde contradiga esto, manda esto:
-> - **D-01 · Dos planes** de pago único: Regalos ARS 95.000 y Celebración ARS 140.000 (BR-13). «Celebración Plus» ya no existe. El cambio de Regalos a Celebración queda **pendiente** (DP-23).
+> - **D-01 · Dos planes** de pago único: Regalos ARS 120.000 (desde 2026-11-20, D-09; antes 95.000) y Celebración ARS 140.000 (BR-13). «Celebración Plus» ya no existe. El cambio de Regalos a Celebración queda **pendiente** (DP-23).
 > - **D-02 · El plan define qué se publica y qué se opera**; ver y editar contenido no dependen del plan (BR-14, BR-62). Se construye en [PAY-01](../../specs/PAY-01-plan-alcance/spec.md).
 > - **D-03 · Multiusuario postergado** (riesgo aceptado, RK-19).
 > - **Vigencia en el código:** desde el 2026-11-03 son **12 meses desde la primera publicación** (`PUBLICATION_MONTHS = 12`) y los textos dicen «1 año». Donde abajo dice «6 meses» describe el estado del 2026-10-31 (IC-02). El inicio de la vigencia sigue en discusión (IC-16, IC-28).
@@ -74,7 +74,7 @@ Solo se usa el posicionamiento que respaldan `PRODUCT.md` y las decisiones docum
 | Propuesta de valor | Una página bonita y simple, más una lista de regalos que ordena y acompaña los aportes de los invitados | DOCUMENTADO |
 | Diferencial | **La lista de regalos unida al micrositio** | DOCUMENTADO (`PRODUCT.md`); la competencia no fue investigada en esta auditoría → NO VERIFICADO |
 | Función principal | Que los invitados puedan regalar (transferencia a un alias que muestra la pareja) y la pareja lleve el control | IMPLEMENTADO con límites serios (cap. 8) |
-| Planes | Dos planes en pesos argentinos (`src/lib/weda/plans.ts`): Regalos 95.000 y Celebración 140.000, de pago único (D-01) | IMPLEMENTADO; si incluyen impuestos es **PENDIENTE** (DP-17); permisos por plan según BR-62 **NO IMPLEMENTADOS** (IC-25) |
+| Planes | Dos planes en pesos argentinos (`src/lib/weda/plans.ts`): Regalos 120.000 y Celebración 140.000, de pago único (D-01) | IMPLEMENTADO; si incluyen impuestos es **PENDIENTE** (DP-17); permisos por plan según BR-62 **NO IMPLEMENTADOS** (IC-25) |
 
 **Principio que atraviesa todo: Weda no custodia ni verifica dinero.** Los invitados transfieren directamente a la cuenta de la pareja; Weda solo registra el aporte y el comprobante que carga el invitado. La pareja confirma a mano. *(DECIDIDO.)* El código respeta esto en lo esencial (no mueve dinero), pero la interfaz todavía usa palabras como «recibido» que sugieren una verificación que no existe (IC-07).
 

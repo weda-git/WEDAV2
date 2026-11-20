@@ -85,7 +85,7 @@ test('Celebración pagada: publica sola, la URL queda disponible y se operan inv
 test('Regalos pagado: publica solo la lista; el panel no muestra la invitación como incluida (F-P1)', async ({ page }) => {
   test.setTimeout(120_000);
   await onboard(page, 'Inés', 'Bruno');
-  await checkout(page, 'Regalos', '95.000');
+  await checkout(page, 'Regalos', '120.000');
   await page.getByRole('button', { name: 'Aprobar (prueba)' }).click();
   await expect(page.getByRole('heading', { name: /Tu página está publicada/ })).toBeVisible({ timeout: 15_000 });
   const w = await wedding(page);
@@ -108,14 +108,14 @@ test('Regalos pagado: publica solo la lista; el panel no muestra la invitación 
 test('pago cancelado no publica; un evento de pago repetido no vuelve a publicar ni cobra', async ({ page }) => {
   test.setTimeout(120_000);
   await onboard(page, 'Olga', 'Saúl');
-  const first = await checkout(page, 'Regalos', '95.000');
+  const first = await checkout(page, 'Regalos', '120.000');
   expect((await page.request.post(`/api/test-payments/${first}`, { data: { outcome: 'cancelled' } })).status()).toBe(200);
   await page.goto(`/panel/pago?orden=${first}`, { waitUntil: 'networkidle' });
   await expect(page.getByRole('heading', { name: 'Cancelaste el pago' })).toBeVisible();
   expect((await wedding(page)).publication).toBeNull();
   // Segunda orden, aprobada dos veces: la repetición se ignora.
   await page.goto('/panel', { waitUntil: 'networkidle' });
-  const second = await checkout(page, 'Regalos', '95.000');
+  const second = await checkout(page, 'Regalos', '120.000');
   await page.getByRole('button', { name: 'Aprobar (prueba)' }).click();
   await expect(page.getByRole('heading', { name: /Tu página está publicada/ })).toBeVisible({ timeout: 15_000 });
   const v1 = (await wedding(page)).publication.version;
