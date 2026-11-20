@@ -17,7 +17,7 @@ describe("calendario (.ics)", () => {
   });
 
   it("genera un VEVENT por evento con horario válido y no inventa horas de fin", () => {
-    const ics = buildIcs({ events, date: weddingStart.slice(0, 10), offset: "-03:00", title: "Casamiento de Ignacio & Martina", now: new Date("2026-10-14T12:00:00Z") });
+    const ics = buildIcs({ events, date: weddingStart.slice(0, 10), offset: "-03:00", title: "Casamiento de Vera & Santiago", now: new Date("2026-10-14T12:00:00Z") });
     expect(ics.startsWith("BEGIN:VCALENDAR\r\n")).toBe(true);
     expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(events.length);
     expect(ics).not.toContain("DTEND");

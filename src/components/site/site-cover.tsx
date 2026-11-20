@@ -21,7 +21,7 @@ export function SiteCover({ variant = 'home', next }: Props) {
   return (
     <section className={`iv-cover${gifts ? ' is-gifts' : ''}${photo ? '' : ' is-plain'}${site.coverSample && !gifts ? ' is-sample' : ''}`} id="top">
       {photo
-        ? <img className="iv-cover-img" src={photo} alt={gifts && site.giftsCover ? `Portada de la lista de regalos de ${site.names}` : site.photoAlt} style={site.coverSample && !(gifts && site.giftsCover) ? { objectPosition: site.coverSample } : undefined} />
+        ? <img className="iv-cover-img" src={photo} alt={gifts && site.giftsCover ? `Portada de la lista de regalos de ${site.names}` : site.photoAlt} style={(site.coverSample ?? site.coverPosition) && !(gifts && site.giftsCover) ? { objectPosition: site.coverSample ?? site.coverPosition } : undefined} />
         : <span className="iv-cover-mono" aria-hidden="true">{initials}</span>}
       <div className="iv-cover-copy">
         {gifts ? (

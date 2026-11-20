@@ -1,5 +1,5 @@
 // Quién provee los datos de la página pública:
-//  - DemoSite: /ejemplo (Ignacio & Martina). Los regalos elegidos duran lo que dure la sesión del navegador.
+//  - DemoSite: /ejemplo (Vera & Santiago). Los regalos elegidos duran lo que dure la sesión del navegador.
 //  - AppSite: /sitio/$slug y la vista previa. Publicado: lee y escribe por la API. Local o vista previa: solo lee, nunca escribe (BR-62).
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useRouterState } from '@tanstack/react-router';
