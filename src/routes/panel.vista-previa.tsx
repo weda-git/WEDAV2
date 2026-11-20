@@ -12,7 +12,7 @@ function Preview() {
   const pages = publicPages(s.planId);
   const plans = usePlans();
   const base = sitePath(s);
-  // El micrositio se recorre con su propia barra (Invitación · Regalá · Confirmá asistencia): acá no hay selector de página. Abre en la invitación, o en los regalos si el plan no incluye invitación.
+  // El micrositio se recorre con su propia barra (Invitación · Regalos · RSVP): acá no hay selector de página. Abre en la invitación, o en los regalos si el plan no incluye invitación.
   const path = pages.invitation ? base : `${base}/regalos`;
 
   return (

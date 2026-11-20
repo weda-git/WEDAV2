@@ -318,11 +318,10 @@ test.describe('Perfil E · invitados: alta, edición, confirmación desde el sit
     await onboard(page);
     const slug = await publishCelebration(page);
     await page.goto(`/sitio/${slug}?borrador`, { waitUntil: 'networkidle' });
-    await page.getByRole('button', { name: 'Confirmá asistencia' }).first().click();
+    await page.getByRole('button', { name: 'RSVP' }).first().click();
     const dlg = page.getByRole('dialog');
     await dlg.locator('#rsvp-name').fill('Marta');
     await dlg.locator('#rsvp-surname').fill('Sosa');
-    await dlg.locator('#rsvp-contact').fill('marta@example.com');
     await dlg.locator('label.dm-rsvp-opt', { hasText: 'Sí, ahí estoy' }).click();
     await dlg.locator('label.dm-rsvp-menu', { hasText: 'Sin restricciones' }).click();
     await dlg.getByRole('button', { name: 'Confirmar', exact: true }).click();

@@ -3,12 +3,10 @@ import { Check } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { useSessionState } from '@/lib/demo-session';
 import { useSite, useSiteActions } from '@/lib/weda/site-model';
-import { isEmail } from '@/lib/weda/logic';
-import { MARKETING_CONSENT_TEXT } from '@/lib/weda/consent';
 
 type Person = { name: string; first: string; last: string; attending: boolean; menu: string };
 type Errors = {
-  name?: string | undefined; surname?: string | undefined; contact?: string | undefined;
+  name?: string | undefined; surname?: string | undefined;
   attending?: string | undefined; menu?: string | undefined;
 };
 
@@ -19,9 +17,6 @@ type RsvpApi = {
 };
 const RsvpContext = createContext<RsvpApi>({ open: () => {}, sentCount: 0 });
 export const useRsvp = () => useContext(RsvpContext);
-
-/** Contacto: un correo con forma de correo (decisión de la dueña, 2026-10-28: el contacto de los invitados es el mail). */
-const isValidContact = (value: string): boolean => isEmail(value.trim());
 
 /**
  * Formulario de confirmación en pop-up: una persona por vez, con su menú.
@@ -41,8 +36,6 @@ export function RsvpProvider({ children }: { children: ReactNode }) {
   const [errors, setErrors] = useState<Errors>({});
   const [people, setPeople] = useSessionState<Person[]>('rsvp-people', []);
   const [sentList, setSentList] = useSessionState<Person[]>('rsvp-sent', []);
-  const [contact, setContact] = useSessionState<string>('rsvp-contact', '');
-  const [optIn, setOptIn] = useState(false);
   // form: cargando a una persona · review: personas cargadas, listas para enviar · sent: confirmación enviada
   const [view, setView] = useState<'form' | 'review' | 'sent'>('form');
   const form = useRef<HTMLFormElement>(null);
@@ -65,7 +58,7 @@ export function RsvpProvider({ children }: { children: ReactNode }) {
     sending.current = true;
     setSendError(null); setBusy(true);
     try {
-      await recordRsvp(people.map(p => ({ first: p.first || p.name.split(' ')[0] || p.name, last: p.last || p.name.split(' ').slice(1).join(' '), attending: p.attending, menu: p.menu })), { email: contact.trim().toLowerCase(), marketingOptIn: optIn });
+      await recordRsvp(people.map(p => ({ first: p.first || p.name.split(' ')[0] || p.name, last: p.last || p.name.split(' ').slice(1).join(' '), attending: p.attending, menu: p.menu })));
     } catch (e) {
       // No se simula el envío: las personas siguen cargadas para reintentar.
       sending.current = false; setBusy(false);
@@ -82,7 +75,6 @@ export function RsvpProvider({ children }: { children: ReactNode }) {
     const e: Errors = {};
     if (name.trim().length < 2) e.name = 'Escribí tu nombre.';
     if (surname.trim().length < 2) e.surname = 'Escribí tu apellido.';
-    if (!isValidContact(contact)) e.contact = 'Escribí un correo válido.';
     if (!attending) e.attending = 'Contanos si vas a venir.';
     if (attending === 'yes' && hasMenus && !menu) e.menu = 'Elegí una opción para esta persona.';
     return e;
@@ -93,7 +85,7 @@ export function RsvpProvider({ children }: { children: ReactNode }) {
     const e = validate();
     setErrors(e);
     if (Object.keys(e).length) {
-      const id = e.name ? 'rsvp-name' : e.surname ? 'rsvp-surname' : e.contact ? 'rsvp-contact' : e.attending ? 'rsvp-att-yes' : 'rsvp-menu-sin-restricciones';
+      const id = e.name ? 'rsvp-name' : e.surname ? 'rsvp-surname' : e.attending ? 'rsvp-att-yes' : 'rsvp-menu-sin-restricciones';
       form.current?.querySelector<HTMLElement>(`#${id}`)?.focus();
       return;
     }
@@ -113,34 +105,33 @@ export function RsvpProvider({ children }: { children: ReactNode }) {
         <DialogContent className="dm-rsvp" onOpenAutoFocus={e => { e.preventDefault(); (e.currentTarget as HTMLElement).focus(); }} onCloseAutoFocus={e => { e.preventDefault(); lastFocus.current?.focus(); }}>
           {view === 'sent' ? (
             <div className="dm-rsvp-done">
-              <span className="dm-rsvp-mark" aria-hidden="true"><Check size={24} strokeWidth={1.6} /></span>
-              <DialogTitle>{sentList.length === 1 ? `¡Gracias, ${sentList[0]!.name.split(/\s+/)[0]}!` : `¡Gracias! Cargaste ${sentList.length} confirmaciones.`}</DialogTitle>
-              <DialogDescription>
-                Gracias por avisarnos.
-              </DialogDescription>
-              <ul className="dm-rsvp-people" aria-label="Confirmaciones de esta sesión">
+              <div className="dm-rsvp-done-head">
+                <span className="dm-rsvp-mark" aria-hidden="true"><Check size={20} strokeWidth={1.8} /></span>
+                <DialogTitle>¡Gracias!</DialogTitle>
+              </div>
+              <DialogDescription>{sentList.length === 1 ? 'Tu asistencia fue enviada.' : 'Las asistencias fueron enviadas.'}</DialogDescription>
+              <ul className="dm-rsvp-people" aria-label="Confirmaciones enviadas">
                 {sentList.map((p, n) => (
                   <li key={`${p.name}-${n}`}><strong>{p.name}</strong><span>{p.attending ? (menuName(p.menu) || 'Asiste') : 'No asiste'}</span></li>
                 ))}
               </ul>
               <div className="dm-rsvp-actions">
                 <button type="button" className="dm-solid" onClick={() => setOpen(false)}>Cerrar</button>
-                <button type="button" className="dm-ghost" onClick={() => { resetForm(); setView('form'); }}>Cargar otra persona</button>
+                {/* Por si se olvidaron de alguien: vuelve al formulario para sumar a otra persona (pedido de la dueña, 2026-11-20). */}
+                <button type="button" className="dm-rsvp-more" onClick={() => { resetForm(); setView('form'); }}>¿Te olvidaste de alguien? <span>Sumalo</span></button>
               </div>
             </div>
           ) : view === 'review' && people.length > 0 ? (
             <div className="dm-rsvp-done">
               <DialogTitle>{people.length === 1 ? 'Revisá tu confirmación' : `Revisá las ${people.length} confirmaciones`}</DialogTitle>
               <DialogDescription>
-                Todavía no se enviaron. Si venís con alguien, sumalo ahora; después tocá <strong>Enviar</strong>.
+                ¿Venís con alguien? Sumalo antes de enviar.
               </DialogDescription>
               <ul className="dm-rsvp-people" aria-label="Personas cargadas">
                 {people.map((p, n) => (
                   <li key={`${p.name}-${n}`}><strong>{p.name}</strong><span>{p.attending ? (menuName(p.menu) || 'Asiste') : 'No asiste'}</span></li>
                 ))}
               </ul>
-              {/* Novedades de Weda: casilla aparte y destildada (consentimiento expreso; no es necesaria para confirmar). */}
-              <label className="dm-rsvp-optin"><input type="checkbox" checked={optIn} onChange={e => setOptIn(e.target.checked)} /><span>{MARKETING_CONSENT_TEXT} <a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a></span></label>
               <div className="dm-rsvp-actions">
                 <>
                   {sendError && <p className="dm-error" role="alert">{sendError}</p>}
@@ -153,7 +144,7 @@ export function RsvpProvider({ children }: { children: ReactNode }) {
             <form ref={form} onSubmit={onSubmit} noValidate className="dm-rsvp-form">
               <header>
                 <DialogTitle>Confirmá tu asistencia</DialogTitle>
-                <DialogDescription>Cargá a cada persona y enviá todo junto. {site.rsvp.deadline ? `Respondé antes del ${site.rsvp.deadline}.` : ''}</DialogDescription>
+                <DialogDescription>Cargá a cada persona y enviá todo junto.</DialogDescription>
               </header>
 
               <div className="dm-rsvp-two">
@@ -171,14 +162,6 @@ export function RsvpProvider({ children }: { children: ReactNode }) {
                     aria-invalid={!!errors.surname} aria-describedby={errors.surname ? 'rsvp-surname-err' : undefined} />
                   {errors.surname && <p className="dm-error" id="rsvp-surname-err" role="alert">{errors.surname}</p>}
                 </div>
-              </div>
-
-              <div className={`dm-rsvp-field${errors.contact ? ' has-error' : ''}`}>
-                <label htmlFor="rsvp-contact">Correo electrónico</label>
-                <input id="rsvp-contact" type="email" inputMode="email" autoComplete="email" value={contact}
-                  onChange={e => { setContact(e.target.value); if (errors.contact) setErrors(x => ({ ...x, contact: undefined })); }}
-                  aria-invalid={!!errors.contact} aria-describedby={errors.contact ? 'rsvp-contact-err' : undefined} />
-                {errors.contact && <p className="dm-error" id="rsvp-contact-err" role="alert">{errors.contact}</p>}
               </div>
 
               <fieldset className={`dm-rsvp-field${errors.attending ? ' has-error' : ''}`}>

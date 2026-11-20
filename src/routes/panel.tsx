@@ -58,7 +58,7 @@ function Profile({ compact = false }: { compact?: boolean }) {
   );
 }
 
-/* Vista previa: el micrositio REAL con tus datos, en un pop-up, tal como lo recibe un invitado: invitación, «Regalá» y «Confirmá asistencia» se recorren con la barra del propio micrositio.
+/* Vista previa: el micrositio REAL con tus datos, en un pop-up, tal como lo recibe un invitado: invitación, «Regalos» y «RSVP» se recorren con la barra del propio micrositio.
    No hay selector de página (la invitación incluye todo). Solo se elige cómo verlo: en compu, web o celular; en el celular, formato celular.
    `req.page` es solo desde dónde abre: «gifts» arranca en la lista de regalos (si el plan no incluye una de las dos páginas, abre la otra). */
 function PreviewDialog({ req, onClose }: { req: PreviewRequest; onClose: () => void }) {

@@ -107,11 +107,20 @@
 .dm-rsvp-actions { display: flex; flex-direction: row-reverse; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
 .dm-rsvp-done { display: grid; gap: 0; }
 .dm-rsvp-mark { display: grid; place-items: center; width: 52px; height: 52px; margin-bottom: 18px; border-radius: 50%; background: var(--paper); color: var(--dm-blue); }
+/* El tilde va al lado del «¡Gracias…!», en la misma fila (pedido de la dueña, 2026-11-20). */
+.dm-rsvp-done-head { display: flex; align-items: center; gap: 14px; }
+.dm-rsvp-done-head .dm-rsvp-mark { flex: none; width: 40px; height: 40px; margin: 0; }
+.dm-rsvp-done-head h2 { margin: 0; }
 .dm-rsvp-done p { margin: 10px 0 0; font-size: 15px; line-height: 1.5; }
 .dm-rsvp-people { list-style: none; margin: 20px 0 0; padding: 0; border-top: 1px solid rgb(59 60 58 / .14); }
 .dm-rsvp-people li { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgb(59 60 58 / .1); font-size: 15px; }
 .dm-rsvp-people span { color: var(--muted-foreground); text-align: right; }
 .dm-rsvp-done .dm-rsvp-actions { margin-top: 22px; }
+/* Enviado: «Cerrar» a la derecha y, del otro lado, el enlace para sumar a alguien que se olvidaron. */
+.dm-rsvp-done .dm-rsvp-actions { align-items: center; justify-content: space-between; }
+.dm-rsvp-more { min-height: 44px; padding: 0; border: 0; background: none; font: inherit; font-size: 14px; color: var(--gl-gray, #6b6b6b); cursor: pointer; }
+.dm-rsvp-more span { color: var(--foreground); text-decoration: underline; text-underline-offset: 3px; }
+.dm-rsvp-more:hover span { text-decoration-thickness: 2px; }
 .dm-rsvp .dm-solid { background: var(--dm-blue); color: #fff; }
 @media (max-width: 480px) { .dm-rsvp-pair { grid-template-columns: 1fr; } }
 

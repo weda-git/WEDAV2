@@ -528,3 +528,10 @@ Origen: [PAY-07](../specs/PAY-07-trial-contratacion-permanencia/spec.md). **Reem
 - **Revisión y correo:** el renglón se ve como «Aporte libre» con su monto, en «Aportes recibidos» y en la constancia que recibe el invitado.
 - **`/ejemplo`:** sin cambios.
 
+
+## Confirmación de asistencia sin correo (2026-11-20, pedido de la dueña)
+- El formulario de RSVP pide solo nombre, apellido, si va y el menú. Se sacaron el correo electrónico y la línea «Respondé antes del …» del encabezado.
+- Sin correo, la casilla de novedades de Weda del paso de envío no tenía efecto (el servidor solo la guarda con correo), así que también se sacó.
+- El servidor ya aceptaba confirmaciones sin correo (`submitRsvp`, correo opcional): no cambió.
+- En el menú del sitio, «Regalá» pasa a «Regalos» y «Confirmá asistencia» a «RSVP».
+- Textos más cortos (2026-11-20). Al revisar: «¿Venís con alguien? Sumalo antes de enviar.» Al enviar: el tilde al lado de «¡Gracias!», «Tu asistencia fue enviada.» (o «Las asistencias fueron enviadas.»), los nombres, el botón «Cerrar» y el enlace «¿Te olvidaste de alguien? Sumalo», que vuelve al formulario para sumar a otra persona.

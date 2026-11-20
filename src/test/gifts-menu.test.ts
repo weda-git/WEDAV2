@@ -1,4 +1,4 @@
-// «Regalá» en el menú del sitio: aparece en todo plan que incluye la lista de regalos, aunque todavía no tenga regalos
+// «Regalos» en el menú del sitio: aparece en todo plan que incluye la lista de regalos, aunque todavía no tenga regalos
 // (la página muestra «Esta lista todavía se está armando»). Antes solo aparecía con al menos un regalo y, con el plan Celebración
 // y la lista vacía, la vista previa no mostraba la lista.
 import { describe, expect, it } from 'vitest';
@@ -14,7 +14,7 @@ const withPlan = (planId: AppState['planId'], items = 0): AppState => {
   };
 };
 
-describe('«Regalá» en el menú del sitio', () => {
+describe('«Regalos» en el menú del sitio', () => {
   it('con el plan Celebración y la lista vacía, el menú igual lleva a la lista', () => {
     expect(hasGiftsPage(siteFromState(withPlan('invitacion')))).toBe(true);
   });

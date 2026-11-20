@@ -133,14 +133,13 @@ test.describe('sitio publicado, confirmaciones y regalos', () => {
 
     const openRsvp = async (pg: Page) => {
       await pg.getByRole('button', { name: 'Abrir el menú' }).click();
-      await pg.locator('.menu-row', { hasText: 'Confirmá asistencia' }).click();
+      await pg.locator('.menu-row', { hasText: 'RSVP' }).click();
     };
     const confirm = async () => {
       await openRsvp(page);
       const dlg = page.getByRole('dialog');
       await dlg.locator('#rsvp-name').fill('Marta');
       await dlg.locator('#rsvp-surname').fill('Sosa');
-      await dlg.locator('#rsvp-contact').fill('marta@example.com');
       await dlg.locator('label.dm-rsvp-opt', { hasText: 'Sí, ahí estoy' }).click();
       const menu = dlg.locator('label.dm-rsvp-menu', { hasText: 'Sin restricciones' });
       if (await menu.isVisible().catch(() => false)) await menu.click();
@@ -161,7 +160,7 @@ test.describe('sitio publicado, confirmaciones y regalos', () => {
     await again.goto(`/sitio/${slug}`, { waitUntil: 'networkidle' });
     await openRsvp(again);
     const d2 = again.getByRole('dialog');
-    await d2.locator('#rsvp-name').fill('marta'); await d2.locator('#rsvp-surname').fill('SOSA'); await d2.locator('#rsvp-contact').fill('marta@example.com');
+    await d2.locator('#rsvp-name').fill('marta'); await d2.locator('#rsvp-surname').fill('SOSA');
     await d2.locator('label.dm-rsvp-opt', { hasText: 'No puedo' }).click();
     await d2.getByRole('button', { name: 'Confirmar', exact: true }).click();
     await d2.getByRole('button', { name: 'Enviar confirmación' }).click();
