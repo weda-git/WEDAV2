@@ -123,8 +123,8 @@ function Index() {
     <FloatNav onLanding />
     <main id="main">
     <section className="seed-hero" id="top">
-      {/* Foto fija de la pareja de la mano en lugar del video (pedido de la dueña, 2026-11-20). */}
-      <img className="hero-image" src="/hero-manos.jpg?v=1" alt="" width={900} height={600} fetchPriority="high" decoding="async" aria-hidden="true"/>
+      {/* Foto fija de la ceremonia en lugar del video (pedido de la dueña, 2026-11-20). Vertical: el encuadre sigue a la pareja (`.hero-photo`). */}
+      <img className="hero-image hero-photo" src="/hero-ceremonia.webp?v=1" alt="" width={735} height={860} fetchPriority="high" decoding="async" aria-hidden="true"/>
       <div className="hero-inner"><div className="hero-copy"><h1>Tu casamiento empieza antes del gran día.</h1><p>Creá el sitio de tu casamiento, armá tu lista de regalos y organizá tus invitados.</p><div className="hero-actions"><SeedLink pill to="/crear/cuenta">Crear mi evento</SeedLink><Button variant="seedLink" asChild><Link to="/ejemplo"><span>Ver ejemplo</span><ArrowRight size={15}/></Link></Button></div></div></div>
     </section>
     <section className="products-section" id="products"><div className="section-inner">

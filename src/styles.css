@@ -1621,3 +1621,6 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 .viacap-section { background: #f6f7f8; }
 .viacap-section::before { content: ""; position: absolute; inset: -40px; z-index: -2; background: url("/testimonios-fondo.webp") center 45% / cover no-repeat; filter: blur(10px) grayscale(1); }
 .viacap-section::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgb(255 255 255 / .62); }
+
+/* Inicio con foto fija (2026-11-20): la ceremonia es vertical, así que el recorte se centra en la pareja en el altar. */
+.seed-hero .hero-photo { object-position: 48% 72%; }
