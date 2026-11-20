@@ -1615,7 +1615,7 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 }
 @media (min-width: 360px) and (max-width: 900px) { .duo-section .gf-br { display: inline; } }
 
-/* Testimonios con foto de fondo (pedido de la dueña, 2026-11-19): la pareja de la mano, difuminada y en blanco y negro, con un velo blanco
+/* Testimonios con foto de fondo (pedido de la dueña, 2026-11-19): la pareja de la mano, en blanco y negro (nítida desde 2026-11-20), con un velo blanco
    encima para que el texto oscuro se lea igual que sobre blanco. La foto va en ::before (más grande que la sección, así el desenfoque no
    deja bordes) y el velo en ::after; la sección ya recorta lo que sobra (`overflow: clip`). */
 .viacap-section { background: #f6f7f8; }
@@ -1624,7 +1624,7 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
    `background-attachment: fixed`). `contain: none` hace falta: `contain: paint` convertiría a la sección en el marco de la foto fija. */
 .viacap-section { clip-path: inset(0); contain: none; }
 .viacap-section::before { content: none; }
-.tq-bg { position: fixed; inset: -40px; z-index: -2; background: url("/testimonios-fondo.webp") center 45% / cover no-repeat; filter: blur(10px) grayscale(1); pointer-events: none; }
+.tq-bg { position: fixed; inset: -40px; z-index: -2; background: url("/testimonios-fondo.webp") center 45% / cover no-repeat; filter: grayscale(1); pointer-events: none; }
 .viacap-section::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgb(255 255 255 / .62); }
 
 /* Inicio con foto fija (2026-11-20): la foto ocupa exactamente el inicio (sin el 114 % que recortaba los íconos del video) y el recorte

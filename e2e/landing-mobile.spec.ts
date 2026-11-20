@@ -108,9 +108,9 @@ test.describe('Landing · celular 390 px', () => {
     const tq = page.locator('.tq');
     await tq.scrollIntoViewIfNeeded();
     await expect(page.getByText('Por qué Weda')).toHaveCount(0);
-    // Fondo: la foto de la pareja difuminada con un velo blanco encima (2026-11-19), fija en la pantalla: la sección se mueve sobre ella (2026-11-20).
+    // Fondo: la foto de la pareja, nítida y en blanco y negro, con un velo blanco encima, fija en la pantalla: la sección se mueve sobre ella (2026-11-20).
     const bg = await page.locator('#por-que-weda').evaluate(e => { const f = e.querySelector('.tq-bg')!; const cs = getComputedStyle(f); return { img: cs.backgroundImage, blur: cs.filter, pos: cs.position, clip: getComputedStyle(e).clipPath, veil: getComputedStyle(e, '::after').backgroundColor }; });
-    expect(bg.img).toContain('testimonios-fondo.webp'); expect(bg.blur).toContain('blur'); expect(bg.pos).toBe('fixed'); expect(bg.clip).not.toBe('none'); expect(bg.veil).toBe('rgba(255, 255, 255, 0.62)');
+    expect(bg.img).toContain('testimonios-fondo.webp'); expect(bg.blur).not.toContain('blur');   // nítida desde 2026-11-20 expect(bg.pos).toBe('fixed'); expect(bg.clip).not.toBe('none'); expect(bg.veil).toBe('rgba(255, 255, 255, 0.62)');
     const before = await page.locator('.tq-bg').evaluate(f => f.getBoundingClientRect().top);
     await page.mouse.wheel(0, 200); await page.waitForTimeout(400);
     expect(await page.locator('.tq-bg').evaluate(f => f.getBoundingClientRect().top)).toBe(before);   // la foto no se mueve al scrollear
