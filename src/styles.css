@@ -1641,8 +1641,8 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
    se centra en las manos de la pareja, debajo del título. En pantallas verticales manda el 52 % horizontal; en las anchas, el 30 % vertical
    deja las caras arriba del título. */
 .seed-hero .hero-photo { inset: 0; width: 100%; height: 100%; object-position: 54% 30%; }
-/* Celular: el recorte se centra en la pareja, apenas corrido hacia la novia (47 %; con 40 % quedaba muy en ella). */
-@media (max-width: 640px) { .seed-hero .hero-photo { object-position: 47% 30%; } }
+/* Celular: el recorte se centra en la pareja, apenas corrido hacia la novia (50 %; con 40 % quedaba muy en ella). */
+@media (max-width: 640px) { .seed-hero .hero-photo { object-position: 50% 30%; } }
 
 /* Pie (2026-11-20), con la estructura del de Seed y lo que tiene Weda: fondo negro; a la izquierda la marca y la frase en grande; a la derecha
    columnas con un título chico en mayúsculas (Producto, Legal y Contacto); abajo una línea fina y el copyright. Todo alineado a la izquierda. */
