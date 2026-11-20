@@ -7,7 +7,7 @@ export const wedding = {
   dateLabel: 'Sábado 20 de marzo de 2027',
   dateShort: '20 de marzo de 2027',
   city: 'Cañuelas, Buenos Aires',
-  photo: '/portada-ejemplo-vera-santiago.jpg', // foto de la pareja de ejemplo (2026-11-20), con el cartel del fondo difuminado
+  photo: '/portada-ejemplo-vera-santiago.jpg?v=2', // foto de la pareja de ejemplo (2026-11-20), en blanco y negro y con el cartel del fondo difuminado
 };
 
 export type EventKey = 'ceremonia' | 'recepcion' | 'fiesta' | 'civil' | 'brunch';
