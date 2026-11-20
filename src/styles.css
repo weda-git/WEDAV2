@@ -1614,3 +1614,10 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
   .duo-section .gift-feature-copy p:not(.gift-feature-label) { max-width: 310px; margin-inline: auto; text-wrap: balance; }
 }
 @media (min-width: 360px) and (max-width: 900px) { .duo-section .gf-br { display: inline; } }
+
+/* Testimonios con foto de fondo (pedido de la dueña, 2026-11-19): la pareja de la mano, difuminada y en blanco y negro, con un velo blanco
+   encima para que el texto oscuro se lea igual que sobre blanco. La foto va en ::before (más grande que la sección, así el desenfoque no
+   deja bordes) y el velo en ::after; la sección ya recorta lo que sobra (`overflow: clip`). */
+.viacap-section { background: #f6f7f8; }
+.viacap-section::before { content: ""; position: absolute; inset: -40px; z-index: -2; background: url("/testimonios-fondo.webp") center 45% / cover no-repeat; filter: blur(10px) grayscale(1); }
+.viacap-section::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgb(255 255 255 / .62); }
