@@ -103,7 +103,7 @@ test.describe('Landing · celular 390 px', () => {
     expect(all.join('\n')).not.toMatch(/Publicada \d|vence/);
   });
 
-  test('Testimonios: una cita a la vez sobre la foto difuminada, con la foto y el contador de la pareja y flechas a la derecha', async ({ page }) => {
+  test('Testimonios: una cita a la vez sobre una foto fija, con la foto y el contador de la pareja y flechas a la derecha', async ({ page }) => {
     await goLanding(page);
     const tq = page.locator('.tq');
     await tq.scrollIntoViewIfNeeded();
@@ -112,8 +112,9 @@ test.describe('Landing · celular 390 px', () => {
     const bg = await page.locator('#por-que-weda').evaluate(e => { const f = e.querySelector('.tq-bg')!; const cs = getComputedStyle(f); return { img: cs.backgroundImage, blur: cs.filter, pos: cs.position, clip: getComputedStyle(e).clipPath, veil: getComputedStyle(e, '::after').backgroundColor }; });
     expect(bg.img).toContain('testimonios-fondo.webp'); expect(bg.blur).not.toContain('blur');   // nítida desde 2026-11-20 expect(bg.pos).toBe('fixed'); expect(bg.clip).not.toBe('none'); expect(bg.veil).toBe('rgba(255, 255, 255, 0.62)');
     const before = await page.locator('.tq-bg').evaluate(f => f.getBoundingClientRect().top);
-    await page.mouse.wheel(0, 200); await page.waitForTimeout(400);
+    await page.evaluate(() => window.scrollBy({ top: 120, behavior: 'instant' })); await page.waitForTimeout(300);
     expect(await page.locator('.tq-bg').evaluate(f => f.getBoundingClientRect().top)).toBe(before);   // la foto no se mueve al scrollear
+    await tq.scrollIntoViewIfNeeded();
     await expect(tq.locator('blockquote.on')).toHaveCount(1);
     await expect(tq.locator('.tq-who strong')).toHaveText('Camila & Lucas');
     await expect(tq.locator('.tq-who span')).toHaveText('01 / 04');
