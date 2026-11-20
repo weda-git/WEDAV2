@@ -99,11 +99,10 @@ const actions: Action[] = [
     const before = await steadyFingerprint(page);
     const server = contracted ? (await (await page.request.get('/api/wedding')).json()).guests.length : 0;
     await b.click(); const frame = page.getByRole('dialog').frameLocator('iframe');
-    const rsvp = frame.getByRole('button', { name: 'Confirmá asistencia' }).first();
+    const rsvp = frame.getByRole('button', { name: 'RSVP' }).first();
     if (!(await rsvp.waitFor({ state: 'visible', timeout: 5000 }).then(() => true, () => false))) { await page.keyboard.press('Escape'); throw new Skip('sin confirmación en la página'); }
     await rsvp.click();
     await frame.locator('#rsvp-name').fill(r.pick(NAMES_OK)); await frame.locator('#rsvp-surname').fill(r.pick(['Pérez', 'Sosa']));
-    await frame.locator('#rsvp-contact').fill('vista@example.com');
     await frame.locator('label.dm-rsvp-opt').first().click();
     const menu = frame.locator('label.dm-rsvp-menu').first(); if (await menu.isVisible().catch(() => false)) await menu.click();
     const ok = frame.getByRole('button', { name: 'Confirmar', exact: true }); if (await ok.isVisible().catch(() => false)) await ok.click();

@@ -194,7 +194,7 @@ export function siteFromState(s: AppState): SiteData {
   };
 }
 
-/** Si el sitio tiene página de regalos (y por eso «Regalá» en el menú): la tiene todo plan que incluye la lista, aunque todavía esté vacía. */
+/** Si el sitio tiene página de regalos (y por eso «Regalos» en el menú): la tiene todo plan que incluye la lista, aunque todavía esté vacía. */
 export const hasGiftsPage = (site: SiteData) => site.blocks.giftsPage ?? site.gifts.length > 0;
 
 const SiteContext = createContext<SiteData>(demoSiteData);

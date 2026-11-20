@@ -61,15 +61,15 @@ function SiteNav() {
         </div>
         <div className="ej-bar-pill ej-bar-links">
           {showInvitation && <Link to={to(site.homePath)} hash="nos-casamos" className="ej-bar-link" activeOptions={{ exact: true }} activeProps={{ 'aria-current': 'page' }}>Invitación</Link>}
-          {showGifts && <Link to={to(site.giftsPath)} className="ej-bar-link" activeProps={{ 'aria-current': 'page' }}>Regalá</Link>}
-          {showRsvp && <button type="button" className="ej-bar-link" onClick={rsvp.open}>Confirmá asistencia</button>}
+          {showGifts && <Link to={to(site.giftsPath)} className="ej-bar-link" activeProps={{ 'aria-current': 'page' }}>Regalos</Link>}
+          {showRsvp && <button type="button" className="ej-bar-link" onClick={rsvp.open}>RSVP</button>}
           <button type="button" className="ej-bar-link ej-bar-burger" aria-label={open ? 'Cerrar el menú' : 'Abrir el menú'} aria-expanded={open} aria-controls="ej-bar-menu" onClick={() => setOpen(o => !o)}>{open ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}</button>
         </div>
       </nav>
       <div id="ej-bar-menu" className="ej-bar-menu" hidden={!open}>
         {showInvitation && <Link to={to(site.homePath)} hash="nos-casamos" className="menu-row" activeOptions={{ exact: true }} activeProps={{ 'aria-current': 'page' }} onClick={() => setOpen(false)}><span className="menu-tile"><Mail size={30} strokeWidth={1.4} aria-hidden="true" /></span><span><small>Los detalles</small><strong>Invitación</strong></span></Link>}
-        {showGifts && <Link to={to(site.giftsPath)} className="menu-row" activeProps={{ 'aria-current': 'page' }} onClick={() => setOpen(false)}><span className="menu-tile"><Gift size={30} strokeWidth={1.4} aria-hidden="true" /></span><span><small>Lista de regalos</small><strong>Regalá</strong></span></Link>}
-        {showRsvp && <button type="button" className="menu-row" onClick={() => { setOpen(false); rsvp.open(); }}><span className="menu-tile"><CalendarCheck size={30} strokeWidth={1.4} aria-hidden="true" /></span><span><small>{site.rsvp.deadline ? `Antes del ${site.rsvp.deadline}` : 'Contanos si venís'}</small><strong>Confirmá asistencia</strong></span></button>}
+        {showGifts && <Link to={to(site.giftsPath)} className="menu-row" activeProps={{ 'aria-current': 'page' }} onClick={() => setOpen(false)}><span className="menu-tile"><Gift size={30} strokeWidth={1.4} aria-hidden="true" /></span><span><small>Lista de regalos</small><strong>Regalos</strong></span></Link>}
+        {showRsvp && <button type="button" className="menu-row" onClick={() => { setOpen(false); rsvp.open(); }}><span className="menu-tile"><CalendarCheck size={30} strokeWidth={1.4} aria-hidden="true" /></span><span><small>{site.rsvp.deadline ? `Antes del ${site.rsvp.deadline}` : 'Contanos si venís'}</small><strong>RSVP</strong></span></button>}
       </div>
     </header>
   );

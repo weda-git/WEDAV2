@@ -551,7 +551,7 @@ html:has(.dm-root), body:has(.dm-root), .dm-root, .dm-root main, .dm-root .iv-se
   .dm-root:has(#nos-casamos) .ej-bar .ej-bar-links .ej-bar-link, .dm-root .ej-bar .ej-bar-links .ej-bar-link { padding: 0 6px; font-size: 14px; }
 }
 
-/* Mobile: Invitación / Regalá / Confirmá asistencia se juntan detrás de un botón de tres líneas (arriba a la derecha).
+/* Mobile: Invitación / Regalos / RSVP se juntan detrás de un botón de tres líneas (arriba a la derecha).
    En web no cambia nada: el botón y el menú desplegable no se muestran. */
 .dm-root .ej-bar .ej-bar-burger, .dm-root .ej-bar .ej-bar-menu { display: none; }
 @media (max-width: 640px) {
