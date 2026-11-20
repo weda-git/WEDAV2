@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createFileRoute, Link, useRouter } from '@tanstack/react-router';
 import { track } from '@/lib/analytics';
 import { testimonials } from '@/lib/testimonials';
@@ -11,6 +11,8 @@ import { SiteFooter } from '@/components/site-footer';
 import { homeJsonLd, pageMeta } from '@/lib/site';
 import { useSmoothScroll } from '@/lib/smooth-scroll';
 import { useReveal } from '@/lib/reveal';
+
+const HERO_PHOTO = '/hero-ceremonia.jpg?v=4';
 
 export const Route = createFileRoute('/')({
   head: () => {
@@ -109,37 +111,13 @@ function Index() {
   useSmoothScroll();
   useReveal();
   useEffect(() => { track('landing_viewed'); }, []);
-  const heroVideo = useRef<HTMLVideoElement>(null);
   const router = useRouter();
-  // El video se pide recién cuando la página terminó de cargar y el navegador está libre: la portada (póster) es lo primero que se ve
-  // y no compite con el resto. Con movimiento reducido, ahorro de datos, conexión lenta o como fondo del registro (iframe) no se descarga: queda el póster.
-  // En celular (hasta 640 px) va una versión vertical recortada a lo que se ve en pantalla (0,37 MB en vez de 1,7 MB, auditoría F-05).
+  // «Crear mi evento» es el paso principal: con la página ya cargada y el navegador libre, su pantalla se deja bajada para que al tocar se abra sin espera.
   useEffect(() => {
-    const v = heroVideo.current;
-    if (!v) return;
-    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
-    const lean = () => window.self !== window.top || mq.matches || conn?.saveData === true || /^(slow-2g|2g|3g)$/.test(conn?.effectiveType ?? '');
-    let started = false;
-    const start = () => {
-      // «Crear mi evento» es el paso principal: su pantalla se deja bajada para que al tocar se abra sin espera.
-      if (window.self === window.top) void router.preloadRoute({ to: '/crear/cuenta' }).catch(() => {});
-      if (started || lean()) return;
-      started = true;
-      const phone = window.matchMedia('(max-width: 640px)').matches;
-      v.classList.toggle('is-portrait', phone);
-      v.src = phone ? '/hero-mobile.mp4?v=1' : '/hero.mp4?v=9';
-      v.play().catch(() => {});
-    };
-    const ric = (window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number }).requestIdleCallback;
-    // En celular se espera un poco más: primero tiene que quedar lista la página para responder a los toques.
-    const wait = window.matchMedia('(max-width: 640px)').matches ? 1200 : 0;
-    const idle = () => window.setTimeout(() => { if (ric) ric.call(window, start, { timeout: 2500 }); else window.setTimeout(start, 800); }, wait);
-    if (document.readyState === 'complete') idle(); else window.addEventListener('load', idle, { once: true });
-    // Si el usuario activa movimiento reducido con la página abierta, se pausa.
-    const onChange = () => { if (mq.matches) v.pause(); else if (started) v.play().catch(() => {}); };
-    mq.addEventListener('change', onChange);
-    return () => { window.removeEventListener('load', idle); mq.removeEventListener('change', onChange); };
+    if (window.self !== window.top) return;
+    const pre = () => { void router.preloadRoute({ to: '/crear/cuenta' }).catch(() => {}); };
+    if (document.readyState === 'complete') pre(); else window.addEventListener('load', pre, { once: true });
+    return () => window.removeEventListener('load', pre);
   }, [router]);
   return <>
     <a className="skip-link" href="#main">Ir al contenido</a>
@@ -147,7 +125,8 @@ function Index() {
     <FloatNav onLanding />
     <main id="main">
     <section className="seed-hero" id="top">
-      <video className="hero-image" poster="/hero-poster.jpg?v=5" muted loop playsInline preload="none" aria-hidden="true" ref={heroVideo}/>
+      {/* Foto fija de la ceremonia en lugar del video (pedido de la dueña, 2026-11-20). El encuadre sigue a la pareja (`.hero-photo`). */}
+      <img className="hero-image hero-photo" src={HERO_PHOTO} alt="" width={1264} height={843} fetchPriority="high" decoding="async" aria-hidden="true"/>
       <div className="hero-inner"><div className="hero-copy"><h1>Tu casamiento empieza antes del gran día.</h1><p>Creá el sitio de tu casamiento, armá tu lista de regalos y organizá tus invitados.</p><div className="hero-actions"><SeedLink pill to="/crear/cuenta">Crear mi evento</SeedLink><Button variant="seedLink" asChild><Link to="/ejemplo"><span>Ver ejemplo</span><ArrowRight size={15}/></Link></Button></div></div></div>
     </section>
     <section className="products-section" id="products"><div className="section-inner">
