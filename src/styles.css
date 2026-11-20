@@ -1434,14 +1434,6 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 .duo-section .gift-feature-copy .seed-button { margin-inline: 0; }
 
 /* Testimonios: vuelve el carrusel de una cita a la vez (2026-11-03), ahora sobre blanco. Las líneas, comillas y el contador pasan de blanco a gris/oscuro. */
-.tq.is-white { color: var(--text-main); }
-.tq.is-white .tq-label { border-top-color: rgb(59 60 58 / .18); color: var(--muted-foreground, #6f7070); }
-.tq.is-white .tq-label::before { background: var(--foreground); }
-.tq.is-white .tq-mark { color: rgb(59 60 58 / .22); }
-.tq.is-white .tq-rule { background: rgb(59 60 58 / .18); }
-.tq.is-white .tq-rule i { background: var(--foreground); }
-.tq.is-white .tq-who span { color: var(--muted-foreground, #6f7070); }
-.tq.is-white .tq-nav { margin-left: auto; }
 
 /* Repaso responsive (2026-11-03) */
 /* Planes: el título se partía en dos renglones fijos y en el iPhone SE (320 px) se cortaba por la derecha. Ahora se acomoda solo. */
@@ -1615,12 +1607,30 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 }
 @media (min-width: 360px) and (max-width: 900px) { .duo-section .gf-br { display: inline; } }
 
-/* Testimonios con foto de fondo (pedido de la dueña, 2026-11-19): la pareja de la mano, difuminada y en blanco y negro, con un velo blanco
+/* Testimonios con foto de fondo (pedido de la dueña, 2026-11-19): la pareja de la mano, en blanco y negro (nítida desde 2026-11-20), con un velo (oscuro desde 2026-11-20)
    encima para que el texto oscuro se lea igual que sobre blanco. La foto va en ::before (más grande que la sección, así el desenfoque no
    deja bordes) y el velo en ::after; la sección ya recorta lo que sobra (`overflow: clip`). */
 .viacap-section { background: #f6f7f8; }
-.viacap-section::before { content: ""; position: absolute; inset: -40px; z-index: -2; background: url("/testimonios-fondo.webp") center 45% / cover no-repeat; filter: blur(10px) grayscale(1); }
-.viacap-section::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgb(255 255 255 / .62); }
+/* Ventana (2026-11-20): la foto es fija y ocupa toda la pantalla (`.tq-bg`, position: fixed) y la sección la recorta con `clip-path`, así al
+   scrollear se ve primero la parte de arriba y después la de abajo. Funciona sin JavaScript y también en iPhone (a diferencia de
+   `background-attachment: fixed`). `contain: none` hace falta: `contain: paint` convertiría a la sección en el marco de la foto fija. */
+.viacap-section { clip-path: inset(0); contain: none; }
+.viacap-section::before { content: none; }
+.tq-bg { position: fixed; inset: -40px; z-index: -2; background: url("/testimonios-fondo.webp") center 45% / cover no-repeat; filter: grayscale(1); pointer-events: none; }
+.viacap-section::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgb(20 20 18 / .55); }
+/* Texto en blanco sobre la foto (2026-11-20): el velo pasó de blanco a oscuro, el texto a blanco, las flechas a blanco con el ícono negro
+   y se sacó el circulito con la foto de la pareja. Sin el verde de Weda en esta sección. */
+.tq.is-dark { color: #fff; }
+.tq.is-dark .tq-label { border-top-color: rgb(255 255 255 / .3); color: rgb(255 255 255 / .8); }
+.tq.is-dark .tq-label::before { background: #fff; }
+.tq.is-dark .tq-mark { color: rgb(255 255 255 / .35); }
+.tq.is-dark .tq-rule { background: rgb(255 255 255 / .3); }
+.tq.is-dark .tq-rule i { background: #fff; }
+.tq.is-dark .tq-who span { color: rgb(255 255 255 / .8); }
+.tq.is-dark .tq-nav { margin-left: auto; }
+.tq.is-dark .tq-nav button { background: #fff; color: #111; }
+.tq.is-dark .tq-nav button:hover { background: #e4e4e2; color: #111; }
+.tq.is-dark .tq-nav button:focus-visible { outline-color: #fff; }
 
 /* Inicio con foto fija (2026-11-20): la foto ocupa exactamente el inicio (sin el 114 % que recortaba los íconos del video) y el recorte
    se centra en las manos de la pareja, debajo del título. En pantallas verticales manda el 52 % horizontal; en las anchas, el 30 % vertical

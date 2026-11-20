@@ -103,14 +103,22 @@ test.describe('Landing · celular 390 px', () => {
     expect(all.join('\n')).not.toMatch(/Publicada \d|vence/);
   });
 
-  test('Testimonios: una cita a la vez sobre la foto difuminada, con la foto y el contador de la pareja y flechas a la derecha', async ({ page }) => {
+  test('Testimonios: una cita a la vez en blanco sobre una foto fija, con el nombre y el contador de la pareja y flechas a la derecha', async ({ page }) => {
     await goLanding(page);
     const tq = page.locator('.tq');
     await tq.scrollIntoViewIfNeeded();
     await expect(page.getByText('Por qué Weda')).toHaveCount(0);
-    // Fondo: la foto de la pareja difuminada con un velo blanco encima (2026-11-19).
-    const bg = await page.locator('#por-que-weda').evaluate(e => ({ img: getComputedStyle(e, '::before').backgroundImage, blur: getComputedStyle(e, '::before').filter, veil: getComputedStyle(e, '::after').backgroundColor }));
-    expect(bg.img).toContain('testimonios-fondo.webp'); expect(bg.blur).toContain('blur'); expect(bg.veil).toBe('rgba(255, 255, 255, 0.62)');
+    // Fondo: la foto de la pareja, nítida y en blanco y negro, con un velo blanco encima, fija en la pantalla: la sección se mueve sobre ella (2026-11-20).
+    const bg = await page.locator('#por-que-weda').evaluate(e => { const f = e.querySelector('.tq-bg')!; const cs = getComputedStyle(f); return { img: cs.backgroundImage, blur: cs.filter, pos: cs.position, clip: getComputedStyle(e).clipPath, veil: getComputedStyle(e, '::after').backgroundColor }; });
+    expect(bg.img).toContain('testimonios-fondo.webp'); expect(bg.blur).not.toContain('blur');   // nítida desde 2026-11-20 expect(bg.pos).toBe('fixed'); expect(bg.clip).not.toBe('none'); expect(bg.veil).toBe('rgba(20, 20, 18, 0.55)');
+    // Texto blanco, flechas blancas con el ícono negro y sin el circulito con la foto de la pareja (2026-11-20).
+    expect(await tq.locator('blockquote.on').evaluate(e => getComputedStyle(e).color)).toBe('rgb(255, 255, 255)');
+    expect(await tq.getByRole('button', { name: 'Testimonio siguiente' }).evaluate(e => [getComputedStyle(e).backgroundColor, getComputedStyle(e).color])).toEqual(['rgb(255, 255, 255)', 'rgb(17, 17, 17)']);
+    await expect(tq.locator('.tq-who img')).toHaveCount(0);
+    const before = await page.locator('.tq-bg').evaluate(f => f.getBoundingClientRect().top);
+    await page.evaluate(() => window.scrollBy({ top: 120, behavior: 'instant' })); await page.waitForTimeout(300);
+    expect(await page.locator('.tq-bg').evaluate(f => f.getBoundingClientRect().top)).toBe(before);   // la foto no se mueve al scrollear
+    await tq.scrollIntoViewIfNeeded();
     await expect(tq.locator('blockquote.on')).toHaveCount(1);
     await expect(tq.locator('.tq-who strong')).toHaveText('Camila & Lucas');
     await expect(tq.locator('.tq-who span')).toHaveText('01 / 04');
