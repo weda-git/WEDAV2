@@ -1622,5 +1622,7 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 .viacap-section::before { content: ""; position: absolute; inset: -40px; z-index: -2; background: url("/testimonios-fondo.webp") center 45% / cover no-repeat; filter: blur(10px) grayscale(1); }
 .viacap-section::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgb(255 255 255 / .62); }
 
-/* Inicio con foto fija (2026-11-20): el recorte se centra en la pareja en el altar. */
-.seed-hero .hero-photo { object-position: 48% 30%; }
+/* Inicio con foto fija (2026-11-20): la foto ocupa exactamente el inicio (sin el 114 % que recortaba los íconos del video) y el recorte
+   se centra en las manos de la pareja, debajo del título. En pantallas verticales manda el 52 % horizontal; en las anchas, el 30 % vertical
+   deja las caras arriba del título. */
+.seed-hero .hero-photo { inset: 0; width: 100%; height: 100%; object-position: 52% 30%; }
