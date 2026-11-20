@@ -5,7 +5,7 @@ import { api, ApiFailure, errorText } from '@/lib/weda/remote';
 import { useHydrated } from '@/lib/weda/store';
 import { pageMeta } from '@/lib/site';
 
-/* Recuperar la clave, paso 1: pedir el enlace por correo. La respuesta es la misma exista o no la cuenta (el servidor no lo revela). */
+/* Recuperar la clave, paso 1: pedir el enlace por correo. Si no hay cuenta con ese correo, se avisa y no se manda nada (2026-11-20). */
 export const Route = createFileRoute('/clave/')({
   head: () => {
     const { meta } = pageMeta({ title: 'Recuperar la clave • Weda', description: 'Pedí un enlace para elegir una clave nueva.', path: '/clave' });
@@ -34,7 +34,7 @@ function Forgot() {
         <hr className="fg-rule" />
         {state === 'sent' ? (
           <>
-            <p className="fg-note" role="status">Si hay una cuenta con <strong>{email.trim()}</strong>, te llega un correo con el enlace. Vale por una hora. Si no lo ves, revisá la carpeta de spam.</p>
+            <p className="fg-note" role="status">Revisá tu correo <strong>{email.trim()}</strong>: te va a llegar un correo con el enlace. Vale por una hora. Si no lo ves, revisá la carpeta de spam.</p>
             <Link to="/crear/cuenta" search={{ modo: 'ingresar' }} className="fg-btn">Volver a ingresar</Link>
           </>
         ) : (

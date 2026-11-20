@@ -417,6 +417,7 @@ export const ERROR_TEXT: Record<string, string> = {
   invalid_credentials: 'El correo o la clave no coinciden.',
   wrong_password: 'La clave actual no es correcta.',
   email_taken: 'Ya existe una cuenta con ese correo. Probá ingresar.',
+  account_not_found: 'No hay ninguna cuenta con ese correo. Revisá que esté bien escrito o creá una cuenta.',
   invalid_email: 'Ingresá un correo válido.',
   weak_password: 'Usá 8 o más caracteres, con mayúsculas, minúsculas y un número.',
   too_many_attempts: 'Demasiados intentos. Esperá unos minutos y probá de nuevo.',

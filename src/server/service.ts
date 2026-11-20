@@ -108,13 +108,14 @@ export class Service {
 
   /* ------------------------------------------------------------------ recuperar la clave */
 
-  /** Pide el enlace para cambiar la clave. Responde lo mismo exista o no la cuenta (no revela qué correos están registrados). */
+  /** Pide el enlace para cambiar la clave. Si no hay cuenta con ese correo responde 404 `account_not_found` y no manda nada (pedido de la dueña,
+   *  2026-11-20; el registro ya revelaba si un correo existe). El límite por correo y por conexión sigue frenando las pruebas en masa. */
   async requestPasswordReset(emailRaw: unknown, ipKey = ''): Promise<{ ok: true }> {
     const email = typeof emailRaw === 'string' ? emailRaw.trim().toLowerCase() : '';
     if (!isEmail(email) || email.length > 200) throw invalid('invalid_email');
     if (!this.resetLimiter.take(email) || !this.resetIpLimiter.take(ipKey)) throw new ApiError(429, 'too_many_requests');
     const userId = await this.accounts.idByEmail(email);
-    if (!userId) return { ok: true };
+    if (!userId) throw notFound('account_not_found');
     const user = { id: userId };
     const token = newToken();
     const created = new Date();
@@ -130,7 +131,7 @@ export class Service {
       paragraphs: ['Pediste cambiar la clave de tu cuenta. El enlace vale por una hora y sirve una sola vez.', 'Si no lo pediste, ignorá este correo: tu clave sigue igual.'],
       button: { label: 'Elegir una clave nueva', url },
     });
-    // Sin esperar el envío: así la respuesta tarda lo mismo exista o no la cuenta.
+    // Sin esperar el envío: la respuesta no depende de cuánto tarde el proveedor de correo.
     void sendMail(this.db, this.cfg, 'password_reset', { to: email, subject: 'Cambiá tu clave de Weda', ...body }, user['id'] as string);
     return { ok: true };
   }

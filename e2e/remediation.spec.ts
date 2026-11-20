@@ -3,7 +3,7 @@ import { expect, fillNamesAndContinue, test } from './helpers';
 /* Remediación post-auditoría (2026-10-29): recuperar la clave, páginas legales, «Por qué Weda» y el envío antes de hidratar. */
 
 test.describe('Recuperar la clave', () => {
-  test('desde «Ingresar» se pide el enlace; la respuesta no revela si la cuenta existe', async ({ page }) => {
+  test('desde «Ingresar» se pide el enlace: sin cuenta se avisa y no se manda; con cuenta, «Revisá tu correo» (2026-11-20)', async ({ page, consoleErrors }) => {
     await page.goto('/crear/cuenta?modo=ingresar', { waitUntil: 'networkidle' });
     await page.getByRole('link', { name: '¿Olvidaste tu clave?' }).click();
     await expect(page).toHaveURL(/\/clave$/);
@@ -12,7 +12,20 @@ test.describe('Recuperar la clave', () => {
     await expect(page.getByText('Ingresá un correo válido')).toBeVisible();
     await page.getByLabel('Correo electrónico').fill('cualquiera@example.com');
     await page.getByRole('button', { name: 'Mandarme el enlace' }).click();
-    await expect(page.getByText(/Si hay una cuenta con/)).toBeVisible();
+    await expect(page.getByText('No hay ninguna cuenta con ese correo')).toBeVisible();
+    // El 404 del servidor (cuenta inexistente) es la respuesta esperada: el navegador lo anota en la consola. Solo ese se descarta.
+    const rest = consoleErrors.filter(e => !/status of 404/.test(e));
+    consoleErrors.splice(0, consoleErrors.length, ...rest);
+    // Con cuenta: se crea desde la página (así pasa por el mismo sufijo único de correo que el formulario) y se pide el enlace con ese correo.
+    expect(await page.evaluate(async () => {
+      const r = await fetch('/api/auth/register', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ email: 'olvido-e2e@example.com', password: 'Clave1234' }) });
+      await fetch('/api/auth/logout', { method: 'POST' });
+      return r.status;
+    })).toBe(201);
+    await page.getByLabel('Correo electrónico').fill('olvido-e2e@example.com');
+    await page.getByRole('button', { name: 'Mandarme el enlace' }).click();
+    await expect(page.getByText(/Revisá tu correo/)).toBeVisible();
+    await expect(page.getByText(/Si hay una cuenta/)).toHaveCount(0);
   });
 
   test('un enlace incompleto o vencido lo explica y ofrece pedir otro', async ({ page, consoleErrors }) => {
@@ -45,7 +58,8 @@ test.describe('Contenido legal y comercial', () => {
       await expect(page.locator('mark.legal-todo').first()).toBeVisible();             // borrador: lo pendiente se ve marcado
     }
     await page.goto('/', { waitUntil: 'load' });
-    await expect(page.locator('.seed-footer').getByRole('link', { name: 'Términos de uso' })).toBeVisible();
+    await expect(page.locator('.seed-footer').getByRole('link', { name: 'Términos y condiciones' })).toHaveAttribute('href', '/terminos');
+    await expect(page.locator('.seed-footer').getByRole('link', { name: 'hola@weda.app' })).toHaveAttribute('href', 'mailto:hola@weda.app');
   });
 });
 
