@@ -1,34 +1,41 @@
 /* Página /lista-de-regalos. Mismo ritmo que la landing (ver «Ritmo Knot» en styles.css): secciones que alternan blanco y gris
-   #f6f7f8, 60/40 px de aire vertical, contenido hasta 1200 px y títulos de 36/28 px. El verde (#959571) queda solo en el cierre y los botones. */
+   #f6f7f8, 60/40 px de aire vertical, contenido hasta 1200 px y títulos de 36/28 px. El verde (#959571) queda solo en los botones. */
 .lr { background: #fff; color: var(--text-main); }
 .lr-inner { width: var(--k-inner, min(100% - 64px, 1200px)); margin-inline: auto; }
 :where(.lr) h2 { font-size: var(--k-h2, clamp(28px, 3vw, 36px)); line-height: 1.1; letter-spacing: -.02em; font-weight: var(--w-medium, 500); margin: 0; text-wrap: balance; }
 .lr .seed-button { background: #959571; color: #fff; }
 .lr .seed-button:hover { background: #868662; color: #fff; }
 
-/* Portada: texto a la izquierda y la maqueta real de la lista a la derecha. Deja lugar arriba para la barra flotante. */
-.lr-hero { padding: calc(var(--k-pad, 60px) + 88px) 0 var(--k-pad, 60px); }
-.lr-hero-grid { display: grid; grid-template-columns: 1.1fr 1fr; gap: 56px; align-items: center; }
-.lr-hero .eyebrow { margin: 0 0 16px; font-size: 14px; text-transform: uppercase; letter-spacing: .08em; color: #6f6f50; }
-.lr-hero h1 { margin: 0; font-size: clamp(34px, 4.2vw, 56px); line-height: 1.04; letter-spacing: -.03em; font-weight: var(--w-medium, 500); text-wrap: balance; }
-.lr-lead { margin: 20px 0 0; max-width: 34em; font-size: clamp(16px, 1.3vw, 18px); line-height: 1.5; color: #4a4b48; text-wrap: pretty; }
-.lr-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 28px; }
-.lr-actions .seed-button { height: 44px; padding: 0 22px; font-size: 14px; }
-.lr-actions .seed-link-button { color: var(--text-main); font-size: 14px; }
-.lr-hero-demo { width: 100%; max-width: 520px; justify-self: end; }
-.lr-hero-demo .fd-stage { margin: 0; aspect-ratio: 1 / 1; min-height: 0; border-radius: 24px; background: #f6f7f8; }
+/* Hojas de /lista-de-regalos (2026-11-20). Cada hoja mide exactamente una pantalla y su contenido va centrado: así, al scrollear, la
+   siguiente sube desde el primer momento (antes la primera medía más que la pantalla y los primeros píxeles de scroll no movían nada).
+   El aire de arriba descuenta la barra flotante y es el mismo en las tres. La maqueta se achica en pantallas bajas para que todo entre. */
+.lr .duo-section .gift-feature {
+  height: 100svh; min-height: 0; box-sizing: border-box;
+  padding-top: calc(env(safe-area-inset-top) + 92px) !important; padding-bottom: clamp(24px, 5svh, 56px) !important;
+  align-content: center !important; row-gap: clamp(16px, 3svh, 32px);
+}
+.lr .duo-section .gift-feature .mk { width: min(100%, 440px, 54svh); }
 
+/* Jerarquía: el título de la página (h1) va centrado arriba, dentro de la primera hoja. Los títulos de las hojas (h2) usan la escala global
+   (26 a 40 px, typography.css). El h1 va un poco más chico que el h1 global (32 a 48 px en vez de 32 a 56, pedido de la dueña) y sigue siendo
+   más grande que los h2. Lleva !important porque la escala global también lo usa. */
+.lr .gift-feature-heading { grid-column: 1 / -1; justify-self: center; text-align: center; }
+.lr .gift-feature-heading h1 { margin: 0; font-size: clamp(2rem, 1.6rem + 1.6vw, 3rem) !important; }
+
+/* Fondos alternados al revés que en la landing: blanca, gris clarito y blanca. */
+.lr .duo-section .gift-feature { --gf-bg: #fff; }
+.lr .duo-section .gift-feature:nth-child(2) { --gf-bg: #f6f7f8; }
+
+/* Una columna (celular y tablet vertical): todo centrado y la maqueta con un alto que acompaña al de la pantalla. */
 @media (max-width: 900px) {
-  .lr-hero-grid { grid-template-columns: 1fr; gap: 28px; }
-  .lr-hero-demo { justify-self: stretch; max-width: none; }
-  .lr-hero-demo .fd-stage { aspect-ratio: 4 / 3; }
+  .lr .duo-section .gift-feature { align-content: center !important; row-gap: clamp(12px, 2.4svh, 24px); }
+  .lr .duo-section .gift-feature-stage { height: min(78vw, 300px, 34svh); }
 }
-@media (max-width: 640px) {
-  .lr-hero { padding-top: calc(var(--k-pad, 40px) + 72px); }
+/* Pantallas muy bajas (o celular acostado): si no entra, las hojas dejan de quedar fijas y se scrollean normal. */
+@media (max-height: 600px) {
+  .lr .duo-section .gift-feature { position: relative; height: auto; min-height: 0; }
 }
-
-/* En el cierre verde el botón va blanco, como en la landing. */
-.lr .closing-section .seed-button { background: #fff; color: var(--text-main); }
-.lr .closing-section .seed-button:hover { background: var(--paper, #f3f0e8); color: var(--text-main); }
-/* El título del cierre conserva la escala de los títulos de esta página. */
-.lr .closing-section h2 { font-size: var(--k-h2, clamp(28px, 3vw, 36px)); line-height: 1.1; letter-spacing: -.02em; }
+/* Entre 601 y 700 px de alto el contenido sí entra: se mantiene el apilado (la regla general de la landing lo apaga desde 700 px). */
+@media (min-height: 601px) and (max-height: 700px) {
+  .lr .duo-section .gift-feature { position: sticky; }
+}

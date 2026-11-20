@@ -24,7 +24,7 @@ describe('Planes en la landing', () => {
     await renderPlans();
     const cards = screen.getAllByRole('article');
     expect(cards).toHaveLength(2);
-    expect(PLANS.map(p => [p.name, p.price])).toEqual([['Regalos', 95000], ['Celebración', 140000]]);
+    expect(PLANS.map(p => [p.name, p.price])).toEqual([['Regalos', 120000], ['Celebración', 140000]]);
     PLANS.forEach((plan, i) => {
       const card = within(cards[i]!);
       expect(card.getByRole('heading', { level: 3, name: plan.name })).toBeTruthy();

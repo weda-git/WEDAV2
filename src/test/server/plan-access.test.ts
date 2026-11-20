@@ -128,7 +128,7 @@ describe('con compuerta de pago: pagar sin publicar no habilita nada (DP-25)', (
   it('CA-10 · el primer checkout cobra el precio del plan', async () => {
     const o = env.client(); await signUp(o, 'precio@correo.com');
     await saveDraft(o, draftFor('Ivo', 'Sol'));
-    expect((await o.post('/api/checkout', { planId: 'regalos' })).body.amount).toBe(95000);
+    expect((await o.post('/api/checkout', { planId: 'regalos' })).body.amount).toBe(120000);
     const x = env.client(); await signUp(x, 'precio2@correo.com');
     await saveDraft(x, draftFor('Ada', 'Max'));
     expect((await x.post('/api/checkout', { planId: 'invitacion' })).body.amount).toBe(140000);

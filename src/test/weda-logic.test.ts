@@ -37,8 +37,8 @@ describe('slug y onboarding', () => {
 describe('planes', () => {
   it('define los dos planes acumulativos (Regalos y Celebración) con sus precios en un solo lugar', () => {
     expect(PLANS.map(p => p.name)).toEqual(['Regalos', 'Celebración']);
-    expect(PLANS.map(p => p.price)).toEqual([95000, 140000]);
-    expect(formatPrice(95000)).toBe('ARS 95.000');
+    expect(PLANS.map(p => p.price)).toEqual([120000, 140000]);
+    expect(formatPrice(120000)).toBe('ARS 120.000');
     // Celebración incluye todo lo de Regalos y suma el sitio completo
     const [basico, celebracion] = PLANS;
     expect(celebracion!.inherits).toBe(basico!.id);

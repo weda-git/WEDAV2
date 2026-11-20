@@ -12,12 +12,12 @@ const tokenOf = (to: string) => {
 };
 
 describe('recuperar la clave', () => {
-  it('responde lo mismo exista o no la cuenta, y solo manda correo si existe', async () => {
+  it('sin cuenta con ese correo responde 404 y no manda nada; con cuenta manda el enlace (2026-11-20)', async () => {
     const c = env.client(); await signUp(c, 'olvido@correo.com');
     const before = outbox().length;
     const none = await env.client().post('/api/auth/forgot', { email: 'nadie@correo.com' });
     const some = await env.client().post('/api/auth/forgot', { email: 'Olvido@Correo.com' });
-    expect([none.status, none.body]).toEqual([200, { ok: true }]);
+    expect([none.status, none.body.error]).toEqual([404, 'account_not_found']);
     expect([some.status, some.body]).toEqual([200, { ok: true }]);
     expect(outbox().length).toBe(before + 1);
     expect(outbox().at(-1)).toMatchObject({ kind: 'password_reset', to: 'olvido@correo.com' });

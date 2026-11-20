@@ -43,14 +43,13 @@ test.describe('Landing · celular 390 px', () => {
     }
   });
 
-  test('el ancla del pie deja el título de la sección por debajo de la barra', async ({ page }) => {
+  test('el pie lleva solo a la lista de regalos y a la información (términos, privacidad y contacto)', async ({ page }) => {
     await goLanding(page);
-    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    for (const [name, id] of [['Confirmación de asistencia', 'products']] as const) {
-      await page.locator('.footer-nav a', { hasText: name }).click();
-      await expect.poll(() => page.evaluate(id => Math.round(document.getElementById(id)!.getBoundingClientRect().top), id)).toBeGreaterThanOrEqual(65);
-      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
-    }
+    const links = await page.locator('.seed-footer .footer-nav a').allInnerTexts();
+    expect(links).toEqual(['Lista de regalos', 'Términos y condiciones', 'Privacidad', 'hola@weda.app']);
+    expect(await page.locator('.seed-footer .footer-head').allInnerTexts()).toEqual(['PRODUCTO', 'LEGAL', 'CONTACTO']);
+    await page.locator('.seed-footer').getByRole('link', { name: 'Lista de regalos' }).click();
+    await expect(page).toHaveURL(/\/lista-de-regalos$/);
   });
 
   test('hero: texto centrado en la pantalla, título en uno o dos renglones, botones táctiles y asoma la sección siguiente', async ({ page }) => {
@@ -83,7 +82,7 @@ test.describe('Landing · celular 390 px', () => {
     await expect(cards).toHaveCount(2);
     await expect(cards.locator('h3')).toHaveText(['Regalos', 'Celebración']);
     const prices = await cards.locator('.pl-price strong').allInnerTexts();
-    expect(prices.map(p => p.replace(/\s/g, ' '))).toEqual(['ARS $95.000', 'ARS $140.000']);
+    expect(prices.map(p => p.replace(/\s/g, ' '))).toEqual(['ARS $120.000', 'ARS $140.000']);
     const [b0, b1] = [await cards.nth(0).boundingBox(), await cards.nth(1).boundingBox()];
     expect(b1!.y).toBeGreaterThan(b0!.y);                  // en celular va primero Regalos y después Celebración (2026-11-20)
     const badge = await cards.nth(1).evaluate(c => { const cr = c.getBoundingClientRect(), b = c.querySelector('.pl-badge')!.getBoundingClientRect(); return { top: b.top - cr.top, bottom: b.bottom - cr.top, right: cr.right - b.right }; });
@@ -172,7 +171,7 @@ test.describe('Landing · datos estructurados para buscadores', () => {
 });
 
 test.describe('Página de la lista de regalos (/lista-de-regalos)', () => {
-  test('se llega desde el pie: un solo h1, las tres ventajas apiladas con el botón en la última, sin preguntas frecuentes, y el cierre', async ({ page }) => {
+  test('se llega desde el pie: un solo h1, el título y las tres ventajas apiladas con el botón en la última, sin portada, preguntas ni cierre', async ({ page }) => {
     await goLanding(page);
     await page.locator('.seed-footer').getByRole('link', { name: 'Lista de regalos' }).click();
     await expect(page).toHaveURL(/\/lista-de-regalos$/);
@@ -188,7 +187,8 @@ test.describe('Página de la lista de regalos (/lista-de-regalos)', () => {
     await expect(blocks.locator('.mk')).toHaveCount(3);
     for (const t of ['Sin comisión: el regalo entero es para ustedes', 'Regalos que se adaptan a cada bolsillo', 'Sabé quién te regaló qué']) await expect(page.getByRole('heading', { name: t })).toBeVisible();
     await expect(blocks.last().getByRole('link', { name: 'Crear mi lista de regalos' })).toHaveAttribute('href', '/crear/cuenta');   // el botón cierra la última
-    await expect(page.getByRole('heading', { name: 'Armá tu lista de regalos gratis y pagá recién al publicarla.' })).toBeVisible();
+    await expect(page.getByRole('heading', { level: 1, name: 'Lista de regalos' })).toBeVisible();   // solo el título y las tres hojas (2026-11-20)
+    await expect(page.locator('.closing-section, .lr-hero')).toHaveCount(0);
     await expect(page.locator('.float-nav a', { hasText: 'Lista de regalos' })).toHaveCount(0); // no figura en el menú de arriba
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(0);
   });

@@ -72,7 +72,7 @@ export const PLANS: Plan[] = [
       { icon: 'receipt', label: 'Regalos recibidos y quién los hizo' },
       { icon: 'link', label: 'Link para compartir' },
     ],
-    price: 95000, inherits: null,
+    price: 120000, inherits: null, // ARS 120.000 desde 2026-11-20 (D-09); antes 95.000
     items: [
       'Lista de regalos personalizada',
       'Regalos simbólicos: elegí de los sets o creá los tuyos',
