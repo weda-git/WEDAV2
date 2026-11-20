@@ -87,7 +87,7 @@ function Testimonials() {
   const t = testimonials[i]!;
   const num = (v: number) => String(v).padStart(2, '0');
   return (
-    <div className="tq is-white" role="group" aria-roledescription="carrusel" aria-label="Testimonios">
+    <div className="tq is-dark" role="group" aria-roledescription="carrusel" aria-label="Testimonios">
       <p className="tq-label">/Testimonios</p>
       <span className="tq-mark" aria-hidden="true">“</span>
       <div className="tq-quotes">
@@ -96,7 +96,6 @@ function Testimonials() {
       <div className="tq-rule" aria-hidden="true"><i style={{ width: `${100 / n}%`, transform: `translateX(${i * 100}%)` }} /></div>
       <div className="tq-foot">
         <figure className="tq-who" aria-live="polite">
-          {t.photo && <img key={t.who} src={t.photo} alt="" width={48} height={48} loading="lazy" draggable={false} />}
           <figcaption><strong>{t.who}</strong><span>{num(i + 1)} / {num(n)}</span></figcaption>
         </figure>
         <div className="tq-nav">
