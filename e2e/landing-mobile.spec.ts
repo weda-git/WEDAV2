@@ -110,7 +110,7 @@ test.describe('Landing · celular 390 px', () => {
     await expect(page.getByText('Por qué Weda')).toHaveCount(0);
     // Fondo: la foto de la pareja, nítida y en blanco y negro, con un velo blanco encima, fija en la pantalla: la sección se mueve sobre ella (2026-11-20).
     const bg = await page.locator('#por-que-weda').evaluate(e => { const f = e.querySelector('.tq-bg')!; const cs = getComputedStyle(f); return { img: cs.backgroundImage, blur: cs.filter, pos: cs.position, clip: getComputedStyle(e).clipPath, veil: getComputedStyle(e, '::after').backgroundColor }; });
-    expect(bg.img).toContain('testimonios-fondo.webp'); expect(bg.blur).not.toContain('blur');   // nítida desde 2026-11-20 expect(bg.pos).toBe('fixed'); expect(bg.clip).not.toBe('none'); expect(bg.veil).toBe('rgba(20, 20, 18, 0.55)');
+    expect(bg.img).toContain('testimonios-fondo.webp'); expect(bg.blur).not.toContain('blur');   // nítida desde 2026-11-20 expect(bg.pos).toBe('fixed'); expect(bg.clip).not.toBe('none'); expect(bg.veil).toBe('rgba(20, 20, 18, 0.45)');   // lo más claro con el texto blanco legible (contraste ≥ 4,5 aun sobre lo más claro de la foto)
     // Texto blanco, flechas blancas con el ícono negro y sin el circulito con la foto de la pareja (2026-11-20).
     expect(await tq.locator('blockquote.on').evaluate(e => getComputedStyle(e).color)).toBe('rgb(255, 255, 255)');
     expect(await tq.getByRole('button', { name: 'Testimonio siguiente' }).evaluate(e => [getComputedStyle(e).backgroundColor, getComputedStyle(e).color])).toEqual(['rgb(255, 255, 255)', 'rgb(17, 17, 17)']);
