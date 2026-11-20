@@ -1617,7 +1617,7 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 .viacap-section { clip-path: inset(0); contain: none; }
 .viacap-section::before { content: none; }
 .tq-bg { position: fixed; inset: -40px; z-index: -2; background: url("/testimonios-fondo.webp") center 45% / cover no-repeat; filter: grayscale(1); pointer-events: none; }
-.viacap-section::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgb(20 20 18 / .55); }
+.viacap-section::after { content: ""; position: absolute; inset: 0; z-index: -1; background: rgb(20 20 18 / .45); }
 /* Texto en blanco sobre la foto (2026-11-20): el velo pasó de blanco a oscuro, el texto a blanco, las flechas a blanco con el ícono negro
    y se sacó el circulito con la foto de la pareja. Sin el verde de Weda en esta sección. */
 .tq.is-dark { color: #fff; }
