@@ -148,6 +148,11 @@
 .dm-root .rg-card { background: transparent; box-shadow: none; padding: 0; border-radius: 0; }
 .dm-root .rg-card:hover { transform: none; }
 .dm-root .rg-photo { border-radius: 8px; }
+/* Tocar la foto abre el regalo, como «Regalar» (2026-11-20). */
+.dm-root .rg-photo.is-pickable { cursor: pointer; }
+.dm-root .rg-photo.is-pickable img { transition: transform .35s cubic-bezier(.2, .7, .2, 1); }
+@media (hover: hover) { .dm-root .rg-photo.is-pickable:hover img { transform: scale(1.03); } }
+@media (prefers-reduced-motion: reduce) { .dm-root .rg-photo.is-pickable img { transition: none; } }
 .dm-root .rg-price { font-family: var(--iv-font); font-size: 13px; }
 .dm-root .rg-card h3 {
   margin: 14px 0 0; font: 400 clamp(12.5px, 3.4vw, 15px)/1.3 var(--iv-font) !important; color: var(--iv-ink);
