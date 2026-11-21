@@ -51,7 +51,7 @@ describe('concurrencia (CA-9)', () => {
 describe('migraciones de Postgres (CA-2, CA-3)', () => {
   it('el esquema tiene las tablas de Weda, con RLS, sin tablas propias de usuarios ni sesiones', async () => {
     const tables = (await env.svc.db.all<{ name: string; rls: boolean }>("SELECT c.relname AS name, c.relrowsecurity AS rls FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = current_schema() AND c.relkind = 'r' ORDER BY 1")).map(t => [t.name, t.rls]);
-    expect(tables.map(t => t[0])).toEqual(['contribution_events', 'contribution_items', 'contributions', 'funnel_events', 'guests', 'mail_log', 'marketing_consents', 'orders', 'password_resets', 'payment_events', 'payout_methods', 'publications', 'receipts', 'rsvp_events', 'weda_migrations', 'weddings']);
+    expect(tables.map(t => t[0])).toEqual(['account_suspensions', 'admin_actions', 'admin_impersonations', 'contribution_events', 'contribution_items', 'contributions', 'funnel_events', 'guests', 'mail_log', 'marketing_consents', 'orders', 'password_resets', 'payment_events', 'payout_methods', 'publications', 'receipts', 'rsvp_events', 'weda_migrations', 'weddings']);
     expect(tables.every(t => t[1] === true)).toBe(true);
   });
 
