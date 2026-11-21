@@ -26,7 +26,8 @@ function GiftCard({ gift, inCart, onPick }: { gift: Gift; inCart: boolean; onPic
   const Icon = icons[gift.icon];
   return (
     <article className={`rg-card${inCart ? ' in-cart' : ''}`}>
-      <div className={`rg-photo${gift.fit ? ' is-contain' : ''}${gift.fit === 'white' ? ' is-white' : ''}`} style={gift.fit && gift.image ? ({ '--bg': `url(${gift.image})` } as React.CSSProperties) : undefined}>
+      {/* Tocar la foto también regala (pedido de la dueña, 2026-11-20). Con teclado se usa el botón «Regalar», que hace lo mismo. */}
+      <div className={`rg-photo is-pickable${gift.fit ? ' is-contain' : ''}${gift.fit === 'white' ? ' is-white' : ''}`} style={gift.fit && gift.image ? ({ '--bg': `url(${gift.image})` } as React.CSSProperties) : undefined} onClick={() => onPick(gift)}>
         {gift.image
           ? <img src={gift.image} alt="" loading="lazy" style={gift.pos || gift.zoom ? { objectPosition: gift.pos, ...(gift.zoom ? { transform: `scale(${gift.zoom.scale})`, transformOrigin: gift.zoom.origin } : {}) } : undefined} />
           : <span className="rg-icon" aria-hidden="true"><Icon size={34} strokeWidth={1.2} /></span>}
