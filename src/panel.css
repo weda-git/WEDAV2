@@ -1949,14 +1949,32 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 .gl-stats li + li { box-shadow: inset 1px 0 0 rgb(59 60 58 / .08); }
 @media (max-width: 899px) { .gl-stats li:nth-child(odd) { box-shadow: none; } .gl-stats li:nth-child(n + 3) { border-top: 1px solid rgb(59 60 58 / .08); } }
 
-/* Pestañas: el cambio de pestaña se acompaña, y en celular se ve que hay más. */
+/* Pestañas: el cambio de pestaña se acompaña. */
 .pn-tabs button { transition: background-color .2s var(--rd-ease), color .2s; }
-@media (max-width: 640px) {
-  .pn-tabs { mask-image: linear-gradient(90deg, #000 85%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .pn-main > .pn-page, .pn-main > .pn-readonly > .pn-page, .hx-panel.on { animation: none; }
   .pn-app .pn-btn, .pn-dialog .pn-btn, .hx-progress-bar > span, .pn-tabs button { transition: none; }
   .pn-app .pn-btn:active:not(:disabled) { transform: none; }
 }
+
+/* Editor de «Tu página»: «Agregar» de cada sección es secundario (varios oscuros seguidos competían entre sí). */
+.pn-app .ed-add-btn { background: transparent; color: var(--text-main); box-shadow: inset 0 0 0 1px var(--pn-line-s); border-color: transparent; }
+.pn-app .ed-add-btn:hover:not(:disabled) { background: var(--rd-soft); }
+/* «Listo» de cada sección es la acción principal del editor. */
+.pn-app .ed-done { background: var(--rd-ink); color: #fff; border-color: transparent; }
+.pn-app .ed-done:hover:not(:disabled) { background: var(--rd-ink-h); }
+/* Vista en vivo: el aviso no queda tapado por «Ver completa», y la carga se ve como carga (brillo suave), no como un bloque quieto. */
+.lc-note:not(.is-loading) { inset: auto 12px 52px; }
+@keyframes rd-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+.lc-note.is-loading { background: linear-gradient(100deg, #f3f0e8 30%, #faf8f3 50%, #f3f0e8 70%) 0 0 / 200% 100%; animation: rd-shimmer 1.4s linear infinite; }
+@keyframes rd-pulse { 50% { opacity: .45; } }
+.pn-loading { animation: rd-pulse 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .lc-note.is-loading, .pn-loading { animation: none; } }
+/* Acción principal dentro del contenido, cuando es lo que falta hacer ahí (por ejemplo, configurar el cobro). */
+.pn-app .pn-btn.is-primary { background: var(--rd-ink); color: #fff; border-color: transparent; }
+.pn-app .pn-btn.is-primary:hover:not(:disabled) { background: var(--rd-ink-h); }
+/* Diálogos y hojas: la acción que confirma es la principal; deshabilitada se ve apagada, sin dudas. */
+.pn-dialog .pn-actions .pn-btn:not(.is-ghost):not(:disabled) { background: var(--rd-ink, #2f302e); color: #fff; border-color: transparent; }
+.pn-dialog .pn-actions .pn-btn:not(.is-ghost):not(:disabled):hover { background: var(--rd-ink-h, #1f201e); }
+.pn-dialog .pn-btn.is-ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--pn-line-s); border-color: transparent; }

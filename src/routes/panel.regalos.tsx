@@ -586,7 +586,7 @@ function GiftsModule() {
                 {payout && remote.pendingPayout && <p className="pn-note" role="status">Cargaste un alias antes de crear tu cuenta ({remote.pendingPayout.alias || 'sin alias'}). Confirmalo con tu clave para que tus invitados lo vean.</p>}
                 {payout && alias && <p className="pn-hint">Por seguridad, cambiarlos pide tu clave y te avisamos por correo.</p>}
                 <div className="pn-cfg-actions">
-                  <button type="button" className="pn-btn" onClick={() => setCfg('bank')}>{payout && remote.pendingPayout ? 'Confirmar' : alias ? (payout ? 'Cambiar' : 'Editar') : 'Configurar'}</button>
+                  <button type="button" className={`pn-btn${!alias || (payout && remote.pendingPayout) ? ' is-primary' : ''}`} onClick={() => setCfg('bank')}>{payout && remote.pendingPayout ? 'Confirmar' : alias ? (payout ? 'Cambiar' : 'Editar') : 'Configurar'}</button>
                   {alias && <button type="button" className="pn-link" onClick={() => { void navigator.clipboard?.writeText(alias).catch(() => undefined); toast('Alias copiado.'); }}><Copy size={14} aria-hidden="true" />Copiar alias</button>}
                 </div>
               </section>
