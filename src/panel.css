@@ -1860,3 +1860,103 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 .pn-login-failed { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 14px; background: #fcebe3; color: var(--text-strong); }
 .pn-login-failed svg { flex: none; color: #c43d2b; }
 .pn-login-failed p { margin: 0; font-size: 16px; line-height: 1.4; }
+
+/* =========================================================================
+   Rediseño del panel (2026-11-21) · capa final, mobile-first.
+   Criterio:
+   - Una acción principal por pantalla (oscura y llena); las secundarias con borde; «Publicar» arriba es la única en el verde de la marca.
+   - Mismo título, mismo aire y misma alineación en todas las secciones.
+   - Menos cajas: superficies tintadas en vez de bordes; separadores solo donde ordenan.
+   - Movimiento corto y suave al cambiar de sección y al tocar; nada con «reducir movimiento».
+   ========================================================================= */
+.pn-app { --rd-ink: #2f302e; --rd-ink-h: #1f201e; --rd-brand: #959571; --rd-brand-h: #858562; --rd-soft: #f4f4f0; --rd-ease: cubic-bezier(.2, .7, .2, 1); }
+
+/* Entrada de cada sección: sube apenas y aparece. */
+@keyframes rd-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.pn-main > .pn-page, .pn-main > .pn-readonly > .pn-page { animation: rd-in .28s var(--rd-ease) both; }
+
+/* Botones: respuesta al tocar y transiciones parejas. */
+.pn-app .pn-btn, .pn-dialog .pn-btn { transition: background-color .18s var(--rd-ease), color .18s, box-shadow .18s, transform .12s var(--rd-ease); }
+.pn-app .pn-btn:active:not(:disabled), .pn-dialog .pn-btn:active:not(:disabled) { transform: scale(.98); }
+.pn-app .pn-btn:focus-visible, .pn-dialog .pn-btn:focus-visible { outline: 2px solid var(--rd-ink); outline-offset: 2px; }
+
+/* Acción principal: en los encabezados de sección y en los pasos del Inicio. */
+.pn-app .pn-page-head .pn-btn:not(.is-ghost), .pn-app .hx-cta, .pn-app .pn-empty .pn-btn:not(.is-ghost):first-of-type {
+  background: var(--rd-ink); color: #fff; border-color: transparent;
+}
+.pn-app .pn-page-head .pn-btn:not(.is-ghost):hover:not(:disabled), .pn-app .hx-cta:hover, .pn-app .pn-empty .pn-btn:not(.is-ghost):first-of-type:hover:not(:disabled) { background: var(--rd-ink-h); }
+.pn-app .pn-btn.is-ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--pn-line-s); border-color: transparent; color: var(--text-main); }
+.pn-app .pn-btn.is-ghost:hover:not(:disabled) { background: var(--rd-soft); }
+/* «Publicar» arriba conserva su verde claro con texto oscuro (más legible que blanco sobre verde): es el único botón de ese color. */
+
+/* Aviso del período de prueba: una línea liviana, no un bloque. */
+.pn-main > .pn-trial, .pn-trial { display: block; margin: 4px 0 24px; font-size: 13px; line-height: 1.45; color: var(--pn-muted); }
+.pn-trial-dot { display: inline-block; width: 6px; height: 6px; margin: 0 8px 1px 0; border-radius: 50%; background: var(--rd-brand); vertical-align: middle; }
+.pn-trial .pn-link { min-height: 0; font-size: 13px; }
+.pn-trial-date { display: none; }
+@media (min-width: 900px) { .pn-trial-date { display: inline; } }
+
+/* Encabezado de cada sección: mismo título y mismo aire. */
+.pn-page { gap: 28px; }
+.pn-app .pn-page-head h1 { font-size: clamp(28px, 6.4vw, 34px); line-height: 1.08; letter-spacing: -.02em; font-weight: 500; }
+.pn-app .pn-page-head .pn-sub { margin-top: 6px; font-size: 15px; line-height: 1.45; }
+@media (max-width: 640px) {
+  .pn-main { padding-top: 4px; }
+  /* Acciones del encabezado: a lo ancho, en dos columnas parejas; la principal primero. */
+  .pn-app .pn-page-head .pn-head-actions, .pn-app .pn-page-head .rg-head-actions, .pn-app .pn-page-head .gl-actions {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%;
+  }
+  .pn-app .pn-page-head :is(.pn-head-actions, .rg-head-actions, .gl-actions) .pn-btn { width: 100%; min-width: 0; justify-content: center; padding: 0 12px; grid-row: auto; grid-column: auto; }
+  .pn-app .pn-page-head :is(.pn-head-actions, .rg-head-actions, .gl-actions) .pn-btn:not(.is-ghost) { order: -1; }
+}
+
+/* Inicio */
+.hx-hero h1 { font-size: clamp(30px, 7vw, 44px); }
+.hx-couple { margin: 0 0 4px; font-size: 15px; color: var(--pn-muted); }
+.hx-hero-copy > p:last-child { margin-top: 8px; }
+.hx-steps { border: 0; padding-top: 0; }
+.hx-progress { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px 12px; padding: 18px 18px 0; }
+.hx-progress h2 { margin: 0; font-size: 16px; font-weight: 500; }
+.hx-progress-count { font-size: 13px; color: var(--pn-muted); font-variant-numeric: tabular-nums; }
+.hx-progress-bar { grid-column: 1 / -1; height: 4px; border-radius: 999px; background: rgb(59 60 58 / .1); overflow: hidden; }
+.hx-progress-bar > span { display: block; height: 100%; min-width: 4px; border-radius: inherit; background: var(--rd-ink); transition: width .5s var(--rd-ease); }
+.hx-step-label .is-short { display: none; }
+@media (max-width: 520px) {
+  .hx-step-label .is-long { display: none; }
+  .hx-step-label .is-short { display: inline; }
+  .hx-panel { grid-template-columns: minmax(0, 1fr); }
+  .hx-ico { display: none; }
+  .hx-panel .hx-actions { width: 100%; margin-left: 0; }
+  .hx-actions .pn-btn { flex: 1 1 auto; justify-content: center; }
+}
+.hx-panel.on { animation: rd-in .24s var(--rd-ease) both; }
+.hx-dot { transition: background-color .2s, box-shadow .2s; }
+
+/* Organización: lista liviana (sin cajas con borde), separada por filas. */
+.hm-manage { display: grid; gap: 10px; }
+.hm-manage .hm-head { gap: 2px; }
+.hm-manage .hm-head .pn-sub { margin: 0; font-size: 14px; }
+.hm-manage .hm-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; border-top: 1px solid var(--pn-hair); }
+.hm-manage .hm-grid > li { border-bottom: 1px solid var(--pn-hair); }
+.hm-manage .hm-tile { min-height: 72px; padding: 14px 4px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.hm-manage .hm-tile:hover { background: var(--rd-soft); }
+.hm-manage .hm-tile .hm-text > span { display: none; }
+.hm-manage .hm-ico { background: var(--rd-soft); }
+
+/* Números de invitados: una sola superficie, sin cuatro cajas. */
+.gl-stats { gap: 0; border-radius: var(--pn-r-card); background: var(--rd-soft); overflow: hidden; }
+.gl-stats li { border: 0; border-radius: 0; background: transparent; padding: 14px 16px; }
+.gl-stats li + li { box-shadow: inset 1px 0 0 rgb(59 60 58 / .08); }
+@media (max-width: 899px) { .gl-stats li:nth-child(odd) { box-shadow: none; } .gl-stats li:nth-child(n + 3) { border-top: 1px solid rgb(59 60 58 / .08); } }
+
+/* Pestañas: el cambio de pestaña se acompaña, y en celular se ve que hay más. */
+.pn-tabs button { transition: background-color .2s var(--rd-ease), color .2s; }
+@media (max-width: 640px) {
+  .pn-tabs { mask-image: linear-gradient(90deg, #000 85%, transparent); -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pn-main > .pn-page, .pn-main > .pn-readonly > .pn-page, .hx-panel.on { animation: none; }
+  .pn-app .pn-btn, .pn-dialog .pn-btn, .hx-progress-bar > span, .pn-tabs button { transition: none; }
+  .pn-app .pn-btn:active:not(:disabled) { transform: none; }
+}

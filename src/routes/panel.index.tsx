@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowRight, ChevronRight, Gift, Globe, LayoutGrid, Lock, Send, Users } from 'lucide-react';
+import { ArrowRight, ChevronRight, Gift, LayoutGrid, Lock, Users } from 'lucide-react';
 import { CoupleDialog } from '@/components/panel/couple-form';
 import { GetStarted } from '@/components/panel/get-started';
-import { usePlans } from '@/components/panel/ui';
 import { coupleLabel, isSamplePhoto, photoPosition, resolvePhoto } from '@/lib/weda/logic';
 import { operates, planForOperation, type Operation } from '@/lib/weda/plans';
 import { useRemote } from '@/lib/weda/remote';
@@ -15,12 +14,11 @@ export const Route = createFileRoute('/panel/')({
   component: Home,
 });
 
-/* Inicio (diseño de la dueña, 2026-10-28): encabezado con los nombres y la foto de la pareja, los tres pasos (regalos → sitio → publicación)
-   con el paso actual destacado, dos accesos («Diseñá tu invitación», «Elegí qué publicar») y, separadas, las herramientas que no se publican. */
+/* Inicio (diseño de la dueña, 2026-10-28; rediseño 2026-11-21): encabezado con los nombres y la foto de la pareja, el avance y los tres pasos
+   (regalos → sitio → publicación) con el paso actual destacado y, separada, la organización que no se publica. */
 function Home() {
   const s = useAppState();
   const access = useRemote().access;
-  const plans = usePlans();
   const navigate = useNavigate();
   const { editar } = Route.useSearch();
   const [editing, setEditing] = useState(editar === 'datos');
@@ -29,11 +27,6 @@ function Home() {
   const closeEditing = () => { setEditing(false); if (editar) void navigate({ to: '/panel', search: {}, replace: true }); };
 
   type Tile = { key: string; title: string; text: string; Icon: typeof Gift; tone?: string; to?: string; search?: Record<string, string>; op?: Operation; onClick?: () => void };
-  /* Accesos a lo que se publica (además de los pasos). */
-  const build: Tile[] = [
-    { key: 'sitio', title: 'Diseñá tu invitación', text: 'Personalizá tu página con fotos, información y todos los detalles de tu día.', Icon: Globe, tone: 'sage', to: '/panel/sitio' },
-    { key: 'publicar', title: 'Elegí qué publicar', text: 'Cuando esté lista, elegí si querés publicar solo la lista de regalos o el sitio completo. Vas a ver los planes y precios antes de confirmar.', Icon: Send, tone: 'sky', onClick: plans.open },
-  ];
   /* Administración de fondo. No se publica y no hace falta para publicar. */
   const manage: Tile[] = [
     { key: 'invitados', title: 'Invitados', text: 'Cargá tu lista y seguí las confirmaciones.', Icon: Users, to: '/panel/invitados', op: 'guests' },
@@ -64,9 +57,9 @@ function Home() {
     <div className="pn-page pn-journey hx-home">
       <header className="hx-hero">
         <div className="hx-hero-copy">
-          <p className="hx-kicker">Tu casamiento · {coupleLabel(s.couple)}</p>
-          <h1>Bienvenidos</h1>
-          <p>Armá tu lista de regalos, diseñá tu sitio y elegí qué publicar cuando esté listo.</p>
+          <p className="hx-couple">{coupleLabel(s.couple)}</p>
+          <h1>Hola de nuevo</h1>
+          <p>Tres pasos y tu casamiento está en línea.</p>
         </div>
         <div className="hx-hero-photo" aria-hidden="true">
           <img src={resolvePhoto(s.photo)} alt="" style={{ objectPosition: photoPosition(s.photo) }} data-sample={isSamplePhoto(s.photo) ? '' : undefined} />
@@ -75,16 +68,12 @@ function Home() {
 
       <GetStarted />
 
-      <section className="hm-path" aria-labelledby="hm-path-title">
-        <h2 id="hm-path-title" className="pn-sr">Accesos rápidos</h2>
-        <ul className="hm-grid">
-          {build.map(tile => <li key={tile.key}>{renderTile(tile)}</li>)}
-        </ul>
-      </section>
-
+      {/* Rediseño 2026-11-21: los accesos «Diseñá tu invitación» y «Elegí qué publicar» repetían los pasos 2 y 3 de arriba; se sacaron
+          (siguen en los pasos, en el menú y en «Publicar»). La organización queda como una lista liviana, separada de lo que se publica. */}
       <section className="hm-manage" aria-labelledby="hm-manage-title">
         <div className="hm-head">
-          <h2 id="hm-manage-title">Herramientas adicionales</h2>
+          <h2 id="hm-manage-title">Organización</h2>
+          <p className="pn-sub">No se publica: es para vos.</p>
         </div>
         <ul className="hm-grid">
           {manage.map(tile => <li key={tile.key}>{renderTile(tile)}</li>)}

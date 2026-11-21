@@ -13,6 +13,8 @@ import type { AppState } from '@/lib/weda/types';
 
 type Key = 'regalos' | 'sitio' | 'publicar';
 type Step = { key: Key; label: string; done: boolean; title: string; text: string; Icon: typeof Gift };
+/** Etiqueta corta de cada paso para el celular (las largas se cortaban en dos renglones). */
+const SHORT: Record<Key, string> = { regalos: 'Regalos', sitio: 'Sitio', publicar: 'Publicar' };
 
 /** Fotos de muestra (del catálogo de Weda) mientras la lista no tiene regalos con foto. */
 const SAMPLE_GIFTS = ['/regalo-cafetera.webp', '/regalo-vajilla.jpg', '/regalo-sabanas.webp'];
@@ -89,12 +91,16 @@ export function GetStarted() {
 
   return (
     <section className="hx-steps" aria-labelledby="gs-title">
-      <h2 id="gs-title" className="pn-sr">Primeros pasos</h2>
+      <div className="hx-progress">
+        <h2 id="gs-title">Tus pasos</h2>
+        <span className="hx-progress-count">{steps.filter(x => x.done).length} de 3 listos</span>
+        <span className="hx-progress-bar" aria-hidden="true"><span style={{ width: `${(steps.filter(x => x.done).length / 3) * 100}%` }} /></span>
+      </div>
       <div className="hx-stepper" role="tablist" aria-label="Pasos para armar tu casamiento">
         {steps.map((x, i) => (
           <button key={x.key} type="button" role="tab" id={`gs-tab-${x.key}`} aria-selected={x.key === active.key} aria-controls={`gs-panel-${x.key}`} className={`hx-step${x.key === active.key ? ' on' : ''}${x.done ? ' is-done' : ''}`} onClick={() => setPicked(x.key)}>
             <span className="hx-dot" aria-hidden="true">{x.done && x.key !== active.key ? <Check size={16} strokeWidth={2.4} /> : i + 1}</span>
-            <span className="hx-step-label">{x.label}{x.done && <span className="pn-sr"> (completo)</span>}</span>
+            <span className="hx-step-label"><span className="is-long">{x.label}</span><span className="is-short" aria-hidden="true">{SHORT[x.key]}</span>{x.done && <span className="pn-sr"> (completo)</span>}</span>
           </button>
         ))}
       </div>

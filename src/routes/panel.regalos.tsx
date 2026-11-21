@@ -385,7 +385,7 @@ function GiftsModule() {
           <p className="pn-sub" role="status" aria-live="polite">Tus invitados eligen un regalo de tu lista y te lo regalan por alias.</p>
         </div>
         <div className="rg-head-actions">
-          <button type="button" className="pn-btn is-ghost" onClick={copyLink}><Copy size={16} aria-hidden="true" />Copiar enlace de lista</button>
+          <button type="button" className="pn-btn is-ghost" onClick={copyLink} title="Copiar el enlace de tu lista de regalos"><Copy size={16} aria-hidden="true" />Copiar enlace</button>
           <button type="button" className="pn-btn" onClick={() => setCreating(true)}><Plus size={16} aria-hidden="true" />Crear regalo</button>
         </div>
       </header>

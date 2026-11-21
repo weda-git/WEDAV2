@@ -164,7 +164,8 @@ function TrialBanner() {
     <p className="pn-banner is-info pn-trial-end" role="status"><strong>Terminó tu período gratuito.</strong> Tu proyecto está guardado. Elegí un plan para publicarlo y seguir editando. <button type="button" className="pn-link" onClick={plans.open}>Elegir plan</button></p>
   );
   const { left, ends } = trialRemaining(access.trialEndsAt);
-  return <p className="pn-trial" role="status">Te quedan {left} para crear gratis, hasta el {ends}. <button type="button" className="pn-link" onClick={plans.open}>Elegir plan</button></p>;
+  // Rediseño 2026-11-21: una sola línea liviana. La fecha exacta va solo donde hay lugar (compu).
+  return <p className="pn-trial" role="status"><span className="pn-trial-dot" aria-hidden="true" />Prueba gratis: te quedan {left}<span className="pn-trial-date">, hasta el {ends}</span>. <button type="button" className="pn-link" onClick={plans.open}>Elegir plan</button></p>;
 }
 
 /** Embudo: avances que se ven en el panel (una vez por navegador). Sin efecto si la analítica está apagada (analytics.ts). */
