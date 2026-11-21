@@ -535,3 +535,15 @@ Origen: [PAY-07](../specs/PAY-07-trial-contratacion-permanencia/spec.md). **Reem
 - El servidor ya aceptaba confirmaciones sin correo (`submitRsvp`, correo opcional): no cambió.
 - En el menú del sitio, «Regalá» pasa a «Regalos» y «Confirmá asistencia» a «RSVP».
 - Textos más cortos (2026-11-20). Al revisar: «¿Venís con alguien? Sumalo antes de enviar.» Al enviar: el tilde al lado de «¡Gracias!», «Tu asistencia fue enviada.» (o «Las asistencias fueron enviadas.»), los nombres, el botón «Cerrar» y el enlace «¿Te olvidaste de alguien? Sumalo», que vuelve al formulario para sumar a otra persona.
+
+## Administración de cuentas (ADM-01, 2026-11-21)
+- Solo la cuenta de `WEDA_ADMIN_EMAIL` ve `/admin`; para cualquier otra persona esa dirección «no existe».
+- **Lista:** todas las cuentas, de la más nueva a la más vieja, con su estado (borrador, publicada, despublicada o suspendida). Se busca por correo o por los nombres de la pareja.
+- **Ficha:** datos de la cuenta; invitados, regalos y aportes en solo lectura; el registro de acciones.
+- **Acciones:**
+  - Suspender (con motivo opcional) y reactivar. La pareja no entra, su sitio dice «Esta página no está disponible» y recibe un correo. No se borra nada.
+  - Despublicar y volver a publicar la última versión publicada.
+  - Cambiar el correo (avisa al anterior y al nuevo).
+  - Mandar el enlace para elegir una clave nueva.
+  - Entrar como la pareja: franja fija «Estás viendo la cuenta de X · Salir», 30 minutos. No permite tocar cobro, correo, clave ni pagos.
+

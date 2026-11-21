@@ -13,6 +13,7 @@ import { ensureRemote, errorText, hasUnsaved, dismissNotice, reloadFromServer, r
 import { useAppSelector, useAppState, useHydrated, useStorageFull } from '@/lib/weda/store';
 import { isLive } from '@/lib/weda/payments';
 import { WedaLogo } from '@/components/weda-logo';
+import { ImpersonationBar } from '@/components/admin/impersonation-bar';
 
 export const Route = createFileRoute('/panel')({
   head: () => ({
@@ -255,6 +256,7 @@ function PanelLayout() {
         </aside>
 
         <main id="main" className="pn-main">
+          <ImpersonationBar />
           <SyncBanner />
           <TrialBanner />
           {full && <p className="pn-banner" role="alert">No hay más lugar para guardar fotos en este navegador. Quitá alguna foto: los últimos cambios no se guardaron.</p>}

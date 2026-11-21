@@ -25,6 +25,12 @@ export interface Accounts {
    */
   setPassword(userId: string, password: string, keep?: { token: string; email: string }): Promise<string | null>;
   idByEmail(email: string): Promise<string | null>;
+  /** ADM-01: bloquea o desbloquea el ingreso en Supabase Auth (suspensión). No cierra sesiones: eso lo hace quien llama. */
+  setBanned(userId: string, banned: boolean): Promise<void>;
+  /** ADM-01: cambia el correo de la cuenta (queda confirmado). Correo repetido → 409 `email_taken`. */
+  setEmail(userId: string, email: string): Promise<void>;
+  /** Correo de una cuenta, o null si no existe. */
+  emailOf(userId: string): Promise<string | null>;
 }
 
 type Pair = { access: string; refresh: string };
@@ -74,7 +80,7 @@ export class SupabaseAccounts implements Accounts {
     const { data, error } = await this.client().auth.signInWithPassword({ email, password });
     // Límite de Supabase: se responde como el límite propio de Weda (429), no como un error interno.
     if (error?.status === 429 || error?.code === 'over_request_rate_limit') throw new ApiError(429, 'too_many_attempts');
-    if (error && error.code !== 'invalid_credentials') console.error('Supabase Auth (signIn):', error.code, error.message);
+    if (error && error.code !== 'invalid_credentials' && error.code !== 'user_banned') console.error('Supabase Auth (signIn):', error.code, error.message);
     if (error || !data.session) return null;
     return this.issued(data.session, email);
   }
@@ -130,6 +136,23 @@ export class SupabaseAccounts implements Accounts {
     // Quien cambió la clave sigue adentro: se le abre una sesión nueva y la API reescribe su cookie.
     const r = await this.signIn(keep.email, password);
     return r?.token ?? null;
+  }
+  async setBanned(userId: string, banned: boolean) {
+    // «876000h» son 100 años: Supabase no tiene un bloqueo sin fecha. «none» lo levanta.
+    const { error } = await this.admin.auth.admin.updateUserById(userId, { ban_duration: banned ? '876000h' : 'none' });
+    if (error) throw new Error(`Supabase Auth (ban): ${error.message}`);
+  }
+  async setEmail(userId: string, email: string) {
+    const { error } = await this.admin.auth.admin.updateUserById(userId, { email, email_confirm: true });
+    if (error) {
+      if (error.code === 'email_exists' || error.code === 'user_already_exists') throw conflict('email_taken');
+      if (error.code === 'email_address_invalid' || error.code === 'validation_failed' || /invalid format/i.test(error.message)) throw invalid('invalid_email');
+      throw new Error(`Supabase Auth (email): ${error.message}`);
+    }
+  }
+  async emailOf(userId: string) {
+    const row: Row | undefined = await this.db.get('SELECT email FROM auth.users WHERE id::text = ?', userId);
+    return (row?.['email'] as string | undefined) ?? null;
   }
   async idByEmail(email: string) {
     const row: Row | undefined = await this.db.get('SELECT id::text AS id FROM auth.users WHERE lower(email) = lower(?)', email);

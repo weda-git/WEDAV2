@@ -24,6 +24,8 @@ export type ServerConfig = {
   /** Supabase (OPS-08, D-07): base PostgreSQL, cuentas (Auth) y archivos (Storage). Sin estas variables la API responde 503 (el resto del
    *  sitio sigue andando). Todas son de servidor: ninguna llega al navegador. */
   supabase?: { url: string; secretKey: string; dbUrl: string } | undefined;
+  /** ADM-01: correo de la única cuenta administradora (`WEDA_ADMIN_EMAIL`). Sin él, la administración no existe (404). */
+  adminEmail?: string | undefined;
 };
 
 /** Dirección del proyecto a partir de la conexión del pooler, cuyo usuario es `postgres.<id del proyecto>`. */
@@ -57,5 +59,6 @@ export function loadConfig(): ServerConfig {
       webhookSecret: env('WEDA_PAYMENTS_WEBHOOK_SECRET') ?? env('WEDA_SECRET') ?? 'secreto-solo-para-desarrollo',
     },
     supabase: supabaseConfig(),
+    adminEmail: env('WEDA_ADMIN_EMAIL')?.toLowerCase(),
   };
 }

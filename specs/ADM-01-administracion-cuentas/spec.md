@@ -1,6 +1,6 @@
 # ADM-01 · Administración de cuentas — spec
 
-- **Estado:** aprobada (2026-11-21, por la dueña, con las propuestas D4 a D7)
+- **Estado:** en construcción (aprobada 2026-11-21 por la dueña, con las propuestas D4 a D7)
 - **Tamaño:** crítica (permisos, datos personales y de invitados; toca publicación)
 - **Plan:** [plan.md](plan.md)
 
