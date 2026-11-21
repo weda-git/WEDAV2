@@ -5,6 +5,7 @@ import { ApiError } from './errors';
 import { RateLimiter } from './security';
 import { MAX_RECEIPT_BYTES, Service, type Session } from './service';
 import type { Authenticated } from './accounts';
+import { Admin, blockedWhileImpersonating, IMPERSONATION_MS } from './admin';
 
 const COOKIE = 'weda_session';
 const JSON_HEADERS = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow' };
@@ -41,6 +42,11 @@ function cookieOf(req: Request, name: string): string | undefined {
   }
   return undefined;
 }
+
+/** ADM-01 · «entrar como»: cookie aparte, más estricta y de 30 minutos. Solo vale junto con la sesión de la administradora. */
+const AS_COOKIE = 'weda_as';
+const setAsCookie = (cfg: ServerConfig, token: string | null) =>
+  `${AS_COOKIE}=${token ? encodeURIComponent(token) : ''}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${token ? Math.floor(IMPERSONATION_MS / 1000) : 0}${cfg.cookieSecure ? '; Secure' : ''}`;
 
 const setCookie = (cfg: ServerConfig, token: string | null) =>
   `${COOKIE}=${token ? encodeURIComponent(token) : ''}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${token ? 30 * 86400 : 0}${cfg.cookieSecure ? '; Secure' : ''}`;
@@ -117,10 +123,20 @@ async function route(req: Request, cfg: ServerConfig, injected: Service | undefi
     // Se autentica una sola vez por pedido: el token de renovación de Supabase sirve una sola vez, así que nunca se renueva dos veces.
     let authenticated: Promise<Authenticated | null> | null = null;
     const authenticate = () => (authenticated ??= svc.authenticate(cookieOf(req, COOKIE)).then(a => { if (a?.renewed) auth.renewed = a.token; return a; }));
-    const session = async (): Promise<Session> => { const x = await authenticate(); return svc.requireSession(x && { userId: x.userId, email: x.email }); };
+    const admin = new Admin(svc);
+    /** La sesión propia (la de la cookie), sin «entrar como». La usan la administración y el ingreso. */
+    const ownSession = async (): Promise<Session | null> => { const x = await authenticate(); return x && { userId: x.userId, email: x.email }; };
+    /** ADM-01: si la administradora está «entrando como» una pareja, la sesión efectiva es la de la pareja (D5). */
+    let effective: Promise<Awaited<ReturnType<Admin['impersonated']>>> | null = null;
+    const impersonated = () => (effective ??= ownSession().then(own => admin.impersonated(own, cookieOf(req, AS_COOKIE))));
+    const session = async (): Promise<Session> => (await impersonated()) ?? svc.requireSession(await ownSession());
+    /** Registra en la administración los cambios hechos «como» la pareja (D6). */
+    const asSave = async (what: string) => { const i = await impersonated(); if (i) await admin.logImpersonatedSave(i.impersonation.adminId, i.userId, what); };
     /** El token vigente de la cookie (el renovado, si cambió en este pedido). */
     const currentToken = async () => (await authenticate())?.token ?? cookieOf(req, COOKIE);
-    const [a, b, c, d] = parts;
+    const [a, b, c, d, e, f] = parts;
+    // CA-9: «entrando como», el cobro, la clave, las sesiones y los pagos no se tocan.
+    if (cookieOf(req, AS_COOKIE) && blockedWhileImpersonating(a, b, c, method) && (await impersonated())) throw new ApiError(403, 'not_allowed_as_admin');
 
 
     /* ---- cuenta */
@@ -155,12 +171,43 @@ async function route(req: Request, cfg: ServerConfig, injected: Service | undefi
       if (b === 'logout' && method === 'POST') {
         (await svc.logout(await currentToken()));
         auth.renewed = null; // al salir la cookie se borra, aunque la sesión se haya renovado en este mismo pedido
-        return json(200, { ok: true }, { 'set-cookie': setCookie(cfg, null) });
+        const out = json(200, { ok: true }, { 'set-cookie': setCookie(cfg, null) });
+        out.headers.append('set-cookie', setAsCookie(cfg, null));
+        return out;
       }
     }
     if (a === 'me' && method === 'GET') {
-      const s = await authenticate();
-      return json(200, { user: s ? { email: s.email } : null });
+      const s = await ownSession();
+      const i = await impersonated();
+      return json(200, { user: s ? { email: s.email } : null, admin: admin.isAdmin(s), impersonating: i ? { userId: i.userId, email: i.email, expiresAt: i.impersonation.expiresAt } : null });
+    }
+
+    /* ---- administración (ADM-01). Para cualquier otra sesión responde 404. */
+    if (a === 'admin') {
+      const me = admin.require(await ownSession());
+      if (b === 'accounts' && !c && method === 'GET') return json(200, await admin.list(me, url.searchParams.get('q'), url.searchParams.get('page')));
+      if (b === 'accounts' && c && !d && method === 'GET') return json(200, await admin.detail(me, c));
+      if (b === 'accounts' && c && d === 'contributions' && e && f === 'receipt' && method === 'GET') {
+        const r = await admin.receipt(me, c, e);
+        return new Response(new Uint8Array(r.bytes), { status: 200, headers: { 'content-type': r.mime, 'cache-control': 'private, no-store', 'x-content-type-options': 'nosniff', 'content-security-policy': "default-src 'none'; img-src 'self' data:; style-src 'unsafe-inline'; sandbox" } });
+      }
+      if (b === 'accounts' && c && method === 'POST') {
+        if (d === 'suspend') return json(200, await admin.suspend(me, c, (await readJson(req))['note']));
+        if (d === 'reactivate') return json(200, await admin.reactivate(me, c));
+        if (d === 'unpublish') return json(200, await admin.unpublish(me, c));
+        if (d === 'republish') return json(200, await admin.republish(me, c));
+        if (d === 'email') return json(200, await admin.changeEmail(me, c, (await readJson(req))['email']));
+        if (d === 'reset') return json(200, await admin.sendReset(me, c));
+        if (d === 'impersonate') {
+          const r = await admin.startImpersonation(me, c);
+          return json(200, { expiresAt: r.expiresAt }, { 'set-cookie': setAsCookie(cfg, r.token) });
+        }
+      }
+      if (b === 'impersonation' && c === 'end' && method === 'POST') {
+        const target = await admin.endImpersonation(me, cookieOf(req, AS_COOKIE));
+        return json(200, { userId: target }, { 'set-cookie': setAsCookie(cfg, null) });
+      }
+      throw new ApiError(404, 'not_found');
     }
 
     /* ---- casamiento y publicación (dueño) */
@@ -169,11 +216,13 @@ async function route(req: Request, cfg: ServerConfig, injected: Service | undefi
       if (!b && method === 'PUT') {
         const body = await readJson(req);
         const g = (body['guests'] ?? undefined) as { upsert?: unknown; remove?: unknown } | undefined;
-        return json(200, (await svc.saveWedding((await session()).userId, { baseRevision: body['baseRevision'], draft: body['draft'], ...(g ? { guests: g } : {}) })));
+        const saved = (await svc.saveWedding((await session()).userId, { baseRevision: body['baseRevision'], draft: body['draft'], ...(g ? { guests: g } : {}) }));
+        await asSave('wedding');
+        return json(200, saved);
       }
       if (b === 'payout' && !c && method === 'POST') { const body = await readJson(req); return json(200, await svc.changePayout(await session(), body)); }
-      if (b === 'publish' && method === 'POST') return json(200, (await svc.publish((await session()).userId)));
-      if (b === 'unpublish' && method === 'POST') { (await svc.unpublish((await session()).userId)); return json(200, { ok: true }); }
+      if (b === 'publish' && method === 'POST') { const r = (await svc.publish((await session()).userId)); await asSave('publish'); return json(200, r); }
+      if (b === 'unpublish' && method === 'POST') { (await svc.unpublish((await session()).userId)); await asSave('unpublish'); return json(200, { ok: true }); }
     }
 
     /* ---- aportes (dueño) */
@@ -181,7 +230,9 @@ async function route(req: Request, cfg: ServerConfig, injected: Service | undefi
       if (!b && method === 'GET') return json(200, { contributions: (await svc.listContributions((await session()).userId)) });
       if (b && !c && method === 'PATCH') {
         const body = await readJson(req);
-        return json(200, (await svc.setContributionStatus((await session()).userId, b, body['status'], body['note'])));
+        const r = (await svc.setContributionStatus((await session()).userId, b, body['status'], body['note']));
+        await asSave('contribution_status');
+        return json(200, r);
       }
       if (b && c === 'remind' && method === 'POST') return json(200, await svc.remindReceipt((await session()).userId, b));
       if (b && c === 'receipt' && method === 'GET') {

@@ -34,6 +34,8 @@ export type RemoteState = {
   pendingPayout: PayoutData | null;
   /** Qué se puede operar (BR-62), calculado por el servidor con el plan publicado y vigente. null = sin cuenta o todavía no se sabe. */
   access: Access | null;
+  /** ADM-01: la administradora está «entrando como» esta pareja (franja fija y límites en el servidor). */
+  impersonating: { email: string; expiresAt: string } | null;
 };
 export type PayoutData = { alias: string; bank: string; cbu: string };
 export type Payout = PayoutData & { version: number; changedAt: string | null };
@@ -57,7 +59,7 @@ export async function api<T = any>(method: string, url: string, body?: unknown):
 
 /* ------------------------------------------------------------------ estado observable */
 
-let remote: RemoteState = { settled: false, user: null, save: 'idle', error: null, notice: null, publication: null, payments: null, payout: null, pendingPayout: null, access: null };
+let remote: RemoteState = { settled: false, user: null, save: 'idle', error: null, notice: null, publication: null, payments: null, payout: null, pendingPayout: null, access: null, impersonating: null };
 const listeners = new Set<() => void>();
 const set = (p: Partial<RemoteState>) => { remote = { ...remote, ...p }; listeners.forEach(l => l()); };
 const SERVER_REMOTE: RemoteState = remote;
@@ -124,7 +126,7 @@ const META_KEY = 'weda-sync';
 const hashOf = (s: string) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + s.length.toString(36); };
 type Meta = { email: string; revision: number; hash: string; guestIds: string[] };
 const readMeta = (): Meta | null => { try { const m = JSON.parse(window.localStorage.getItem(META_KEY) ?? 'null'); return m && typeof m.email === 'string' && typeof m.revision === 'number' ? m as Meta : null; } catch { return null; } };
-const writeMeta = (email?: string) => { try { window.localStorage.setItem(META_KEY, JSON.stringify({ email: email ?? remote.user?.email ?? '', revision, hash: hashOf(syncedDraft), guestIds: [...syncedGuests.keys()] } satisfies Meta)); } catch { /* sin lugar: solo se pierde la ayuda para recuperar cambios */ } };
+const writeMeta = (email?: string) => { try { window.localStorage.setItem(META_KEY, JSON.stringify({ email: email ?? (remote.impersonating ? `como:${remote.impersonating.email}` : remote.user?.email) ?? '', revision, hash: hashOf(syncedDraft), guestIds: [...syncedGuests.keys()] } satisfies Meta)); } catch { /* sin lugar: solo se pierde la ayuda para recuperar cambios */ } };
 
 function markSynced(w: { revision: number; guests: Guest[]; draft: AppState }) {
   revision = w.revision;
@@ -138,7 +140,7 @@ function markSynced(w: { revision: number; guests: Guest[]; draft: AppState }) {
 const BACKUP_KEY = 'weda-app-local-backup';
 
 async function load(): Promise<void> {
-  let me: { user: { email: string } | null };
+  let me: { user: { email: string } | null; impersonating?: { email: string; expiresAt: string } | null };
   try { me = await api('GET', '/api/me'); } catch (e) { set({ settled: true, user: null, ...(e instanceof ApiFailure && e.code === 'backend_unavailable' ? {} : { error: 'network' }) }); return; }
   if (!me.user) {
     // Sin cuenta no se arma nada (decisión de la dueña, 2026-11-06): un borrador que no es de ninguna cuenta no se conserva en este navegador.
@@ -147,11 +149,14 @@ async function load(): Promise<void> {
     set({ settled: true, user: null });
     return;
   }
-  await attach(me.user.email);
+  // ADM-01: «entrando como» una pareja, el panel es el de ella, y su copia local va aparte de la de la administradora (nunca se mezclan).
+  const as = me.impersonating ?? null;
+  set({ impersonating: as });
+  await attach(as ? as.email : me.user.email, as ? `como:${as.email}` : me.user.email);
 }
 
 /** Con sesión confirmada: trae el casamiento del servidor. Solo se combina con lo de este navegador si era de esta misma cuenta (cambios sin guardar). */
-async function attach(email: string): Promise<void> {
+async function attach(email: string, key = email): Promise<void> {
   void refreshPayments();
   let w: any;
   try { w = await api('GET', '/api/wedding'); } catch (e) {
@@ -161,7 +166,7 @@ async function attach(email: string): Promise<void> {
   set({ access: (w.access as Access | undefined) ?? null });
   // Lo que haya en este navegador solo cuenta si ya era de esta misma cuenta (cambios propios sin guardar). Un borrador sin cuenta o de otra cuenta se
   // descarta: al entrar se ve únicamente el casamiento guardado en la cuenta, sin mezclas ni copias aparte (decisión de la dueña, 2026-11-06).
-  if (readMeta()?.email !== email) {
+  if (readMeta()?.email !== key) {
     reset();
     try { window.localStorage.removeItem(META_KEY); window.localStorage.removeItem(BACKUP_KEY); } catch { /* nada que borrar */ }
   }
@@ -175,7 +180,7 @@ async function attach(email: string): Promise<void> {
     baselineRef = null;
     set({ settled: true, user: { email }, error: null, notice: 'Guardamos en tu cuenta el casamiento que empezaste en este navegador.' });
     scheduleSave(0);
-  } else if (serverHasData && isUnsyncedLocal(local, w, email)) {
+  } else if (serverHasData && isUnsyncedLocal(local, w, key)) {
     // Este navegador tiene cambios que no llegaron a guardarse (por ejemplo, se recargó antes del guardado) y nadie guardó otra cosa mientras tanto:
     // se conservan y se suben. Las respuestas que llegaron al servidor desde el sitio público se suman (no se pisan).
     const known = new Set(readMeta()?.guestIds ?? []);
@@ -189,13 +194,13 @@ async function attach(email: string): Promise<void> {
     replace(mergeFromServer(local, w, email));
     markSynced(w);
     baselineRef = getState();
-    writeMeta(email);
+    writeMeta(key);
     set({ settled: true, user: { email }, error: null, save: 'saved', publication: w.publication });
   } else {
     replace(adoptPublication({ ...local, email, ...(w.slug ? { slug: w.slug } : {}) }, w.publication));
     markSynced(w);
     baselineRef = getState();
-    writeMeta(email);
+    writeMeta(key);
     set({ settled: true, user: { email }, error: null, publication: w.publication });
   }
   frozen = false;
@@ -418,6 +423,15 @@ export const ERROR_TEXT: Record<string, string> = {
   wrong_password: 'La clave actual no es correcta.',
   email_taken: 'Ya existe una cuenta con ese correo. Probá ingresar.',
   account_not_found: 'No hay ninguna cuenta con ese correo. Revisá que esté bien escrito o creá una cuenta.',
+  account_suspended: 'Tu cuenta está suspendida. Escribinos a hola@weda.app y lo vemos.',
+  not_allowed_as_admin: 'Esto no se puede hacer entrando como la pareja.',
+  already_suspended: 'La cuenta ya estaba suspendida.',
+  not_suspended: 'La cuenta no estaba suspendida.',
+  not_taken_down: 'El sitio no estaba despublicado.',
+  not_live: 'El sitio no estaba publicado.',
+  same_email: 'Es el mismo correo que ya tiene.',
+  cannot_suspend_self: 'No podés suspender tu propia cuenta.',
+  cannot_impersonate_self: 'Ya estás en tu propia cuenta.',
   invalid_email: 'Ingresá un correo válido.',
   weak_password: 'Usá 8 o más caracteres, con mayúsculas, minúsculas y un número.',
   too_many_attempts: 'Demasiados intentos. Esperá unos minutos y probá de nuevo.',

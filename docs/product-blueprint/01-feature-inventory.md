@@ -162,7 +162,7 @@ Anexo del [Product Blueprint](00-product-blueprint.md). Fecha de la auditoría: 
 
 | ID | Funcionalidad | Estado documental | Estado en código | Tests | Observaciones |
 |---|---|---|---|---|---|
-| ADM-01 | Administración interna: precios, planes, soporte, auditoría, roles de personal | **DECIDIDO** (Q5) | **No implementada** (no existe ninguna superficie de administración; los precios están en el código) | — | |
+| ADM-01 | Administración interna: precios, planes, soporte, auditoría, roles de personal | **DECIDIDO** (Q5) | **Parcial (2026-11-21, [spec](../../specs/ADM-01-administracion-cuentas/spec.md))**: soporte y registro de acciones en `/admin` (ver cuentas, suspender y reactivar, despublicar y republicar, cambiar correo, enlace de clave, entrar como la pareja). Faltan precios y planes (BR-16) y roles de personal | U (`admin.test.ts`) | Solo la cuenta de `WEDA_ADMIN_EMAIL` |
 | ADM-02 | Tablero de métricas | DOCUMENTADO | **No implementada** (`funnel_events` se consulta con SQL) | — | |
 
 ## 12. Roles, membresías y eventos múltiples (ACC)

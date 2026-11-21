@@ -20,7 +20,13 @@ export type Env = { svc: Service; cfg: ServerConfig; dir: string; client: (name?
 export type Res = { status: number; body: any; headers: Headers; raw: Response };
 
 export class Client {
-  cookie = '';
+  /** Cookies como un navegador: varias a la vez (la sesión y, en la administración, «entrar como»). */
+  private jar = new Map<string, string>();
+  get cookie(): string { return [...this.jar].map(([k, v]) => `${k}=${v}`).join('; '); }
+  set cookie(v: string) {
+    this.jar.clear();
+    for (const part of v.split(';')) { const i = part.indexOf('='); if (i > 0) this.jar.set(part.slice(0, i).trim(), part.slice(i + 1).trim()); }
+  }
   constructor(private env: Env) {}
   async call(method: string, url: string, body?: unknown, extra: Record<string, string> = {}): Promise<Res> {
     const headers: Record<string, string> = { host: 'weda.test', ...extra };
@@ -30,8 +36,12 @@ export class Client {
     if (this.cookie) headers['cookie'] = this.cookie;
     const raw = await handleApi(new Request(`http://weda.test${url}`, { method, headers, ...(payload !== undefined ? { body: payload } : {}) }), this.env.cfg, this.env.svc);
     if (!raw) throw new Error('ruta fuera de la API');
-    const set = raw.headers.get('set-cookie');
-    if (set) this.cookie = set.startsWith(`weda_session=;`) ? '' : set.split(';')[0]!;
+    for (const set of raw.headers.getSetCookie()) {
+      const pair = set.split(';')[0]!;
+      const i = pair.indexOf('=');
+      const name = pair.slice(0, i), value = pair.slice(i + 1);
+      if (value) this.jar.set(name, value); else this.jar.delete(name);
+    }
     const text = await raw.clone().text();
     let parsed: any = null;
     try { parsed = JSON.parse(text); } catch { /* binario */ }
@@ -62,6 +72,9 @@ class TaggedAccounts implements Accounts {
   checkPassword(userId: string, email: string, password: string) { return this.inner.checkPassword(userId, this.on(email), password); }
   setPassword(userId: string, password: string, keep?: { token: string; email: string }) { return this.inner.setPassword(userId, password, keep && { ...keep, email: this.on(keep.email) }); }
   idByEmail(email: string) { return this.inner.idByEmail(this.on(email)); }
+  setBanned(userId: string, banned: boolean) { return this.inner.setBanned(userId, banned); }
+  setEmail(userId: string, email: string) { return this.inner.setEmail(userId, this.on(email)); }
+  async emailOf(userId: string) { const e = await this.inner.emailOf(userId); return e && this.off(e); }
 }
 
 export async function makeEnv(over: Partial<ServerConfig> = {}): Promise<Env> {

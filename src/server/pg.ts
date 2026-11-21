@@ -250,6 +250,41 @@ export const PG_MIGRATIONS: string[] = [
   ALTER TABLE mail_log ENABLE ROW LEVEL SECURITY;
   ALTER TABLE funnel_events ENABLE ROW LEVEL SECURITY;
   `,
+  // 2 · ADM-01 (2026-11-21): administración de cuentas. Solo agrega tablas; no cambia ni borra las existentes.
+  `
+  -- Cuenta suspendida (no puede entrar y su sitio no se ve). Sin fila = activa. Reactivar borra solo esta fila.
+  CREATE TABLE account_suspensions (
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    suspended_at TEXT NOT NULL,
+    note TEXT NOT NULL DEFAULT ''
+  );
+  -- «Entrar como» una pareja: el token solo se guarda como hash; vence a los 30 minutos.
+  CREATE TABLE admin_impersonations (
+    id TEXT PRIMARY KEY,
+    admin_id UUID NOT NULL,
+    target_user_id UUID NOT NULL,
+    token_hash TEXT NOT NULL UNIQUE,
+    started_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    ended_at TEXT
+  );
+  -- Registro de acciones de la administración. Sin claves foráneas (sobrevive a cualquier borrado) y sin UPDATE ni DELETE.
+  CREATE TABLE admin_actions (
+    id TEXT PRIMARY KEY,
+    at TEXT NOT NULL,
+    admin_id UUID NOT NULL,
+    target_user_id UUID,
+    action TEXT NOT NULL,
+    detail TEXT NOT NULL DEFAULT '{}'
+  );
+  CREATE INDEX admin_actions_target ON admin_actions(target_user_id, at);
+  CREATE FUNCTION admin_actions_append_only() RETURNS trigger LANGUAGE plpgsql AS $$
+  BEGIN RAISE EXCEPTION 'admin_actions es solo de agregado'; END $$;
+  CREATE TRIGGER admin_actions_no_change BEFORE UPDATE OR DELETE ON admin_actions FOR EACH ROW EXECUTE FUNCTION admin_actions_append_only();
+  ALTER TABLE account_suspensions ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE admin_impersonations ENABLE ROW LEVEL SECURITY;
+  ALTER TABLE admin_actions ENABLE ROW LEVEL SECURITY;
+  `,
 ];
 
 /** Corre las migraciones pendientes, en orden y una sola vez, con un candado para que dos procesos no las corran a la vez (CA-3). */

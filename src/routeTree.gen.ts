@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as ComprobanteRouteImport } from './routes/comprobante'
 import { Route as CrearRouteImport } from './routes/crear'
 import { Route as EjemploRouteImport } from './routes/ejemplo'
@@ -19,6 +20,8 @@ import { Route as PagoDePruebaRouteImport } from './routes/pago-de-prueba'
 import { Route as PanelRouteImport } from './routes/panel'
 import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as TerminosRouteImport } from './routes/terminos'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminUserIdRouteImport } from './routes/admin.$userId'
 import { Route as ClaveIndexRouteImport } from './routes/clave.index'
 import { Route as ClaveNuevaRouteImport } from './routes/clave.nueva'
 import { Route as CrearIndexRouteImport } from './routes/crear.index'
@@ -43,6 +46,11 @@ import { Route as SitioSlugRegalosRouteImport } from './routes/sitio.$slug.regal
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ComprobanteRoute = ComprobanteRouteImport.update({
@@ -89,6 +97,16 @@ const TerminosRoute = TerminosRouteImport.update({
   id: '/terminos',
   path: '/terminos',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUserIdRoute = AdminUserIdRouteImport.update({
+  id: '/$userId',
+  path: '/$userId',
+  getParentRoute: () => AdminRoute,
 } as any)
 const ClaveIndexRoute = ClaveIndexRouteImport.update({
   id: '/clave/',
@@ -193,6 +211,7 @@ const SitioSlugRegalosRoute = SitioSlugRegalosRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/comprobante': typeof ComprobanteRoute
   '/crear': typeof CrearRouteWithChildren
   '/ejemplo': typeof EjemploRouteWithChildren
@@ -202,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/panel': typeof PanelRouteWithChildren
   '/privacidad': typeof PrivacidadRoute
   '/terminos': typeof TerminosRoute
+  '/admin/$userId': typeof AdminUserIdRoute
   '/clave/nueva': typeof ClaveNuevaRoute
   '/crear/cuenta': typeof CrearCuentaRoute
   '/crear/fecha': typeof CrearFechaRoute
@@ -216,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/panel/sitio': typeof PanelSitioRoute
   '/panel/vista-previa': typeof PanelVistaPreviaRoute
   '/sitio/$slug': typeof SitioSlugRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
   '/clave/': typeof ClaveIndexRoute
   '/crear/': typeof CrearIndexRoute
   '/ejemplo/': typeof EjemploIndexRoute
@@ -231,6 +252,7 @@ export interface FileRoutesByTo {
   '/pago-de-prueba': typeof PagoDePruebaRoute
   '/privacidad': typeof PrivacidadRoute
   '/terminos': typeof TerminosRoute
+  '/admin/$userId': typeof AdminUserIdRoute
   '/clave/nueva': typeof ClaveNuevaRoute
   '/crear/cuenta': typeof CrearCuentaRoute
   '/crear/fecha': typeof CrearFechaRoute
@@ -244,6 +266,7 @@ export interface FileRoutesByTo {
   '/panel/regalos': typeof PanelRegalosRoute
   '/panel/sitio': typeof PanelSitioRoute
   '/panel/vista-previa': typeof PanelVistaPreviaRoute
+  '/admin': typeof AdminIndexRoute
   '/clave': typeof ClaveIndexRoute
   '/crear': typeof CrearIndexRoute
   '/ejemplo': typeof EjemploIndexRoute
@@ -254,6 +277,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/comprobante': typeof ComprobanteRoute
   '/crear': typeof CrearRouteWithChildren
   '/ejemplo': typeof EjemploRouteWithChildren
@@ -263,6 +287,7 @@ export interface FileRoutesById {
   '/panel': typeof PanelRouteWithChildren
   '/privacidad': typeof PrivacidadRoute
   '/terminos': typeof TerminosRoute
+  '/admin/$userId': typeof AdminUserIdRoute
   '/clave/nueva': typeof ClaveNuevaRoute
   '/crear/cuenta': typeof CrearCuentaRoute
   '/crear/fecha': typeof CrearFechaRoute
@@ -277,6 +302,7 @@ export interface FileRoutesById {
   '/panel/sitio': typeof PanelSitioRoute
   '/panel/vista-previa': typeof PanelVistaPreviaRoute
   '/sitio/$slug': typeof SitioSlugRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
   '/clave/': typeof ClaveIndexRoute
   '/crear/': typeof CrearIndexRoute
   '/ejemplo/': typeof EjemploIndexRoute
@@ -288,6 +314,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/comprobante'
     | '/crear'
     | '/ejemplo'
@@ -297,6 +324,7 @@ export interface FileRouteTypes {
     | '/panel'
     | '/privacidad'
     | '/terminos'
+    | '/admin/$userId'
     | '/clave/nueva'
     | '/crear/cuenta'
     | '/crear/fecha'
@@ -311,6 +339,7 @@ export interface FileRouteTypes {
     | '/panel/sitio'
     | '/panel/vista-previa'
     | '/sitio/$slug'
+    | '/admin/'
     | '/clave/'
     | '/crear/'
     | '/ejemplo/'
@@ -326,6 +355,7 @@ export interface FileRouteTypes {
     | '/pago-de-prueba'
     | '/privacidad'
     | '/terminos'
+    | '/admin/$userId'
     | '/clave/nueva'
     | '/crear/cuenta'
     | '/crear/fecha'
@@ -339,6 +369,7 @@ export interface FileRouteTypes {
     | '/panel/regalos'
     | '/panel/sitio'
     | '/panel/vista-previa'
+    | '/admin'
     | '/clave'
     | '/crear'
     | '/ejemplo'
@@ -348,6 +379,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
     | '/comprobante'
     | '/crear'
     | '/ejemplo'
@@ -357,6 +389,7 @@ export interface FileRouteTypes {
     | '/panel'
     | '/privacidad'
     | '/terminos'
+    | '/admin/$userId'
     | '/clave/nueva'
     | '/crear/cuenta'
     | '/crear/fecha'
@@ -371,6 +404,7 @@ export interface FileRouteTypes {
     | '/panel/sitio'
     | '/panel/vista-previa'
     | '/sitio/$slug'
+    | '/admin/'
     | '/clave/'
     | '/crear/'
     | '/ejemplo/'
@@ -381,6 +415,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ComprobanteRoute: typeof ComprobanteRoute
   CrearRoute: typeof CrearRouteWithChildren
   EjemploRoute: typeof EjemploRouteWithChildren
@@ -402,6 +437,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/comprobante': {
@@ -466,6 +508,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/terminos'
       preLoaderRoute: typeof TerminosRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/$userId': {
+      id: '/admin/$userId'
+      path: '/$userId'
+      fullPath: '/admin/$userId'
+      preLoaderRoute: typeof AdminUserIdRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/clave/': {
       id: '/clave/'
@@ -610,6 +666,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminUserIdRoute: typeof AdminUserIdRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminUserIdRoute: AdminUserIdRoute,
+  AdminIndexRoute: AdminIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface CrearRouteChildren {
   CrearCuentaRoute: typeof CrearCuentaRoute
   CrearFechaRoute: typeof CrearFechaRoute
@@ -681,6 +749,7 @@ const SitioSlugRouteWithChildren = SitioSlugRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
   ComprobanteRoute: ComprobanteRoute,
   CrearRoute: CrearRouteWithChildren,
   EjemploRoute: EjemploRouteWithChildren,

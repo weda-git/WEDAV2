@@ -5,7 +5,7 @@ import type { ServerConfig } from './config';
 import type { Db } from './db';
 import { newId } from './security';
 
-export type MailKind = 'gift_receipt' | 'receipt_reminder' | 'password_reset' | 'marketing' | 'payout_changed';
+export type MailKind = 'gift_receipt' | 'receipt_reminder' | 'password_reset' | 'marketing' | 'payout_changed' | 'account_notice';
 export type Mail = { to: string; subject: string; text: string; html: string };
 
 const esc = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);

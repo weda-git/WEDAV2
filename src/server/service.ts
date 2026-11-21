@@ -73,6 +73,9 @@ export class Service {
     const email = typeof emailRaw === 'string' ? emailRaw.trim().toLowerCase() : '';
     if (!email || typeof password !== 'string') throw invalid('invalid_credentials');
     if (!this.loginLimiter.take(`${email}|${ipKey}`)) throw new ApiError(429, 'too_many_attempts');
+    // ADM-01: una cuenta suspendida no entra, y se le dice por qué (el registro ya revela si un correo existe).
+    const known = await this.accounts.idByEmail(email);
+    if (known && (await this.isSuspended(known))) throw new ApiError(403, 'account_suspended');
     const r = await this.accounts.signIn(email, password);
     if (!r) throw new ApiError(401, 'invalid_credentials');
     this.loginLimiter.reset(`${email}|${ipKey}`);
@@ -81,7 +84,14 @@ export class Service {
 
   /** La sesión de la cookie. `token` puede ser uno nuevo (se renovó): el que llama reescribe la cookie si `renewed`. */
   async authenticate(token: string | undefined): Promise<Authenticated | null> {
-    return token ? this.accounts.session(token) : null;
+    const a = token ? await this.accounts.session(token) : null;
+    // ADM-01: si quedara abierta alguna sesión de una cuenta suspendida, no vale.
+    return a && (await this.isSuspended(a.userId)) ? null : a;
+  }
+
+  /** ADM-01: la cuenta está suspendida por la administración. */
+  async isSuspended(userId: string): Promise<boolean> {
+    return !!(await this.db.get('SELECT 1 FROM account_suspensions WHERE user_id::text = ?', userId));
   }
 
   async sessionFromToken(token: string | undefined): Promise<Session | null> {
@@ -433,6 +443,18 @@ export class Service {
     });
   }
 
+  /**
+   * ADM-01: vuelve a poner en línea la última versión publicada, sin publicar los cambios del borrador (la administración no publica por la pareja).
+   * Respeta la pausa del trial (BR-64) como cualquier publicación.
+   */
+  async restorePublication(userId: string) {
+    const w = (await this.weddingOf(userId));
+    if (!w) throw notFound();
+    (await this.assertNotPaused(w['id'] as string));
+    const r = (await this.db.run("UPDATE publications SET status='live', updated_at=? WHERE wedding_id=? AND status='taken_down'", now(), w['id'] as string));
+    if (Number(r.changes) === 0) throw conflict('not_taken_down');
+  }
+
   async unpublish(userId: string) {
     const w = (await this.weddingOf(userId));
     if (!w) throw notFound();
@@ -446,6 +468,8 @@ export class Service {
     const row = (await this.db.get('SELECT w.id AS wid, p.snapshot AS snapshot, p.status AS status FROM weddings w JOIN publications p ON p.wedding_id = w.id WHERE w.slug = ?', slug)) as Row | undefined;
     if (!row) throw notFound('site_not_found');
     if (row['status'] !== 'live') throw new ApiError(410, 'site_unpublished');
+    // ADM-01: el sitio de una cuenta suspendida no se ve, pero sigue publicado (reactivar lo devuelve tal cual).
+    if ((await this.db.get('SELECT 1 FROM account_suspensions s JOIN weddings w ON w.owner_id = s.user_id WHERE w.id = ?', row['wid'] as string))) throw new ApiError(410, 'site_unavailable');
     // Sin vencimiento (BR-65): la página, las confirmaciones y los regalos siguen activos mientras esté publicada.
     return { wid: row['wid'] as string, snapshot: JSON.parse(row['snapshot'] as string) as SiteData, status: 'live' };
   }
@@ -462,7 +486,7 @@ export class Service {
     if (!this.searchLimiter.take(`search|${ip}`)) throw new ApiError(429, 'too_many_requests');
     const names = "translate(lower(p.snapshot::jsonb->>'names'), 'áéíóúüñàèìòùäëïö', 'aeiouunaeiouaeio')";
     const where = words.map(() => `${names} LIKE ?`).join(' AND ');
-    const rows = (await this.db.all(`SELECT w.slug AS slug, p.snapshot AS snapshot FROM publications p JOIN weddings w ON w.id = p.wedding_id WHERE p.status = 'live' AND w.slug IS NOT NULL AND ${where} LIMIT 50`, ...words.map(w => `%${w}%`))) as Row[];
+    const rows = (await this.db.all(`SELECT w.slug AS slug, p.snapshot AS snapshot FROM publications p JOIN weddings w ON w.id = p.wedding_id WHERE p.status = 'live' AND w.slug IS NOT NULL AND NOT EXISTS (SELECT 1 FROM account_suspensions s WHERE s.user_id = w.owner_id) AND ${where} LIMIT 50`, ...words.map(w => `%${w}%`))) as Row[];
     const today = Date.now();
     const found = rows.map(r => {
       const site = JSON.parse(r['snapshot'] as string) as SiteData;
