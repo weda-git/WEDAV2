@@ -1914,24 +1914,6 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 .hx-hero h1 { font-size: clamp(30px, 7vw, 44px); }
 .hx-couple { margin: 0 0 4px; font-size: 15px; color: var(--pn-muted); }
 .hx-hero-copy > p:last-child { margin-top: 8px; }
-.hx-steps { border: 0; padding-top: 0; }
-.hx-progress { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px 12px; padding: 18px 18px 0; }
-.hx-progress h2 { margin: 0; font-size: 16px; font-weight: 500; }
-.hx-progress-count { font-size: 13px; color: var(--pn-muted); font-variant-numeric: tabular-nums; }
-.hx-progress-bar { grid-column: 1 / -1; height: 4px; border-radius: 999px; background: rgb(59 60 58 / .1); overflow: hidden; }
-.hx-progress-bar > span { display: block; height: 100%; min-width: 4px; border-radius: inherit; background: var(--rd-ink); transition: width .5s var(--rd-ease); }
-.hx-step-label .is-short { display: none; }
-@media (max-width: 520px) {
-  .hx-step-label .is-long { display: none; }
-  .hx-step-label .is-short { display: inline; }
-  .hx-panel { grid-template-columns: minmax(0, 1fr); }
-  .hx-ico { display: none; }
-  .hx-panel .hx-actions { width: 100%; margin-left: 0; }
-  .hx-actions .pn-btn { flex: 1 1 auto; justify-content: center; }
-}
-.hx-panel.on { animation: rd-in .24s var(--rd-ease) both; }
-.hx-dot { transition: background-color .2s, box-shadow .2s; }
-
 /* Organización: lista liviana (sin cajas con borde), separada por filas. */
 .hm-manage { display: grid; gap: 10px; }
 .hm-manage .hm-head { gap: 2px; }
@@ -1978,3 +1960,55 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 .pn-dialog .pn-actions .pn-btn:not(.is-ghost):not(:disabled) { background: var(--rd-ink, #2f302e); color: #fff; border-color: transparent; }
 .pn-dialog .pn-actions .pn-btn:not(.is-ghost):not(:disabled):hover { background: var(--rd-ink-h, #1f201e); }
 .pn-dialog .pn-btn.is-ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--pn-line-s); border-color: transparent; }
+
+/* Inicio · pasos (rediseño 2026-11-21, desde cero): lista vertical con los tres pasos a la vista. */
+.hs { display: grid; gap: 18px; padding: 20px 16px 8px; border-radius: 24px; background: #f4f3ee; }
+.hs-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 4px; }
+.hs-head h2 { margin: 0; font-size: clamp(19px, 4.6vw, 22px); line-height: 1.2; font-weight: 500; letter-spacing: -.01em; }
+.hs-head p { margin: 4px 0 0; font-size: 14px; color: var(--pn-muted); }
+.hs-ring { flex: none; }
+.hs-ring circle { fill: none; stroke-width: 4; }
+.hs-ring-track { stroke: rgb(59 60 58 / .12); }
+.hs-ring-fill { stroke: var(--rd-ink, #2f302e); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset .6s var(--rd-ease, ease); }
+.hs-ring text { font-size: 12px; font-weight: 500; fill: var(--text-main); font-variant-numeric: tabular-nums; }
+
+.hs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.hs-item { position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: start; gap: 0 14px; padding: 16px 12px; border-radius: 18px; }
+/* Línea que une los pasos. */
+.hs-item:not(:last-child)::after { content: ''; position: absolute; left: 27px; top: 50px; bottom: -14px; width: 2px; border-radius: 2px; background: rgb(59 60 58 / .12); }
+.hs-item.is-done:not(:last-child)::after { background: var(--rd-ink, #2f302e); }
+.hs-mark { position: relative; z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 1.5px rgb(59 60 58 / .22); color: var(--pn-muted); font-size: 14px; font-weight: 500; transition: background-color .25s, color .25s, box-shadow .25s; }
+.hs-item.is-done .hs-mark { background: var(--rd-ink, #2f302e); box-shadow: none; color: #fff; }
+.hs-item.is-current .hs-mark { background: var(--rd-ink, #2f302e); box-shadow: 0 0 0 4px rgb(47 48 46 / .12); color: #fff; }
+.hs-item.is-current.is-goal .hs-mark { background: #959571; box-shadow: 0 0 0 4px rgb(149 149 113 / .22); }
+.hs-body { display: grid; gap: 4px; min-width: 0; padding-top: 5px; }
+.hs-body h3 { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; font-size: 16px; line-height: 1.3; font-weight: 500; }
+.hs-body p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--pn-muted); overflow-wrap: anywhere; }
+.hs-tag { padding: 2px 8px; border-radius: 999px; background: rgb(59 60 58 / .08); font-size: 12px; font-weight: 500; color: var(--text-main); }
+.hs-item.is-next h3 { color: var(--pn-muted); }
+.hs-side { align-self: center; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 4px; font-size: 14px; color: var(--text-main); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgb(59 60 58 / .35); }
+.hs-side:hover { text-decoration-color: currentColor; }
+.hs-item.is-next .hs-side { color: var(--pn-muted); }
+
+/* El paso actual: tarjeta blanca, el resto respira alrededor. */
+.hs-item.is-current { background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .04), 0 8px 24px rgb(59 60 58 / .07); margin: 4px 0; animation: rd-in .3s var(--rd-ease, ease) both; }
+.hs-item.is-current .hs-body h3 { font-size: 18px; }
+.hs-item.is-current .hs-body p { font-size: 15px; color: var(--text-soft, #5b5c58); max-width: 52ch; }
+.hs-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.pn-app .hs-cta { background: var(--rd-ink, #2f302e); color: #fff; border-color: transparent; border-radius: 999px; padding: 0 20px; }
+.pn-app .hs-cta:hover:not(:disabled) { background: var(--rd-ink-h, #1f201e); }
+.pn-app .hs-cta.is-goal { background: #959571; }
+.pn-app .hs-cta.is-goal:hover:not(:disabled) { background: #858562; }
+.hs-actions .pn-btn.is-ghost { border-radius: 999px; }
+@media (max-width: 520px) {
+  .hs { padding: 18px 10px 6px; border-radius: 20px; }
+  .hs-item { padding: 14px 10px; gap: 0 12px; }
+  .hs-item:not(:last-child)::after { left: 25px; }
+  .hs-actions .pn-btn { flex: 1 1 auto; justify-content: center; }
+}
+@media (min-width: 900px) {
+  .hs { padding: 28px 28px 14px; }
+  .hs-item { padding: 18px 18px; }
+  .hs-item:not(:last-child)::after { left: 33px; }
+}
+@media (prefers-reduced-motion: reduce) { .hs-item.is-current { animation: none; } .hs-ring-fill, .hs-mark { transition: none; } }

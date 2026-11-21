@@ -1,126 +1,98 @@
 // Pasos del Inicio: lista de regalos → diseño del sitio → publicación. Cada paso se marca solo, según los datos reales (journey.ts).
-// Diseño de la dueña (2026-10-28): pasos numerados unidos por una línea, el paso elegido con su ícono, texto, botón y una muestra
-// de cómo se ve en la invitación. Los tres paneles se dibujan en la misma celda: el bloque mide siempre lo que el más largo.
-import { useState } from 'react';
+// Rediseño 2026-11-21 (pedido de la dueña: «repensala de cero»): una lista vertical con los tres pasos a la vista, sin pestañas.
+// - El paso actual se destaca: qué falta, en una línea, y un solo botón principal.
+// - Los pasos hechos llevan tilde, «Listo» y un enlace discreto para editarlos.
+// - Los que vienen quedan apagados, con una línea de qué van a pedir.
+// - Publicar es la meta: cuando le toca, usa el verde de la marca; publicada, muestra el enlace.
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Check, Eye, Gift, Globe, Send } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check, Eye } from 'lucide-react';
 import { usePlans } from '@/components/panel/ui';
-import { coupleLabel, photoPosition, resolvePhoto, sitePath } from '@/lib/weda/logic';
+import { sitePath } from '@/lib/weda/logic';
 import { giftsStage, nextAction, siteStage } from '@/lib/weda/journey';
+import { isLive } from '@/lib/weda/payments';
 import { openPreview } from '@/lib/weda/preview-event';
 import { useAppState } from '@/lib/weda/store';
-import type { AppState } from '@/lib/weda/types';
 
 type Key = 'regalos' | 'sitio' | 'publicar';
-type Step = { key: Key; label: string; done: boolean; title: string; text: string; Icon: typeof Gift };
-/** Etiqueta corta de cada paso para el celular (las largas se cortaban en dos renglones). */
-const SHORT: Record<Key, string> = { regalos: 'Regalos', sitio: 'Sitio', publicar: 'Publicar' };
+type Step = { key: Key; title: string; done: boolean; now: string; later: string; doneText: string };
 
-/** Fotos de muestra (del catálogo de Weda) mientras la lista no tiene regalos con foto. */
-const SAMPLE_GIFTS = ['/regalo-cafetera.webp', '/regalo-vajilla.jpg', '/regalo-sabanas.webp'];
-
-/** Muestra de cómo se ve cada paso en la invitación: fotos de la lista, la portada o el link. Es decorativa (el texto ya dice lo mismo). */
-function Sample({ step, s }: { step: Key; s: AppState }) {
-  if (step === 'regalos') {
-    const own = s.gifts.items.map(g => g.image).filter((x): x is string => !!x);
-    const pics = (own.length >= 3 ? own : [...own, ...SAMPLE_GIFTS]).slice(0, 3);
-    return (
-      <figure className="hx-sample is-gifts" aria-hidden="true">
-        <div className="hx-card">
-          <div className="hx-pics">{pics.map((src, i) => <img key={i} src={src} alt="" loading="lazy" decoding="async" />)}</div>
-          <p className="hx-card-cap"><Gift size={13} strokeWidth={1.7} />Nuestra lista de regalos</p>
-        </div>
-      </figure>
-    );
-  }
-  if (step === 'sitio') {
-    return (
-      <figure className="hx-sample is-site" aria-hidden="true">
-        <div className="hx-card">
-          <div className="hx-cover">
-            <img src={resolvePhoto(s.photo)} alt="" style={{ objectPosition: photoPosition(s.photo) }} loading="lazy" decoding="async" />
-            <span>¡Nos casamos!<strong>{coupleLabel(s.couple)}</strong></span>
-          </div>
-        </div>
-      </figure>
-    );
-  }
+/** Anillo de avance: cuántos de los tres pasos están listos. */
+function Ring({ done }: { done: number }) {
+  const r = 20, c = 2 * Math.PI * r;
   return (
-    <figure className="hx-sample is-publish" aria-hidden="true">
-      <div className="hx-card">
-        <p className="hx-link-label">Tu link</p>
-        <p className="hx-link">{sitePath(s)}</p>
-        <p className="hx-card-cap"><Send size={13} strokeWidth={1.7} />Lo compartís cuando publiques</p>
-      </div>
-    </figure>
+    <svg className="hs-ring" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true">
+      <circle cx="24" cy="24" r={r} className="hs-ring-track" />
+      <circle cx="24" cy="24" r={r} className="hs-ring-fill" strokeDasharray={c} strokeDashoffset={c * (1 - done / 3)} />
+      <text x="24" y="28" textAnchor="middle">{done}/3</text>
+    </svg>
   );
 }
 
 export function GetStarted() {
   const s = useAppState();
   const plans = usePlans();
-  const [picked, setPicked] = useState<Key | null>(null);
-
-  const g = giftsStage(s), si = siteStage(s);
+  const g = giftsStage(s), si = siteStage(s), live = isLive(s);
   const next = nextAction(s);
-  const steps: Step[] = [
-    g.status === 'done'
-      ? { key: 'regalos', label: 'Lista de regalos', done: true, title: 'Tu lista de regalos está lista', text: g.detail, Icon: Gift }
-      : { key: 'regalos', label: 'Lista de regalos', done: false, title: s.gifts.items.length === 0 ? 'Armá tu lista de regalos' : 'Dejá lista tu lista de regalos', text: s.gifts.items.length === 0 ? 'Elegí un set completo o los regalos uno por uno. Configurá cómo querés recibirlos.' : g.detail, Icon: Gift },
-    si.status === 'done'
-      ? { key: 'sitio', label: 'Diseño del sitio', done: true, title: 'Tu sitio de casamiento está listo', text: si.detail, Icon: Globe }
-      : { key: 'sitio', label: 'Diseño del sitio', done: false, title: si.status === 'todo' ? 'Diseñá tu sitio de casamiento' : 'Terminá tu sitio de casamiento', text: si.status === 'todo' ? 'Cargá los lugares y horarios y elegí qué mostrar a tus invitados.' : si.detail, Icon: Globe },
-    { key: 'publicar', label: 'Publicación', done: false, title: 'Revisá y publicá', text: 'Mirá cómo queda y elegí qué publicar.', Icon: Send },
-  ];
-  const auto = steps.find(x => !x.done)?.key ?? 'publicar';
-  const active = steps.find(x => x.key === (picked ?? auto)) ?? steps[2]!;
+  const noGifts = s.gifts.items.length === 0;
 
-  const actionFor = (x: Step) => {
+  const steps: Step[] = [
+    { key: 'regalos', title: 'Lista de regalos', done: g.status === 'done',
+      now: noGifts ? 'Elegí un set completo o los regalos uno por uno, y cómo querés recibirlos.' : g.detail,
+      later: 'Los regalos y cómo te llegan.', doneText: g.detail },
+    { key: 'sitio', title: 'Tu invitación', done: si.status === 'done',
+      now: si.status === 'todo' ? 'Cargá lugares y horarios, y elegí las secciones que querés mostrar.' : si.detail,
+      later: 'Lugares, horarios y lo que quieras contar.', doneText: si.detail },
+    { key: 'publicar', title: 'Publicar', done: live,
+      now: 'Mirá cómo queda y elegí si publicás solo la lista de regalos o la invitación completa.',
+      later: 'Tu link para compartir con los invitados.', doneText: `Tu página está en línea: ${sitePath(s)}` },
+  ];
+  const current = steps.find(x => !x.done)?.key ?? null;
+  const doneCount = steps.filter(x => x.done).length;
+
+  const primary = (x: Step) => {
     if (x.key === 'regalos') {
-      const cta = x.done ? 'Editar lista' : s.gifts.items.length === 0 ? 'Armar mi lista' : next.stage === 'regalos' ? next.cta : 'Continuar';
-      return <Link to="/panel/regalos" {...(!x.done && next.stage === 'regalos' && next.search ? { search: next.search as never } : {})} className="pn-btn hx-cta">{cta}<ArrowRight size={16} aria-hidden="true" /></Link>;
+      const cta = noGifts ? 'Armar mi lista' : next.stage === 'regalos' ? next.cta : 'Continuar';
+      return <Link to="/panel/regalos" {...(next.stage === 'regalos' && next.search ? { search: next.search as never } : {})} className="pn-btn hs-cta">{cta}<ArrowRight size={16} aria-hidden="true" /></Link>;
     }
-    if (x.key === 'sitio') return <Link to="/panel/sitio" className="pn-btn hx-cta">{x.done ? 'Editar sitio' : si.status === 'todo' ? 'Diseñar mi sitio' : 'Continuar'}<ArrowRight size={16} aria-hidden="true" /></Link>;
+    if (x.key === 'sitio') return <Link to="/panel/sitio" className="pn-btn hs-cta">{si.status === 'todo' ? 'Diseñar mi invitación' : 'Continuar'}<ArrowRight size={16} aria-hidden="true" /></Link>;
     return (
       <>
-        <button type="button" className="pn-btn hx-cta" onClick={plans.open}>Publicar<ArrowRight size={16} aria-hidden="true" /></button>
+        <button type="button" className="pn-btn hs-cta is-goal" onClick={plans.open}>Publicar<ArrowRight size={16} aria-hidden="true" /></button>
         <button type="button" className="pn-btn is-ghost" onClick={() => openPreview('home')}><Eye size={16} aria-hidden="true" />Vista previa</button>
       </>
     );
   };
+  const side = (x: Step) => {
+    if (x.key === 'publicar') return x.done ? <a className="hs-side" href={sitePath(s)} target="_blank" rel="noreferrer">Ver mi página<ArrowUpRight size={14} aria-hidden="true" /></a> : null;
+    const to = x.key === 'regalos' ? '/panel/regalos' : '/panel/sitio';
+    return <Link to={to} className="hs-side">{x.done ? 'Editar' : 'Ver'}<span className="pn-sr"> {x.title}</span></Link>;
+  };
 
   return (
-    <section className="hx-steps" aria-labelledby="gs-title">
-      <div className="hx-progress">
-        <h2 id="gs-title">Tus pasos</h2>
-        <span className="hx-progress-count">{steps.filter(x => x.done).length} de 3 listos</span>
-        <span className="hx-progress-bar" aria-hidden="true"><span style={{ width: `${(steps.filter(x => x.done).length / 3) * 100}%` }} /></span>
-      </div>
-      <div className="hx-stepper" role="tablist" aria-label="Pasos para armar tu casamiento">
-        {steps.map((x, i) => (
-          <button key={x.key} type="button" role="tab" id={`gs-tab-${x.key}`} aria-selected={x.key === active.key} aria-controls={`gs-panel-${x.key}`} className={`hx-step${x.key === active.key ? ' on' : ''}${x.done ? ' is-done' : ''}`} onClick={() => setPicked(x.key)}>
-            <span className="hx-dot" aria-hidden="true">{x.done && x.key !== active.key ? <Check size={16} strokeWidth={2.4} /> : i + 1}</span>
-            <span className="hx-step-label"><span className="is-long">{x.label}</span><span className="is-short" aria-hidden="true">{SHORT[x.key]}</span>{x.done && <span className="pn-sr"> (completo)</span>}</span>
-          </button>
-        ))}
-      </div>
-      <div className="hx-stack">
+    <section className="hs" aria-labelledby="hs-title">
+      <header className="hs-head">
+        <div>
+          <h2 id="hs-title">Tu casamiento en tres pasos</h2>
+          <p>{doneCount === 3 ? 'Todo listo. Ya podés compartir tu link.' : doneCount === 0 ? 'Empezá por el primero: lo demás se arma solo.' : `${doneCount} de 3 listos. Falta poco.`}</p>
+        </div>
+        <Ring done={doneCount} />
+      </header>
+      <ol className="hs-list">
         {steps.map((x, i) => {
-          const on = x.key === active.key;
+          const state = x.done ? 'is-done' : x.key === current ? 'is-current' : 'is-next';
           return (
-            <div key={x.key} className={`hx-panel is-${x.key}${on ? ' on' : ''}`} id={`gs-panel-${x.key}`} role="tabpanel" aria-labelledby={`gs-tab-${x.key}`} aria-hidden={on ? undefined : true} inert={!on}>
-              <div className="hx-ico" aria-hidden="true"><x.Icon size={56} strokeWidth={1.2} /></div>
-              <div className="hx-copy">
-                <p className="hx-eyebrow">Paso {i + 1} de 3</p>
-                <h3>{x.title}</h3>
-                <p>{x.text}</p>
-                <div className="hx-actions">{actionFor(x)}</div>
+            <li key={x.key} className={`hs-item ${state}${x.key === 'publicar' ? ' is-goal' : ''}`} aria-current={x.key === current ? 'step' : undefined}>
+              <span className="hs-mark" aria-hidden="true">{x.done ? <Check size={15} strokeWidth={2.6} /> : i + 1}</span>
+              <div className="hs-body">
+                <h3>{x.title}{x.done && <span className="hs-tag">Listo</span>}</h3>
+                <p>{x.done ? x.doneText : x.key === current ? x.now : x.later}</p>
+                {x.key === current && <div className="hs-actions">{primary(x)}</div>}
               </div>
-              <Sample step={x.key} s={s} />
-            </div>
+              {x.key !== current && side(x)}
+            </li>
           );
         })}
-      </div>
+      </ol>
     </section>
   );
 }

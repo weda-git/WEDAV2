@@ -284,3 +284,26 @@ Enlace «Ir al contenido», `aria-current` en la navegación, `aria-live` en avi
 - **Alineación:** todo a la izquierda, también en el celular. Ahí las columnas van de a dos.
 - Se sacaron «Sitio del casamiento», «Confirmación de asistencia» y «Ver ejemplo» hasta que lleven a una página propia.
 - No tiene newsletter: Weda no tiene uno.
+
+### Panel · rediseño (2026-11-21)
+Capa final de `src/panel.css` («Rediseño del panel»), mobile-first. La landing no cambia.
+- **Acciones:**
+  - Una sola acción principal por pantalla, oscura y llena (`--rd-ink`): la del encabezado de cada sección, la del paso actual del Inicio, «Listo» al editar una sección, la que confirma en un diálogo y `.pn-btn.is-primary` cuando algo falta hacer (configurar el cobro).
+  - Las secundarias van con borde y sin relleno (`.is-ghost`, «Agregar» de las secciones).
+  - «Publicar» arriba conserva su verde claro con texto oscuro: es el único botón de ese color.
+- **Aviso de prueba:** una línea liviana con un punto verde. La fecha exacta se ve solo desde 900 px.
+- **Encabezados:** el mismo título (28 a 34 px) y el mismo aire. En el celular, las dos acciones van lado a lado, con la principal primero.
+- **Inicio:**
+  - «Tu casamiento en tres pasos» (repensado desde cero): lista vertical con los tres pasos a la vista y un anillo de avance «x/3»;
+  - el paso actual va en una tarjeta blanca, con una línea de qué falta y un solo botón; los hechos llevan tilde, «Listo» y «Editar»; los que vienen quedan apagados;
+  - «Publicar» usa el verde de la marca cuando le toca, y publicada muestra «Ver mi página»;
+  - sin los accesos que repetían los pasos 2 y 3;
+  - «Organización» (invitados y mesas) como lista liviana.
+- **Menos cajas:** los números de invitados van en una sola superficie.
+- **Movimiento:**
+  - cada sección entra subiendo apenas (0,28 s);
+  - los botones responden al tocar (escala 0,98);
+  - el anillo de avance se anima;
+  - la vista en vivo muestra un brillo suave mientras carga.
+  
+  Todo se apaga con «reducir movimiento».

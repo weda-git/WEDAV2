@@ -109,7 +109,7 @@ test.describe('Fecha y lugar opcionales: qué pasa en cada pantalla que los usa'
   test('sin fecha ni lugar: portada del panel, editor, vista previa, sitio público y publicación lo dicen sin romperse; al definirlos todo se actualiza', async ({ page }) => {
     await onboard(page, 'Lucía', 'Violeta');
     // Inicio: el banner muestra solo los pasos, sin nombres ni fecha.
-    await expect(page.getByRole('region', { name: /Tus pasos/ })).not.toContainText('Fecha por definir');
+    await expect(page.getByRole('region', { name: /tres pasos/ })).not.toContainText('Fecha por definir');
     // El siguiente paso no depende de la fecha ni del lugar.
     await expect(page.getByRole('heading', { name: 'Armá tu lista de regalos' })).toBeVisible();
     // Editor: la portada marca la fecha como pendiente y los eventos no inventan un lugar.
