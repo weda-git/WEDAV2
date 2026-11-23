@@ -2016,3 +2016,76 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 /* Inicio sin foto: el encabezado es solo texto y los pasos arrancan con aire propio. */
 .hx-hero { grid-template-columns: minmax(0, 1fr) !important; }
 .hx-hero-photo { display: none !important; }
+
+/* =========================================================================
+   Vidrio (2026-11-21, referencia de la dueña): fondo cálido con los tonos de Weda y paneles translúcidos y desenfocados.
+   - Compu: menú y contenido como dos paneles flotantes; el logo en la misma fila (y altura) que «Vista previa» y «Publicar».
+   - Celular: barra de arriba y barra de abajo de vidrio sobre el mismo fondo.
+   - «Publicar» en verde Weda fuerte, con texto blanco (contraste ≥ 4,5:1).
+   ========================================================================= */
+.pn-app {
+  --gl-bg: linear-gradient(160deg, #f3eee4 0%, #ece9dc 38%, #e3e4d3 70%, #f1ece2 100%);
+  --gl-panel: rgb(255 255 255 / .62); --gl-panel-strong: rgb(255 255 255 / .8); --gl-edge: rgb(255 255 255 / .7);
+  --gl-shadow: 0 1px 2px rgb(59 60 58 / .04), 0 18px 48px rgb(80 76 56 / .1);
+  --gl-blur: blur(22px) saturate(1.35);
+  --weda-green: #747453; --weda-green-h: #646446;
+}
+body:has(.pn-app) { background: #f1ede3; }
+.pn-app { background: var(--gl-bg) fixed; }
+.pn-app::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(60% 50% at 85% 10%, rgb(149 149 113 / .22), transparent 70%), radial-gradient(50% 45% at 10% 95%, rgb(214 190 150 / .25), transparent 70%); }
+
+/* «Publicar»: verde Weda fuerte, el que más se ve arriba a la derecha. */
+.pn-app .pn-top .pn-btn.pn-publish-btn { background: var(--weda-green); color: #fff; font-weight: 600; box-shadow: 0 6px 18px rgb(116 116 83 / .35), inset 0 1px 0 rgb(255 255 255 / .18); }
+.pn-app .pn-top .pn-btn.pn-publish-btn:hover:not(:disabled) { background: var(--weda-green-h); }
+.pn-app .pn-top .pn-preview-btn { background: var(--gl-panel-strong); box-shadow: inset 0 0 0 1px var(--gl-edge), 0 1px 2px rgb(59 60 58 / .05); }
+
+/* Celular: barra de arriba y de abajo de vidrio. */
+@media (max-width: 1023px) {
+  .pn-top { position: sticky; top: 0; z-index: 25; background: rgb(246 243 236 / .72); -webkit-backdrop-filter: var(--gl-blur); backdrop-filter: var(--gl-blur); border-bottom: 1px solid rgb(255 255 255 / .6); }
+  .pn-side { background: rgb(250 248 243 / .78); -webkit-backdrop-filter: var(--gl-blur); backdrop-filter: var(--gl-blur); border-top: 1px solid rgb(255 255 255 / .7); box-shadow: 0 -8px 24px rgb(80 76 56 / .06); }
+  .pn-nav-link[aria-current='page'] { background: rgb(255 255 255 / .7); }
+}
+
+/* Compu: dos paneles flotantes y una fila de arriba común. */
+@media (min-width: 1024px) {
+  body:has(.pn-app) { background: #f1ede3; }
+  .pn-app { grid-template-columns: 256px minmax(0, 1fr); grid-template-rows: 72px 1fr; column-gap: 14px; padding: 14px 14px 0 14px; background: var(--gl-bg) fixed; }
+  .pn-app[data-side='collapsed'] { grid-template-columns: 76px minmax(0, 1fr); }
+  .pn-side { grid-column: 1; grid-row: 1 / 3; position: sticky; top: 14px; align-self: start; height: calc(100svh - 28px); box-sizing: border-box;
+    padding: 0 14px 18px; border: 1px solid var(--gl-edge); border-radius: 26px; background: var(--gl-panel); box-shadow: var(--gl-shadow);
+    -webkit-backdrop-filter: var(--gl-blur); backdrop-filter: var(--gl-blur); }
+  /* El logo ocupa la misma fila de 72 px que la barra de arriba: queda a la misma altura que «Vista previa» y «Publicar». */
+  .pn-side-top { height: 72px; margin: 0 0 12px; padding: 0 2px; }
+  .pn-top { grid-column: 2; grid-row: 1; height: 72px; padding: 0 6px 0 28px; border-bottom: 0; background: transparent; }
+  .pn-main { grid-column: 2; grid-row: 2; align-self: start; min-height: calc(100svh - 100px); margin: 0 0 14px; padding: 36px 40px 64px; box-sizing: border-box;
+    border: 1px solid var(--gl-edge); border-radius: 28px; background: var(--gl-panel-strong); box-shadow: var(--gl-shadow);
+    -webkit-backdrop-filter: var(--gl-blur); backdrop-filter: var(--gl-blur); }
+  .pn-nav-link:hover { background: rgb(255 255 255 / .6); }
+  .pn-nav-link[aria-current='page'] { background: #fff; box-shadow: 0 1px 2px rgb(59 60 58 / .06), 0 4px 12px rgb(80 76 56 / .06); }
+  .pn-profile { background: rgb(255 255 255 / .5); border-color: var(--gl-edge); }
+}
+
+/* Inicio · pasos sobre vidrio. El paso actual en verde Weda fuerte: resalta y lleva a su sección. */
+.hs { background: rgb(255 255 255 / .45); box-shadow: inset 0 0 0 1px var(--gl-edge, rgb(255 255 255 / .7)); }
+.hs-item { transition: background-color .5s var(--rd-ease, ease), box-shadow .5s, color .3s; }
+.hs-item.is-current { background: linear-gradient(135deg, #6c6c4d 0%, #84845f 60%, #959571 100%); color: #fff; box-shadow: 0 10px 30px rgb(108 108 77 / .32); }
+.hs-item.is-current .hs-body h3, .hs-item.is-current .hs-body p { color: #fff; }
+.hs-item.is-current .hs-body p { color: rgb(255 255 255 / .86); }
+.hs-item.is-current .hs-mark, .hs-item.is-current.is-goal .hs-mark { background: #fff; color: #5f5f42; box-shadow: 0 0 0 4px rgb(255 255 255 / .22); }
+.pn-app .hs-item.is-current .hs-cta, .pn-app .hs-item.is-current .hs-cta.is-goal { background: #fff; color: #4f4f37; box-shadow: 0 2px 8px rgb(0 0 0 / .12); }
+.pn-app .hs-item.is-current .hs-cta:hover:not(:disabled) { background: #f6f4ec; }
+.pn-app .hs-item.is-current .hs-actions .pn-btn.is-ghost { background: transparent; color: #fff; box-shadow: inset 0 0 0 1px rgb(255 255 255 / .6); }
+.pn-app .hs-item.is-current .hs-actions .pn-btn.is-ghost:hover:not(:disabled) { background: rgb(255 255 255 / .12); }
+.hs-item.is-current .hs-cta svg { transition: transform .2s var(--rd-ease, ease); }
+/* Toda la tarjeta lleva a la sección (el botón se estira por debajo); al pasar, la flecha avanza. */
+.hs-item.is-current:not(.is-goal) .hs-cta::after { content: ''; position: absolute; inset: 0; border-radius: 18px; }
+.hs-item.is-current:not(.is-goal) { cursor: pointer; }
+.hs-item.is-current:not(.is-goal):hover { box-shadow: 0 14px 36px rgb(108 108 77 / .4); transform: translateY(-1px); }
+.hs-item.is-current:hover .hs-cta svg { transform: translateX(3px); }
+/* La línea que une los pasos, en verde cuando ya pasaste. */
+.hs-item.is-done:not(:last-child)::after { background: #84845f; }
+.hs-item.is-done .hs-mark { background: #84845f; }
+@media (prefers-reduced-motion: reduce) { .hs-item, .hs-item.is-current .hs-cta svg { transition: none; } .hs-item.is-current:hover { transform: none; } }
+/* Mientras carga, el mismo fondo cálido del vidrio: sin salto de blanco a color. */
+.pn-root-wait { background: linear-gradient(160deg, #f3eee4 0%, #ece9dc 38%, #e3e4d3 70%, #f1ece2 100%); }

@@ -217,7 +217,7 @@ function PanelLayout() {
     return () => window.removeEventListener('beforeunload', warn);
   }, []);
 
-  if (!hydrated || !remote.settled || !remote.user || !onboarded) return <div className="pn-root"><p className="pn-loading" role="status">Cargando tu evento…</p></div>;
+  if (!hydrated || !remote.settled || !remote.user || !onboarded) return <div className="pn-root pn-root-wait"><p className="pn-loading" role="status">Cargando tu evento…</p></div>;
 
   return (
     <ToastProvider>
