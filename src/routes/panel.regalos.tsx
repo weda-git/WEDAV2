@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { Banknote, Check, ChevronRight, Copy, Eye, Gift as GiftIcon, ImagePlus, Package, Pencil, Plus, X } from 'lucide-react';
+import { Banknote, Check, ChevronRight, Copy, Eye, Gift as GiftIcon, ImagePlus, Landmark, Package, Pencil, Plus, X } from 'lucide-react';
 import { Field, OperationNotice, useToast } from '@/components/panel/ui';
 import { PayoutForm } from '@/components/panel/payout-form';
 import { centerChild, useScrollFade } from '@/components/panel/scroll-row';
@@ -85,7 +85,7 @@ function GiftForm({ initial, submitLabel, onSubmit, onCancel }: { initial?: List
 /* Foto de cada set (de las imágenes que ya usa el catálogo). */
 const SET_COVER: Record<string, string> = {
   'luna-de-miel': '/lm-santorini.webp', hogar: '/lista-de-regalos-lampara.jpg', experiencias: '/lm-globo.webp?v=2',
-  proyectos: '/regalo-casa.jpg', 'primer-hogar': '/lista-de-regalos-olla.jpg', escapada: '/regalo-cena-mar.webp',
+  proyectos: '/regalo-casa.jpg', 'primer-hogar': '/lista-de-regalos-olla.jpg', escapada: '/regalo-cena-mar.webp', 'gift-cards': '/gift-card-pack.svg',
 };
 
 /* Tarjeta única de regalo (gift-card.css): foto, nombre, monto siempre visible y una sola acción. «En tu lista»: tilde sobre la foto. */
@@ -116,13 +116,19 @@ function FreeFace() {
 }
 const freePrice = (min: number | null) => (min ? <>Desde {formatARS(min)}</> : <>Monto libre</>);
 
-/** Aviso corto de que falta el alias (en «Mis regalos» y en el catálogo). Sin el alias, los invitados no saben a dónde transferir. */
-function AliasNudge({ onGo }: { onGo: () => void }) {
+/** Desde cuántos regalos en la lista aparece el aviso del alias: antes es pronto (la pareja recién está eligiendo). */
+const ALIAS_NUDGE_FROM = 3;
+/** Banner del alias (2026-11-23): aparece cuando la lista ya tiene varios regalos y todavía no hay alias. Sin el alias los invitados no saben a dónde transferir. */
+function AliasNudge({ count, onGo }: { count: number; onGo: () => void }) {
   return (
-    <div className="rg-nudge" role="status">
-      <span><strong>Falta tu alias</strong> para recibir los regalos.</span>
-      <button type="button" className="pn-btn is-small is-primary" onClick={onGo}>Configurar<ChevronRight size={15} aria-hidden="true" /></button>
-    </div>
+    <section className="rg-alias-banner" aria-labelledby="rg-alias-title">
+      <span className="rg-alias-ico" aria-hidden="true"><Landmark size={22} strokeWidth={1.6} /></span>
+      <div className="rg-alias-copy">
+        <h2 id="rg-alias-title">Ya elegiste {count} regalos</h2>
+        <p>Cargá tu alias para que tus invitados sepan a dónde transferir.</p>
+      </div>
+      <button type="button" className="pn-btn rg-alias-cta" onClick={onGo}>Cargar alias<ChevronRight size={16} aria-hidden="true" /></button>
+    </section>
   );
 }
 
@@ -172,8 +178,8 @@ function BankFields({ bank, cbu, alias }: { bank: string; cbu: string; alias: st
   );
 }
 
-/* Aporte libre (GIFT-09, D6) como tarjeta tipo gift card (2026-11-23): se agrega o se quita como cualquier regalo, y su único dato es el
-   monto mínimo (opcional). Se guarda solo, como el resto del borrador. El mínimo inválido no se guarda (queda el último válido). */
+/* Aporte libre (GIFT-09, D6). Desde el 2026-11-23 ya no se ofrece en el panel (lo reemplazan las gift cards del catálogo): si una pareja
+   ya lo tenía activado, su tarjeta sigue en «Mis regalos» para poder editar el mínimo o quitarlo. El mínimo inválido no se guarda. */
 const saveFree = (patch: Partial<{ enabled: boolean; min: number | null }>) => update(x => ({ ...x, gifts: { ...x.gifts, freeAmount: { ...x.gifts.freeAmount, ...patch } } }));
 function FreeAmountDialog({ min, onClose }: { min: number | null; onClose: () => void }) {
   const [raw, setRaw] = useState(min ? String(min) : '');
@@ -430,7 +436,7 @@ function GiftsModule() {
       <div id="pn-tabpanel" role="tabpanel" aria-labelledby={`tab-${tab}`} className="pn-tabpanel">
         {tab === 'lista' && (
           <>
-          {items.length > 0 && !alias && <AliasNudge onGo={() => setTab('cobro')} />}
+          {items.length >= ALIAS_NUDGE_FROM && !alias && <AliasNudge count={items.length} onGo={() => setTab('cobro')} />}
           {items.length === 0 ? (
             <div className="pn-empty is-centered">
               <span className="pn-empty-ico" aria-hidden="true"><GiftIcon size={22} strokeWidth={1.6} /></span>
@@ -488,7 +494,6 @@ function GiftsModule() {
 
         {tab === 'agregar' && (
           <div className="rg-catalog">
-            {!alias && <AliasNudge onGo={() => setTab('cobro')} />}
             <div className="rg-section-head">
               <div><h2>Catálogo sugerido y packs</h2><p className="pn-muted">Elegí packs curados completos o agregá regalos individuales a tu lista.</p></div>
               <div className="pn-switch is-small" role="group" aria-label="Qué querés ver">
@@ -531,13 +536,6 @@ function GiftsModule() {
                         <span className="pn-owndot" aria-hidden="true"><Plus size={28} strokeWidth={1.6} /></span>
                         <strong>Crear regalo</strong>
                       </button>
-                    </li>
-                    <li className={`pn-gcard gc gc-free${free.enabled ? ' is-in' : ''}`}>
-                      <div className="pn-gphoto gc-photo"><FreeFace />{free.enabled && <span className="gc-check" aria-hidden="true"><Check size={16} strokeWidth={2.5} /></span>}<span className="gc-price">{freePrice(free.min)}</span></div>
-                      <h3 className="gc-name">Aporte libre</h3>
-                      {free.enabled
-                        ? <button type="button" className="pn-btn is-small is-ghost gc-action" onClick={() => toggleFree(false)} aria-label="Quitar el aporte libre de tu lista"><Check size={15} aria-hidden="true" />En tu lista</button>
-                        : <button type="button" className="pn-btn is-small gc-action" onClick={() => toggleFree(true)} aria-label="Agregar el aporte libre a tu lista"><Plus size={15} aria-hidden="true" />Agregar</button>}
                     </li>
                     {catalog.map(g => <CatalogCard key={g.id} gift={g} inList={hasCatalogGift(s, g.id)} onAdd={() => addOne(g.id)} onRemove={() => rmCatalog(g.id)} />)}
                   </ul>

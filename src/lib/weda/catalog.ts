@@ -1,5 +1,5 @@
 // Colecciones ("sets") de regalos simbólicos. Salen del catálogo que ya existe en la demo (src/lib/demo-wedding.ts):
-// se reutilizan sus cuatro categorías y se suman dos selecciones armadas con regalos del mismo catálogo.
+// se reutilizan sus categorías (con las gift cards, desde el 2026-11-23) y se suman dos selecciones armadas con regalos del mismo catálogo.
 import { categories, gifts, type Category, type Gift } from '@/lib/demo-wedding';
 
 export type GiftSet = { id: string; name: string; description: string; giftIds: string[] };
@@ -13,6 +13,7 @@ export const SETS: GiftSet[] = [
   { id: 'proyectos', name: 'Proyectos futuros', description: 'Aportes para lo que viene después.', giftIds: byCategory('Proyectos futuros') },
   { id: 'primer-hogar', name: 'Para el primer hogar', description: 'Lo básico para la cocina y la casa.', giftIds: ['ollas', 'vajilla', 'cafetera', 'sabanas', 'lampara'] },
   { id: 'escapada', name: 'Escapada de a dos', description: 'Una escapada corta, con noche incluida.', giftIds: ['excursion', 'cena-mar', 'masajes', 'boutique'] },
+  { id: 'gift-cards', name: 'Gift cards', description: 'Montos fijos para que los usen en lo que quieran.', giftIds: byCategory('Gift cards') },
 ];
 
 export const catalogGift = (id: string): Gift | undefined => gifts.find(g => g.id === id);
