@@ -307,3 +307,17 @@ Capa final de `src/panel.css` («Rediseño del panel»), mobile-first. La landin
   - la vista en vivo muestra un brillo suave mientras carga.
   
   Todo se apaga con «reducir movimiento».
+
+### Panel · vidrio (2026-11-21)
+Capa «Vidrio» al final de `src/panel.css`, sobre el rediseño. Referencia: un dashboard con paneles translúcidos que mandó la dueña.
+- **Fondo:** degradé cálido (`--gl-bg`, arena a verde suave) con dos manchas de color difusas. También se ve mientras carga (`.pn-root-wait`).
+- **Compu:**
+  - el menú y el contenido son paneles flotantes translúcidos (`--gl-panel`, `--gl-panel-strong`), con desenfoque (`--gl-blur`), borde claro y esquinas de 26 a 28 px;
+  - el logo ocupa la misma fila de 72 px que «Vista previa» y «Publicar».
+- **Celular:** las barras de arriba y de abajo son de vidrio.
+- **«Publicar»:** verde Weda fuerte (`--weda-green` #747453, texto blanco; contraste ≥ 4,5:1), con una sombra verde suave.
+- **Inicio:**
+  - el paso actual va en un degradé verde Weda con texto blanco y el botón en blanco;
+  - toda la tarjeta lleva a su sección (el botón se estira por debajo);
+  - el verde pasa suave al paso siguiente cuando completás uno;
+  - los pasos hechos llevan la línea y el tilde en verde.

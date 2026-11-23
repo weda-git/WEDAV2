@@ -1,4 +1,4 @@
-import { expect, fillNamesAndContinue, openPreview, PNG_1PX, previewFrame, previewText, skipDateAndPlace, stored, test } from './helpers';
+import { expect, fillNamesAndContinue, onboard, openPreview, PNG_1PX, previewFrame, previewText, skipDateAndPlace, stored, test } from './helpers';
 
 /** Alta del evento hasta el paso de la foto (/crear/foto). */
 async function untilPhotoStep(page: import('@playwright/test').Page) {
@@ -97,3 +97,16 @@ test.describe('Onboarding: foto de la pareja', () => {
     await page.waitForURL(/\/crear$/);
   });
 });
+
+test.describe('Perfil: foto de portada', () => {
+  test('la foto se guarda al elegirla, sin tocar «Guardar» (2026-11-23)', async ({ page }) => {
+    await onboard(page);
+    await page.goto('/panel/perfil', { waitUntil: 'networkidle' });
+    await page.setInputFiles('.pn-couple-photo input[type=file]', { name: 'nosotras.png', mimeType: 'image/png', buffer: PNG_1PX });
+    await expect(page.getByText('Foto guardada.')).toBeVisible();
+    await expect.poll(async () => (await stored(page)).photo.kind).toBe('upload');
+    // Se guarda en la cuenta: al recargar, sigue ahí.
+    await expect.poll(async () => page.evaluate(async () => (await (await fetch('/api/wedding')).json()).draft.photo.kind), { timeout: 15000 }).toBe('upload');
+  });
+});
+
