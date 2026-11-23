@@ -398,7 +398,7 @@ Reemplaza el banner «Primeros pasos» y las secciones «Lo que vas a publicar»
 Detalle completo en [auditoria-ux-conversion/](auditoria-ux-conversion/README.md). Cambios de flujo:
 - **Publicar exige cuenta.** Sin cuenta, la revisión dice «Para publicar necesitás una cuenta…» y el botón es «Crear cuenta para publicar». Una publicación guardada solo en el navegador no se muestra como «Publicada».
 - **Sin pago simulado.** No hay proveedor de pagos: la revisión muestra «Precio» y el botón «Publicar». Nunca «Pagar», «Pagaste» ni «Total pagado» hasta que exista un pago confirmado por el proveedor.
-- **«Publicar los cambios»** en «Tu publicación»: la página pública es una copia del momento de publicar; este botón la actualiza con el mismo link.
+- **«Actualizar mi página»** en «Tu publicación»: la página pública es una copia del momento de publicar; este botón la actualiza con el mismo link.
 - **Registro sin Google ni Apple** (no hay OAuth).
 - **`/encontrar`:** pegar el link de la invitación; ya no hay parejas inventadas.
 - **Perfil sin cuenta:** solo la invitación a crearla (no hay clave que cambiar).
@@ -463,14 +463,14 @@ Reemplaza, para quien tiene cuenta, el supuesto de «Perfil (2026-10-21)» (la c
 
 ## Aviso de «cambios sin publicar» (2026-10-31, implementación de DASH-04 / NE-03)
 - **Quién lo decide:** el servidor. Al guardar el borrador y al abrir el panel compara la página que publicaría ahora con la que está publicada (`pendingChanges`). Solo cuenta lo que ve un invitado: cambiar la lista de invitados no genera aviso; cambiar textos, fotos, regalos o el plan, sí.
-- **Arriba a la derecha:** con la página publicada y cambios pendientes, el botón «Publicada» pasa a decir «Publicar cambios» y abre «Tu publicación». Al publicar vuelve a «Publicada».
-- **En «Tu publicación»:** el estado dice «Publicada, con cambios sin publicar» y un texto explica que la página todavía muestra la versión anterior, con el botón «Publicar los cambios». Si está al día dice «Tu página ya muestra todo lo que guardaste» y no ofrece volver a publicar lo mismo. Mientras no llegó el dato del servidor, se mantiene el texto y el botón anteriores, sin afirmar nada.
+- **Arriba a la derecha:** sin publicar, el botón es la acción «Publicar» (verde). Publicada, pasa a ser el **estado** de la página: «● Publicada» (o «● Despublicada»), en vidrio claro; con cambios que los invitados todavía no ven suma un puntito. Nunca dice «Publicar cambios» (decisión de la dueña, 2026-11-23). Al tocarlo abre «Tu publicación».
+- **En «Tu publicación»:** el estado dice «Publicada, con cambios para actualizar», un texto explica que los invitados todavía no ven los cambios y el botón verde «Actualizar mi página» los publica con el mismo link.
 - **Supuesto:** con la página dada de baja no hay aviso; «Volver a publicar» ya publica lo último guardado.
 
 ## Datos de cobro protegidos (2026-10-31, GIFT-14 / BR-30 nivel base; decisiones D1–D8 aprobadas por la dueña en el plan)
 - **Con cuenta**, en Regalos → Datos de cobro: «Cambiar» (o «Configurar» la primera vez) abre dos pasos. Primero el alias (obligatorio en el formulario), el banco y el CBU (opcionales), validados antes de seguir. Después, la confirmación: «Antes» enmascarado (`an•••mp`) y «Ahora» completo, para revisar que no haya errores de tipeo; la clave actual y «Confirmar cambio». La primera carga (todavía no había datos) solo pide revisar y «Confirmar», **sin clave** (decisión de la dueña, 2026-11-06: no hay nada que desviar y era fricción); el correo de aviso sale igual.
 - **Errores:** si la clave es incorrecta, se avisa en el campo y se vacía. En un aviso aparte: los mismos datos que ya estaban, que cambiaron desde otro dispositivo (hay que recargar) o más de 3 cambios en el día.
-- **Al guardar:** el aviso dice «Tus invitados los ven cuando publiques los cambios» (la página pública es una copia, PUB-04) y llega un correo al dueño con los datos enmascarados y «Cambiar mi clave». Si la página ya está publicada, se enciende «Publicar cambios» (DASH-04). Un alias que llegue dentro del borrador no lo enciende, porque se descarta.
+- **Al guardar:** el aviso dice «Tus invitados los ven cuando actualices tu página» (la página pública es una copia, PUB-04) y llega un correo al dueño con los datos enmascarados y «Cambiar mi clave». Si la página ya está publicada, se enciende «Publicar cambios» (DASH-04). Un alias que llegue dentro del borrador no lo enciende, porque se descarta.
 - **Sin cuenta:** ya no se puede cargar nada (2026-11-06): el panel y el armado del casamiento piden cuenta, y al ingresar se abre solo lo guardado en la cuenta, sin mezclar borradores del navegador.
 - **Cambio respecto del plan aprobado:** en la confirmación, el destino **nuevo** se muestra completo (no enmascarado), porque la persona lo acaba de escribir en la pantalla anterior y así puede detectar errores de tipeo. El anterior y el correo sí van enmascarados.
 

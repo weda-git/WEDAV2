@@ -89,21 +89,27 @@ function PreviewDialog({ req, onClose }: { req: PreviewRequest; onClose: () => v
   );
 }
 
-/* «Publicar» abre el diálogo de publicación (los tres productos). Está siempre a mano: arriba a la derecha junto a «Vista previa» y en el menú. */
-function PublishButton({ className, children }: { className: string; children: React.ReactNode }) {
+/* Arriba a la derecha, junto a «Vista previa». Sin publicar es la acción «Publicar» (verde). Publicada pasa a ser el ESTADO de la página
+   («● Publicada» o «● Despublicada»), y al tocarlo abre «Tu publicación», donde se controla: ver, copiar el link, actualizarla o bajarla.
+   Con cambios guardados que la página todavía no muestra (lo dice el servidor), el estado suma un puntito; nunca dice «Publicar cambios»
+   (decisión de la dueña, 2026-11-23). */
+function PublishButton() {
   const plans = usePlans();
-  return <button type="button" className={className} onClick={plans.open}>{children}</button>;
-}
-
-function PublishLabel() {
   const state = useAppState();
   const remote = useRemote();
   const online = !!remote.user;
   const live = isLive(state) && online;
   const down = online && !!state.publication && !live;
-  // Con cambios guardados que la página pública todavía no muestra (lo dice el servidor), el botón invita a publicarlos.
   const pending = live && remote.publication?.pendingChanges === true;
-  return <><Heart size={16} aria-hidden="true" /><span>{pending ? 'Publicar cambios' : live ? 'Publicada' : down ? 'Despublicada' : 'Publicar'}</span></>;
+  if (!live && !down) return <button type="button" className="pn-btn pn-publish-btn" onClick={plans.open}><Heart size={16} aria-hidden="true" /><span>Publicar</span></button>;
+  const label = live ? 'Publicada' : 'Despublicada';
+  return (
+    <button type="button" className={`pn-btn pn-publish-btn is-status${live ? ' is-live' : ' is-down'}`} onClick={plans.open}
+      aria-label={pending ? `${label}: hay cambios que tus invitados todavía no ven` : label}>
+      <span className="pn-status-dot" aria-hidden="true" /><span>{label}</span>
+      {pending && <span className="pn-status-badge" aria-hidden="true" />}
+    </button>
+  );
 }
 
 /* Ayuda: preguntas frecuentes (cada respuesta se abre al tocar la pregunta) y el correo de consultas. Precios y duración salen de `plans.ts`.
@@ -117,7 +123,7 @@ function HelpDialog({ onClose }: { onClose: () => void }) {
     ['¿Cómo comparto la invitación?', 'Al publicar se genera el link de tu página. Lo podés mandar a todos tus contactos.'],
     ['¿Cómo recibo los regalos?', 'Cargás el alias de tu cuenta en Regalos → Datos de cobro. Tus invitados eligen un regalo, te transfieren directo a esa cuenta y adjuntan el comprobante. No hay comisión: el dinero va directo a tu banco y podés validar cada regalo con su comprobante.'],
     ['¿Dónde veo los regalos que recibí?', 'En Regalos → Aportes recibidos: quién te hizo el regalo, qué regalos eligió (puede ser más de uno), el monto, la fecha y el comprobante.'],
-    ['¿Puedo editar la invitación después de publicarla?', 'Sí, cuando quieras. Lo que cambies se ve en tu página cuando tocás «Publicar los cambios».'],
+    ['¿Puedo editar la invitación después de publicarla?', 'Sí, cuando quieras. Lo que cambies se ve en tu página cuando la actualizás: tocá «Publicada», arriba a la derecha, y después «Actualizar mi página».'],
     ['¿Cuánto tiempo queda online la página?', 'No vence: es un pago único, sin renovaciones. Tu página y tu link siguen activos y la podés seguir usando.'],
   ];
   return (
@@ -230,7 +236,7 @@ function PanelLayout() {
           <Profile compact />
           <div className="pn-top-actions">
             {!onPreview && <button type="button" className="pn-btn is-ghost pn-preview-btn" onClick={() => openPreview(onGifts ? 'gifts' : 'home')}><Eye size={16} aria-hidden="true" /><span>Vista previa</span></button>}
-            <PublishButton className="pn-btn pn-publish-btn"><PublishLabel /></PublishButton>
+            <PublishButton />
           </div>
         </header>
 

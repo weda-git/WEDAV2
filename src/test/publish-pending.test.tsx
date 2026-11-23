@@ -22,13 +22,13 @@ beforeEach(() => {
 afterEach(() => { cleanup(); remote.publish.mockReset(); });
 
 describe('aviso de cambios sin publicar en «Tu publicación»', () => {
-  it('con cambios: lo dice y ofrece publicarlos', async () => {
+  it('con cambios: lo dice y ofrece actualizar la página', async () => {
     remote.state.publication = publication(true);
     remote.publish.mockImplementation(async () => { remote.state.publication = publication(false); return { ok: true, slug: 'ana-y-leo' }; });
     render(<PublishDialog open onClose={() => {}} />);
-    expect(screen.getByText('Publicada, con cambios sin publicar')).toBeInTheDocument();
-    expect(screen.getByText(/Tenés cambios guardados que todavía no se ven en tu página/)).toBeInTheDocument();
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Publicar los cambios' })); });
+    expect(screen.getByText('Publicada, con cambios para actualizar')).toBeInTheDocument();
+    expect(screen.getByText(/Tenés cambios que tus invitados todavía no ven/)).toBeInTheDocument();
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Actualizar mi página' })); });
     await waitFor(() => expect(screen.getByText('Listo: tu página ya muestra los cambios.')).toBeInTheDocument());
     expect(remote.publish).toHaveBeenCalledOnce();
   });
@@ -38,14 +38,14 @@ describe('aviso de cambios sin publicar en «Tu publicación»', () => {
     render(<PublishDialog open onClose={() => {}} />);
     expect(screen.getByText('Publicada')).toBeInTheDocument();
     expect(screen.getByText(/Tu página ya muestra todo lo que guardaste/)).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Publicar los cambios' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Actualizar mi página' })).toBeNull();
   });
 
   it('sin el dato del servidor: mantiene el botón, sin afirmar nada', () => {
     remote.state.publication = publication(undefined);
     render(<PublishDialog open onClose={() => {}} />);
-    expect(screen.queryByText(/Tenés cambios guardados/)).toBeNull();
+    expect(screen.queryByText(/Tenés cambios que/)).toBeNull();
     expect(screen.queryByText(/Tu página ya muestra todo/)).toBeNull();
-    expect(screen.getByRole('button', { name: 'Publicar los cambios' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Actualizar mi página' })).toBeInTheDocument();
   });
 });

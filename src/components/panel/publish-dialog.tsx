@@ -35,7 +35,7 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
   const [picked, setPicked] = useState<PlanId | null>(null);
   const [confirmDown, setConfirmDown] = useState(false);
   const [copied, setCopied] = useState(false);
-  // «Publicar los cambios»: la página pública es una copia del momento de publicar; esto la actualiza con lo que se editó después.
+  // «Actualizar mi página»: la página pública es una copia del momento de publicar; esto la actualiza con lo que se editó después.
   const [refresh, setRefresh] = useState<'idle' | 'busy' | 'done'>('idle');
 
   const plan = planById(picked);
@@ -199,7 +199,7 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
               <a className="pn-btn" href={path} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" /> Ver mi página<span className="pn-sr"> (se abre en otra pestaña)</span></a>
               <button type="button" className="pn-btn is-ghost" onClick={copyLink}>{copied ? 'Link copiado' : 'Copiar link'}</button>
             </div>
-            <p className="pn-note">Tu página está publicada: cualquiera con el link la puede abrir. Desde «Publicada» podés publicar los cambios o bajar la página cuando quieras.</p>
+            <p className="pn-note">Tu página está publicada: cualquiera con el link la puede abrir. Desde «Publicada», arriba a la derecha, la podés actualizar o bajar cuando quieras.</p>
             <div className="pn-actions is-end"><button type="button" className="pn-btn is-ghost" onClick={onClose}>Listo</button></div>
           </>
         )}
@@ -208,7 +208,7 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
             <DialogTitle>Tu publicación</DialogTitle>
             <DialogDescription>{live ? `Tu página está publicada con el plan ${planById(pub.planId)?.name}.` : `Diste de baja tu página. Tu plan ${planById(pub.planId)?.name} sigue contratado: podés volver a publicarla cuando quieras.`}</DialogDescription>
             <dl className="pn-pay">
-              <div><dt>Estado</dt><dd>{live ? (pending ? 'Publicada, con cambios sin publicar' : 'Publicada') : 'Dada de baja'}</dd></div>
+              <div><dt>Estado</dt><dd>{live ? (pending ? 'Publicada, con cambios para actualizar' : 'Publicada') : 'Dada de baja'}</dd></div>
               <div><dt>Plan</dt><dd>{planById(pub.planId)?.name}</dd></div>
               <div><dt>Publicada desde</dt><dd>{since}</dd></div>
               {live && <div><dt>Tu link</dt><dd><code>{path}</code></dd></div>}
@@ -226,11 +226,11 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
                       ? <p className="pn-hint">Tu página ya muestra todo lo que guardaste. Si cambiás algo en el panel, te avisamos acá para que lo publiques.</p>
                       : <>
                           {pending
-                            ? <p className="pn-note" role="status">Tenés cambios guardados que todavía no se ven en tu página. Publicalos para que tus invitados vean la versión nueva. El link no cambia.</p>
-                            : <p className="pn-hint">Lo que cambies en el panel se ve en tu página cuando tocás «Publicar los cambios». El link no cambia.</p>}
-                          <button type="button" className={`pn-btn${pending ? '' : ' is-ghost'}`} disabled={refresh === 'busy'} aria-busy={refresh === 'busy'}
+                            ? <p className="pn-note" role="status">Tenés cambios que tus invitados todavía no ven. Actualizá tu página para mostrarlos. El link no cambia.</p>
+                            : <p className="pn-hint">Lo que cambies en el panel se ve en tu página cuando tocás «Actualizar mi página». El link no cambia.</p>}
+                          <button type="button" className={`pn-btn${pending ? ' pn-update-btn' : ' is-ghost'}`} disabled={refresh === 'busy'} aria-busy={refresh === 'busy'}
                             onClick={() => { setRefresh('busy'); setError(null); void publishRemote().then(r => { if (r.ok) setRefresh('done'); else { setRefresh('idle'); setError(errorText(r.code)); } }); }}>
-                            {refresh === 'busy' ? <><Loader2 size={16} className="pn-spin" aria-hidden="true" /> Publicando…</> : 'Publicar los cambios'}
+                            {refresh === 'busy' ? <><Loader2 size={16} className="pn-spin" aria-hidden="true" /> Actualizando…</> : 'Actualizar mi página'}
                           </button>
                         </>}
                 </div>
