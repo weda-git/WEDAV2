@@ -6,7 +6,7 @@ import { formatMoney, LIMITS, listCurrency } from '@/lib/weda/money';
 import { siteFromState } from '@/lib/weda/site-model';
 import { sanitize } from '@/lib/weda/store';
 
-const nb = (s: string) => s.replace(/ /g, ' ');
+const nb = (s: string) => s.replace(/\u00a0/g, ' ');
 
 describe('GIFT-10 · moneda de la lista', () => {
   it('D6: pesos como siempre y dólares como «US$ 250», sin decimales', () => {

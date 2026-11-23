@@ -26,7 +26,7 @@ describe('GIFT-10 · moneda de la lista en el servidor', () => {
     const list = (await c.get('/api/contributions')).body.contributions;
     expect(list[0]).toMatchObject({ currency: 'USD', total: 120 });
     const mail = await eventually(() => Promise.resolve(env.cfg.mail.testOutbox!.slice(before).find(m => m.kind === 'gift_receipt')), m => !!m);
-    expect(mail!.text.replace(/ /g, ' ')).toContain('US$ 120');
+    expect(mail!.text.replace(/\u00a0/g, ' ')).toContain('US$ 120');
   });
 
   it('CA-4: con aportes recibidos la moneda no se puede cambiar; sin aportes, sí', async () => {
