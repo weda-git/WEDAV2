@@ -2184,9 +2184,13 @@ body:has(.pn-app) { background: #f6f6f3; }
 }
 .pn-app .pn-config > .rg-section-head { margin-top: 0; }
 
-/* Moneda de la lista (GIFT-10): selector arriba de «Mis regalos», aviso de cobro en dólares y regalo sin monto. */
-.rg-currency { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 16px; }
-.rg-currency > span { font-size: 14px; color: var(--pn-muted); }
-.rg-currency .pn-hint { flex-basis: 100%; margin: 0; }
-.rg-usd-note { margin: 0 0 16px; padding: 10px 14px; border-radius: 12px; background: #f3f2e9; font-size: 14px; line-height: 1.4; }
-.gc-photo .gc-price.is-missing { background: #8a2f1f; color: #fff; }
+/* Botón de arriba publicado: es el ESTADO de la página, no una acción (2026-11-23). Vidrio claro con un punto verde (o gris si está dada
+   de baja); con cambios para actualizar, un puntito arriba a la derecha. Sin publicar sigue siendo «Publicar» en verde. */
+.pn-app .pn-top .pn-btn.pn-publish-btn.is-status { position: relative; background: var(--gl-panel-strong); color: var(--text-main); font-weight: 500; box-shadow: inset 0 0 0 1px var(--gl-edge), 0 1px 2px rgb(59 60 58 / .05); gap: 8px; }
+.pn-app .pn-top .pn-btn.pn-publish-btn.is-status:hover:not(:disabled) { background: #fff; }
+.pn-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--weda-green); box-shadow: 0 0 0 3px rgb(116 116 83 / .18); flex: none; }
+.is-down .pn-status-dot { background: #a3a29a; box-shadow: 0 0 0 3px rgb(163 162 154 / .2); }
+.pn-status-badge { position: absolute; top: 3px; right: 5px; width: 10px; height: 10px; border-radius: 50%; background: #c8794f; box-shadow: 0 0 0 2px #fff; }
+/* «Actualizar mi página» con cambios pendientes: es lo que hay que hacer, en el verde de la marca (como «Publicar»). */
+.pn-dialog .pn-btn.pn-update-btn { background: #747453; color: #fff; border-color: transparent; font-weight: 600; }
+.pn-dialog .pn-btn.pn-update-btn:hover:not(:disabled) { background: #646446; }

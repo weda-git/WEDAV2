@@ -90,7 +90,7 @@ export function PayoutForm({ current, initial, onDone, onCancel }: { current: Pa
           </div>
         )}
       </Field>}
-      <p className="pn-hint">Te avisamos por correo. Tus invitados lo ven cuando publiques los cambios de tu página.</p>
+      <p className="pn-hint">Te avisamos por correo. Tus invitados lo ven cuando actualices tu página.</p>
       {banner && <p className="pn-banner" role="alert">{banner}</p>}
       <div className="pn-actions is-end">
         <button type="button" className="pn-btn is-ghost" disabled={busy} onClick={() => { setStep('edit'); setPassword(''); setErrors({}); setBanner(null); }}>Volver</button>
