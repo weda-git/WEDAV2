@@ -40,7 +40,7 @@ test.describe('Perfil A · pareja apurada: de la landing al panel en el menor n�
 
   test('el siguiente paso del Inicio es único y lleva a elegir regalos; no hay nada obligatorio antes de Publicar', async ({ page }) => {
     await onboard(page, 'Camila', 'Juan');
-    await expect(page.getByRole('heading', { name: 'Armá tu lista de regalos' })).toBeVisible();
+    await expect(page.locator('.hs-item[aria-current="step"]').getByRole('heading', { name: 'Lista de regalos' })).toBeVisible(); // paso actual (rediseño 2026-11-21)
     await page.getByRole('link', { name: 'Armar mi lista' }).click();
     await expect(page).toHaveURL(/\/panel\/regalos/);
     // Publicar está siempre a mano y abre la elección de producto.
@@ -109,9 +109,9 @@ test.describe('Fecha y lugar opcionales: qué pasa en cada pantalla que los usa'
   test('sin fecha ni lugar: portada del panel, editor, vista previa, sitio público y publicación lo dicen sin romperse; al definirlos todo se actualiza', async ({ page }) => {
     await onboard(page, 'Lucía', 'Violeta');
     // Inicio: el banner muestra solo los pasos, sin nombres ni fecha.
-    await expect(page.getByRole('region', { name: /Primeros pasos/ })).not.toContainText('Fecha por definir');
+    await expect(page.getByRole('region', { name: /tres pasos/ })).not.toContainText('Fecha por definir');
     // El siguiente paso no depende de la fecha ni del lugar.
-    await expect(page.getByRole('heading', { name: 'Armá tu lista de regalos' })).toBeVisible();
+    await expect(page.locator('.hs-item[aria-current="step"]').getByRole('heading', { name: 'Lista de regalos' })).toBeVisible(); // paso actual (rediseño 2026-11-21)
     // Editor: la portada marca la fecha como pendiente y los eventos no inventan un lugar.
     await nav(page, 'Tu página').click();
     await expect(page.getByRole('button', { name: /Editar Portada.*Falta la fecha/ })).toBeVisible();
@@ -480,7 +480,7 @@ test.describe('Trial de 14 días y pausa (PAY-07)', () => {
   test('al crear la celebración el panel muestra los días de prueba; en pausa todo queda en solo lectura y se puede elegir un plan (CA-19)', async ({ page }) => {
     await onboard(page);
     // El estado lo decide el servidor: recién creada, quedan 14 días.
-    await expect(page.getByText(/^Te quedan 14 días para crear gratis, hasta el \d+ de \p{L}+ a las \d\d:\d\d \(hora de Argentina\)\./u)).toBeVisible();
+    await expect(page.locator('.pn-trial').filter({ hasText: /^Prueba gratis: te quedan 14 días, hasta el \d+ de \p{L}+ a las \d\d:\d\d \(hora de Argentina\)\./u })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Elegir plan' })).toBeVisible();
     // Pausa: se simula la respuesta del servidor (el reloj del servidor no se toca desde el navegador; la regla la prueban las pruebas de servidor).
     await page.route('**/api/wedding', async route => {
@@ -491,7 +491,7 @@ test.describe('Trial de 14 días y pausa (PAY-07)', () => {
     });
     await page.reload({ waitUntil: 'networkidle' });
     await expect(page.getByText('Terminó tu período gratuito.')).toBeVisible();
-    await expect(page.getByText(/Te quedan \d+ días/)).toHaveCount(0);
+    await expect(page.getByText(/te quedan \d+ días/)).toHaveCount(0);
     await nav(page, 'Regalos').click();
     await expect(page.getByRole('button', { name: 'Crear regalo' }).first()).toBeDisabled();
     await nav(page, 'Tu página').click();

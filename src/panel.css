@@ -1860,3 +1860,159 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
 .pn-login-failed { display: flex; align-items: center; gap: 14px; padding: 18px 20px; border-radius: 14px; background: #fcebe3; color: var(--text-strong); }
 .pn-login-failed svg { flex: none; color: #c43d2b; }
 .pn-login-failed p { margin: 0; font-size: 16px; line-height: 1.4; }
+
+/* =========================================================================
+   Rediseño del panel (2026-11-21) · capa final, mobile-first.
+   Criterio:
+   - Una acción principal por pantalla (oscura y llena); las secundarias con borde; «Publicar» arriba es la única en el verde de la marca.
+   - Mismo título, mismo aire y misma alineación en todas las secciones.
+   - Menos cajas: superficies tintadas en vez de bordes; separadores solo donde ordenan.
+   - Movimiento corto y suave al cambiar de sección y al tocar; nada con «reducir movimiento».
+   ========================================================================= */
+.pn-app { --rd-ink: #2f302e; --rd-ink-h: #1f201e; --rd-brand: #959571; --rd-brand-h: #858562; --rd-soft: #f4f4f0; --rd-ease: cubic-bezier(.2, .7, .2, 1); }
+
+/* Entrada de cada sección: sube apenas y aparece. */
+@keyframes rd-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.pn-main > .pn-page, .pn-main > .pn-readonly > .pn-page { animation: rd-in .28s var(--rd-ease) both; }
+
+/* Botones: respuesta al tocar y transiciones parejas. */
+.pn-app .pn-btn, .pn-dialog .pn-btn { transition: background-color .18s var(--rd-ease), color .18s, box-shadow .18s, transform .12s var(--rd-ease); }
+.pn-app .pn-btn:active:not(:disabled), .pn-dialog .pn-btn:active:not(:disabled) { transform: scale(.98); }
+.pn-app .pn-btn:focus-visible, .pn-dialog .pn-btn:focus-visible { outline: 2px solid var(--rd-ink); outline-offset: 2px; }
+
+/* Acción principal: en los encabezados de sección y en los pasos del Inicio. */
+.pn-app .pn-page-head .pn-btn:not(.is-ghost), .pn-app .hx-cta, .pn-app .pn-empty .pn-btn:not(.is-ghost):first-of-type {
+  background: var(--rd-ink); color: #fff; border-color: transparent;
+}
+.pn-app .pn-page-head .pn-btn:not(.is-ghost):hover:not(:disabled), .pn-app .hx-cta:hover, .pn-app .pn-empty .pn-btn:not(.is-ghost):first-of-type:hover:not(:disabled) { background: var(--rd-ink-h); }
+.pn-app .pn-btn.is-ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--pn-line-s); border-color: transparent; color: var(--text-main); }
+.pn-app .pn-btn.is-ghost:hover:not(:disabled) { background: var(--rd-soft); }
+/* «Publicar» arriba conserva su verde claro con texto oscuro (más legible que blanco sobre verde): es el único botón de ese color. */
+
+/* Aviso del período de prueba: una línea liviana, no un bloque. */
+.pn-main > .pn-trial, .pn-trial { display: block; margin: 4px 0 24px; font-size: 13px; line-height: 1.45; color: var(--pn-muted); }
+.pn-trial-dot { display: inline-block; width: 6px; height: 6px; margin: 0 8px 1px 0; border-radius: 50%; background: var(--rd-brand); vertical-align: middle; }
+.pn-trial .pn-link { min-height: 0; font-size: 13px; }
+.pn-trial-date { display: none; }
+@media (min-width: 900px) { .pn-trial-date { display: inline; } }
+
+/* Encabezado de cada sección: mismo título y mismo aire. */
+.pn-page { gap: 28px; }
+.pn-app .pn-page-head h1 { font-size: clamp(28px, 6.4vw, 34px); line-height: 1.08; letter-spacing: -.02em; font-weight: 500; }
+.pn-app .pn-page-head .pn-sub { margin-top: 6px; font-size: 15px; line-height: 1.45; }
+@media (max-width: 640px) {
+  .pn-main { padding-top: 4px; }
+  /* Acciones del encabezado: a lo ancho, en dos columnas parejas; la principal primero. */
+  .pn-app .pn-page-head .pn-head-actions, .pn-app .pn-page-head .rg-head-actions, .pn-app .pn-page-head .gl-actions {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; width: 100%;
+  }
+  .pn-app .pn-page-head :is(.pn-head-actions, .rg-head-actions, .gl-actions) .pn-btn { width: 100%; min-width: 0; justify-content: center; padding: 0 12px; grid-row: auto; grid-column: auto; }
+  .pn-app .pn-page-head :is(.pn-head-actions, .rg-head-actions, .gl-actions) .pn-btn:not(.is-ghost) { order: -1; }
+}
+
+/* Inicio */
+.hx-hero h1 { font-size: clamp(30px, 7vw, 44px); }
+.hx-couple { margin: 0 0 4px; font-size: 15px; color: var(--pn-muted); }
+.hx-hero-copy > p:last-child { margin-top: 8px; }
+/* Organización: lista liviana (sin cajas con borde), separada por filas. */
+.hm-manage { display: grid; gap: 10px; }
+.hm-manage .hm-head { gap: 2px; }
+.hm-manage .hm-head .pn-sub { margin: 0; font-size: 14px; }
+.hm-manage .hm-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; border-top: 1px solid var(--pn-hair); }
+.hm-manage .hm-grid > li { border-bottom: 1px solid var(--pn-hair); }
+.hm-manage .hm-tile { min-height: 72px; padding: 14px 4px; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.hm-manage .hm-tile:hover { background: var(--rd-soft); }
+.hm-manage .hm-tile .hm-text > span { display: none; }
+.hm-manage .hm-ico { background: var(--rd-soft); }
+
+/* Números de invitados: una sola superficie, sin cuatro cajas. */
+.gl-stats { gap: 0; border-radius: var(--pn-r-card); background: var(--rd-soft); overflow: hidden; }
+.gl-stats li { border: 0; border-radius: 0; background: transparent; padding: 14px 16px; }
+.gl-stats li + li { box-shadow: inset 1px 0 0 rgb(59 60 58 / .08); }
+@media (max-width: 899px) { .gl-stats li:nth-child(odd) { box-shadow: none; } .gl-stats li:nth-child(n + 3) { border-top: 1px solid rgb(59 60 58 / .08); } }
+
+/* Pestañas: el cambio de pestaña se acompaña. */
+.pn-tabs button { transition: background-color .2s var(--rd-ease), color .2s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pn-main > .pn-page, .pn-main > .pn-readonly > .pn-page, .hx-panel.on { animation: none; }
+  .pn-app .pn-btn, .pn-dialog .pn-btn, .hx-progress-bar > span, .pn-tabs button { transition: none; }
+  .pn-app .pn-btn:active:not(:disabled) { transform: none; }
+}
+
+/* Editor de «Tu página»: «Agregar» de cada sección es secundario (varios oscuros seguidos competían entre sí). */
+.pn-app .ed-add-btn { background: transparent; color: var(--text-main); box-shadow: inset 0 0 0 1px var(--pn-line-s); border-color: transparent; }
+.pn-app .ed-add-btn:hover:not(:disabled) { background: var(--rd-soft); }
+/* «Listo» de cada sección es la acción principal del editor. */
+.pn-app .ed-done { background: var(--rd-ink); color: #fff; border-color: transparent; }
+.pn-app .ed-done:hover:not(:disabled) { background: var(--rd-ink-h); }
+/* Vista en vivo: el aviso no queda tapado por «Ver completa», y la carga se ve como carga (brillo suave), no como un bloque quieto. */
+.lc-note:not(.is-loading) { inset: auto 12px 52px; }
+@keyframes rd-shimmer { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+.lc-note.is-loading { background: linear-gradient(100deg, #f3f0e8 30%, #faf8f3 50%, #f3f0e8 70%) 0 0 / 200% 100%; animation: rd-shimmer 1.4s linear infinite; }
+@keyframes rd-pulse { 50% { opacity: .45; } }
+.pn-loading { animation: rd-pulse 1.6s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .lc-note.is-loading, .pn-loading { animation: none; } }
+/* Acción principal dentro del contenido, cuando es lo que falta hacer ahí (por ejemplo, configurar el cobro). */
+.pn-app .pn-btn.is-primary { background: var(--rd-ink); color: #fff; border-color: transparent; }
+.pn-app .pn-btn.is-primary:hover:not(:disabled) { background: var(--rd-ink-h); }
+/* Diálogos y hojas: la acción que confirma es la principal; deshabilitada se ve apagada, sin dudas. */
+.pn-dialog .pn-actions .pn-btn:not(.is-ghost):not(:disabled) { background: var(--rd-ink, #2f302e); color: #fff; border-color: transparent; }
+.pn-dialog .pn-actions .pn-btn:not(.is-ghost):not(:disabled):hover { background: var(--rd-ink-h, #1f201e); }
+.pn-dialog .pn-btn.is-ghost { background: transparent; box-shadow: inset 0 0 0 1px var(--pn-line-s); border-color: transparent; }
+
+/* Inicio · pasos (rediseño 2026-11-21, desde cero): lista vertical con los tres pasos a la vista. */
+.hs { display: grid; gap: 18px; padding: 20px 16px 8px; border-radius: 24px; background: #f4f3ee; }
+.hs-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 4px; }
+.hs-head h2 { margin: 0; font-size: clamp(19px, 4.6vw, 22px); line-height: 1.2; font-weight: 500; letter-spacing: -.01em; }
+.hs-head p { margin: 4px 0 0; font-size: 14px; color: var(--pn-muted); }
+.hs-ring { flex: none; }
+.hs-ring circle { fill: none; stroke-width: 4; }
+.hs-ring-track { stroke: rgb(59 60 58 / .12); }
+.hs-ring-fill { stroke: var(--rd-ink, #2f302e); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset .6s var(--rd-ease, ease); }
+.hs-ring text { font-size: 12px; font-weight: 500; fill: var(--text-main); font-variant-numeric: tabular-nums; }
+
+.hs-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.hs-item { position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: start; gap: 0 14px; padding: 16px 12px; border-radius: 18px; }
+/* Línea que une los pasos. */
+.hs-item:not(:last-child)::after { content: ''; position: absolute; left: 27px; top: 50px; bottom: -14px; width: 2px; border-radius: 2px; background: rgb(59 60 58 / .12); }
+.hs-item.is-done:not(:last-child)::after { background: var(--rd-ink, #2f302e); }
+.hs-mark { position: relative; z-index: 1; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 1.5px rgb(59 60 58 / .22); color: var(--pn-muted); font-size: 14px; font-weight: 500; transition: background-color .25s, color .25s, box-shadow .25s; }
+.hs-item.is-done .hs-mark { background: var(--rd-ink, #2f302e); box-shadow: none; color: #fff; }
+.hs-item.is-current .hs-mark { background: var(--rd-ink, #2f302e); box-shadow: 0 0 0 4px rgb(47 48 46 / .12); color: #fff; }
+.hs-item.is-current.is-goal .hs-mark { background: #959571; box-shadow: 0 0 0 4px rgb(149 149 113 / .22); }
+.hs-body { display: grid; gap: 4px; min-width: 0; padding-top: 5px; }
+.hs-body h3 { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin: 0; font-size: 16px; line-height: 1.3; font-weight: 500; }
+.hs-body p { margin: 0; font-size: 14px; line-height: 1.45; color: var(--pn-muted); overflow-wrap: anywhere; }
+.hs-tag { padding: 2px 8px; border-radius: 999px; background: rgb(59 60 58 / .08); font-size: 12px; font-weight: 500; color: var(--text-main); }
+.hs-item.is-next h3 { color: var(--pn-muted); }
+.hs-side { align-self: center; display: inline-flex; align-items: center; gap: 4px; min-height: 44px; padding: 0 4px; font-size: 14px; color: var(--text-main); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: rgb(59 60 58 / .35); }
+.hs-side:hover { text-decoration-color: currentColor; }
+.hs-item.is-next .hs-side { color: var(--pn-muted); }
+
+/* El paso actual: tarjeta blanca, el resto respira alrededor. */
+.hs-item.is-current { background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / .04), 0 8px 24px rgb(59 60 58 / .07); margin: 4px 0; animation: rd-in .3s var(--rd-ease, ease) both; }
+.hs-item.is-current .hs-body h3 { font-size: 18px; }
+.hs-item.is-current .hs-body p { font-size: 15px; color: var(--text-soft, #5b5c58); max-width: 52ch; }
+.hs-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+.pn-app .hs-cta { background: var(--rd-ink, #2f302e); color: #fff; border-color: transparent; border-radius: 999px; padding: 0 20px; }
+.pn-app .hs-cta:hover:not(:disabled) { background: var(--rd-ink-h, #1f201e); }
+.pn-app .hs-cta.is-goal { background: #959571; }
+.pn-app .hs-cta.is-goal:hover:not(:disabled) { background: #858562; }
+.hs-actions .pn-btn.is-ghost { border-radius: 999px; }
+@media (max-width: 520px) {
+  .hs { padding: 18px 10px 6px; border-radius: 20px; }
+  .hs-item { padding: 14px 10px; gap: 0 12px; }
+  .hs-item:not(:last-child)::after { left: 25px; }
+  .hs-actions .pn-btn { flex: 1 1 auto; justify-content: center; }
+}
+@media (min-width: 900px) {
+  .hs { padding: 28px 28px 14px; }
+  .hs-item { padding: 18px 18px; }
+  .hs-item:not(:last-child)::after { left: 33px; }
+}
+@media (prefers-reduced-motion: reduce) { .hs-item.is-current { animation: none; } .hs-ring-fill, .hs-mark { transition: none; } }
+
+/* Inicio sin foto: el encabezado es solo texto y los pasos arrancan con aire propio. */
+.hx-hero { grid-template-columns: minmax(0, 1fr) !important; }
+.hx-hero-photo { display: none !important; }
