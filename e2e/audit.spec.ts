@@ -82,7 +82,7 @@ test.describe('Persona K · publicar cuanto antes: el camino mínimo, contado', 
 });
 
 test.describe('Persona T · pareja con la página publicada que vuelve a editar', () => {
-  test('T-02: lo editado después de publicar se ve recién con «Publicar los cambios», y el link no cambia', async ({ page, context }) => {
+  test('T-02: lo editado después de publicar se ve recién con «Actualizar mi página», y el link no cambia', async ({ page, context }) => {
     await onboard(page, 'Lucía', 'Violeta');
     const top = page.locator('.pn-top');
     await top.getByRole('button', { name: 'Publicar', exact: true }).click();
@@ -101,10 +101,10 @@ test.describe('Persona T · pareja con la página publicada que vuelve a editar'
     const guest = await context.newPage();
     await guest.goto(`/sitio/${slug}`, { waitUntil: 'networkidle' });
     await expect(guest.locator('body')).toContainText(/Violeta/);
-    // El panel avisa que hay cambios sin publicar; «Publicar los cambios» la actualiza, con el mismo link.
-    await top.getByRole('button', { name: 'Publicar cambios', exact: true }).click();
-    await expect(page.getByText('Tenés cambios guardados que todavía no se ven en tu página.', { exact: false })).toBeVisible();
-    await page.getByRole('button', { name: 'Publicar los cambios' }).click();
+    // El estado «Publicada» avisa que hay cambios; «Actualizar mi página» los muestra, con el mismo link.
+    await top.getByRole('button', { name: /^Publicada: hay cambios/ }).click();
+    await expect(page.getByText('Tenés cambios que tus invitados todavía no ven.', { exact: false })).toBeVisible();
+    await page.getByRole('button', { name: 'Actualizar mi página' }).click();
     await expect(page.getByText('Listo: tu página ya muestra los cambios.')).toBeVisible({ timeout: 15_000 });
     expect((await stored(page)).slug).toBe(slug);
     await guest.reload({ waitUntil: 'networkidle' });
