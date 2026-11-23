@@ -310,7 +310,7 @@ Capa final de `src/panel.css` («Rediseño del panel»), mobile-first. La landin
 
 ### Panel · vidrio (2026-11-21)
 Capa «Vidrio» al final de `src/panel.css`, sobre el rediseño. Referencia: un dashboard con paneles translúcidos que mandó la dueña.
-- **Fondo:** degradé cálido (`--gl-bg`, arena a verde suave) con dos manchas de color difusas. También se ve mientras carga (`.pn-root-wait`).
+- **Fondo:** casi blanco con un gris muy suave (`--gl-bg`, #f7f7f5 a #f4f4f1), con dos manchas de color apenas perceptibles. Así hay poca diferencia con los paneles (cambio del 2026-11-23: antes era un degradé cálido más oscuro). También se ve mientras carga (`.pn-root-wait`).
 - **Compu:**
   - el menú y el contenido son paneles flotantes translúcidos (`--gl-panel`, `--gl-panel-strong`), con desenfoque (`--gl-blur`), borde claro y esquinas de 26 a 28 px;
   - el logo ocupa la misma fila de 72 px que «Vista previa» y «Publicar».
