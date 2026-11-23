@@ -127,7 +127,7 @@ export type Gift = {
   icon: IconKey;
 };
 
-/** Catálogo curado de la demo: 30 regalos repartidos entre cinco categorías (8 · 6 · 8 · 4 · 4 gift cards). */
+/** Catálogo curado de la demo: 32 regalos repartidos entre cinco categorías (8 · 6 · 8 · 4 · 6 gift cards). */
 export const gifts: Gift[] = [
   { id: 'excursion', name: 'Excursión en barco', text: 'Un día de navegación y snorkel en aguas turquesa.', amount: 250000, category: 'Experiencias', destination: 'Cualquiera', icon: 'compass', image: '/regalo-excursion.jpg' },
   { id: 'cena-mar', name: 'Cena frente al mar', text: 'Una mesa al atardecer en la costa de Puglia, solo para los dos.', amount: 180000, category: 'Experiencias', destination: 'Europa', icon: 'utensils', image: '/regalo-cena-mar.webp', pos: 'center 68%' },
@@ -156,10 +156,12 @@ export const gifts: Gift[] = [
   { id: 'parrilla', name: 'Parrilla', text: 'Para los asados con amigos, los domingos en casa.', amount: 320000, category: 'Proyectos futuros', icon: 'home', image: '/regalo-parrilla-2.jpg', fit: 'white' },
   { id: 'fogonero', name: 'Fogonero de jardín', text: 'Para las noches de fuego y charla bajo las estrellas.', amount: 140000, category: 'Proyectos futuros', icon: 'trees', image: '/regalo-fogonero.webp', pos: 'center 50%' },
   // Gift cards (pedido de la dueña, 2026-11-23): el invitado regala un monto fijo, para lo que la pareja quiera. Reemplazan al aporte libre en el panel.
-  { id: 'gift-card-25000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 25000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-25000.svg' },
   { id: 'gift-card-50000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 50000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-50000.svg' },
   { id: 'gift-card-100000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 100000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-100000.svg' },
-  { id: 'gift-card-200000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 200000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-200000.svg' },
+  { id: 'gift-card-150000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 150000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-150000.svg' },
+  { id: 'gift-card-250000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 250000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-250000.svg' },
+  { id: 'gift-card-300000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 300000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-300000.svg' },
+  { id: 'gift-card-500000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 500000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-500000.svg' },
 ];
 
 export const formatARS = (n: number) =>

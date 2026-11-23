@@ -328,10 +328,14 @@ Capa «Vidrio» al final de `src/panel.css`, sobre el rediseño. Referencia: un 
 - **Anatomía:** foto cuadrada (bordes de 13 px) con el monto en un globito abajo a la izquierda (letra normal, 15 px, como el nombre), el nombre sin negrita en dos renglones como máximo (15 px, 16 en compu) y, si corresponde, una acción («Agregar», «Regalar»).
 - **«Mis regalos»:** editar y quitar van como botoncitos redondos sobre la foto, sin categoría ni fila extra.
 - **Gift cards** (2026-11-23, en reemplazo del aporte libre en el panel):
-  - un pack «Gift cards» en el catálogo, con cuatro montos fijos ($ 25.000, $ 50.000, $ 100.000 y $ 200.000) y su categoría propia;
-  - cada una tiene su imagen en un tono de verde Weda (`public/gift-card-<monto>.svg`) y el pack su portada sin texto (`public/gift-card-pack.svg`);
+  - un pack «Gift cards» en el catálogo, con seis montos fijos ($ 50.000, $ 100.000, $ 150.000, $ 250.000, $ 300.000 y $ 500.000) y su categoría propia (cambio del 2026-11-23: sale la de $ 25.000);
+  - cada una tiene su imagen (`public/gift-card-<monto>.svg`): la tarjeta en el mismo verde Weda, con «weda», «GIFT CARD» y el monto grande; la tarjeta va arriba para que el globito del monto no la tape. El pack tiene su portada (`public/gift-card-pack.svg`);
+  - las imágenes de $ 25.000 y $ 200.000 se conservan para las listas que ya las tenían;
   - se agregan y se quitan como cualquier regalo.
 - **Aporte libre:** ya no se ofrece. Si una pareja ya lo tenía activado, su tarjeta sigue en «Mis regalos» para editar el mínimo o quitarlo, y en la invitación conserva el campo para escribir el monto.
-- **Catálogo y packs:** el monto siempre visible; cada pack muestra su total y el precio de cada regalo que incluye.
+- **Catálogo y packs:** el monto siempre visible en cada regalo; los packs muestran cuántos regalos incluyen, sin total (2026-11-23).
+- **Regalos del catálogo:** la foto y el monto no se cambian; el nombre y la categoría sí. Para otra foto u otro monto se crea un regalo propio.
+- **Encabezado de cada pestaña** (Mis regalos, Catálogo, Aportes, Cobro): el mismo lugar, letra y tamaño (20 px; 19 en el celular) con una línea debajo.
+- **Aportes recibidos:** sin el total en dólares hasta que la pareja pueda elegir la moneda de la lista (pendiente, lleva spec).
 - **Alias:** si falta y la lista ya tiene 3 regalos o más, aparece un banner en «Mis regalos»: ícono, «Ya elegiste N regalos», una línea y «Cargar alias». En el catálogo no aparece.
 - **Pestañas en el celular:** cuatro parejas en una fila (Mis regalos · Catálogo · Aportes · Cobro).

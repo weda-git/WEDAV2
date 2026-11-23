@@ -2167,3 +2167,19 @@ body:has(.pn-app) { background: #f6f6f3; }
   .rg-alias-cta { grid-column: 1 / -1; width: 100%; justify-content: center; }
 }
 @media (prefers-reduced-motion: reduce) { .rg-alias-banner { animation: none; } }
+
+/* Lista de regalos (2026-11-23): el mismo encabezado en las cuatro pestañas (Mis regalos, Catálogo, Aportes, Cobro): mismo lugar, letra y tamaño. */
+.pn-app .rg-section-head { margin: 4px 0 18px; }
+.pn-app .rg-section-head h2 { margin: 0; font-size: 20px !important; line-height: 1.2 !important; font-weight: 500 !important; letter-spacing: -.01em !important; }
+.pn-app .rg-section-head .pn-muted { margin-top: 4px; font-size: 14px; line-height: 1.4; }
+@media (max-width: 640px) {
+  .pn-app .rg-section-head h2 { font-size: 19px !important; }
+  .pn-app .rg-section-head .pn-muted { font-size: 13px; }
+  /* «Mis regalos» menos apretado: letra un poco más chica y botoncitos más chicos. */
+  .rg-grid .gc .gc-name, .pn-catalog .gc .gc-name { margin: 8px 4px 0 !important; font-size: 14px !important; min-height: 2.5em; }
+  .rg-grid .gc-photo .gc-price, .pn-catalog .gc-photo .gc-price { left: 7px; bottom: 7px; padding: 4px 10px; font-size: 13px; }
+  .rg-grid .gc-tools { top: 5px; right: 5px; gap: 4px; }
+  .rg-grid .gc-tools button { width: 30px; height: 30px; }
+  .rg-grid .rg-card.gc, .pn-catalog .pn-gcard.gc { padding: 5px 5px 10px; }
+}
+.pn-app .pn-config > .rg-section-head { margin-top: 0; }

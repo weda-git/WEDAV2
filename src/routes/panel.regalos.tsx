@@ -35,7 +35,8 @@ const TABS: { id: Tab; label: string; short: string }[] = [
   { id: 'cobro', label: 'Datos de cobro', short: 'Cobro' },
 ];
 
-/* Formulario de un regalo (para crear uno propio y para editar cualquiera de la lista): foto, monto, nombre y categoría. */
+/* Formulario de un regalo (para crear uno propio y para editar cualquiera de la lista): foto, monto, nombre y categoría.
+   Los regalos del catálogo (con `catalogId`) mantienen su foto y su monto (pedido de la dueña, 2026-11-23): para otra foto u otro monto, se crea uno propio. */
 type GiftValues = { name: string; amount: number; category: Category; image: string | undefined };
 function GiftForm({ initial, submitLabel, onSubmit, onCancel }: { initial?: ListGift | undefined; submitLabel: string; onSubmit: (v: GiftValues) => void; onCancel?: (() => void) | undefined }) {
   const [name, setName] = useState(initial?.name ?? '');
@@ -45,6 +46,7 @@ function GiftForm({ initial, submitLabel, onSubmit, onCancel }: { initial?: List
   const [errors, setErrors] = useState<ReturnType<typeof validateGift>>({});
   const [imgError, setImgError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
+  const preset = !!initial?.catalogId;
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const found = validateGift({ name, amount, text: '' });
@@ -61,6 +63,12 @@ function GiftForm({ initial, submitLabel, onSubmit, onCancel }: { initial?: List
   };
   return (
     <form onSubmit={submit} noValidate className="pn-form">
+      {preset ? (
+        <div className="pn-ownphoto is-preset">
+          <span className="pn-ownphoto-btn" aria-hidden="true">{image ? <img src={image} alt="" /> : <GiftIcon size={28} strokeWidth={1.3} />}</span>
+          <p className="pn-hint">Es un regalo del catálogo: la foto y el monto no se cambian. Si querés otros, creá un regalo propio.</p>
+        </div>
+      ) : (
       <div className="pn-ownphoto">
         <input ref={fileRef} className="pn-sr" type="file" accept="image/jpeg,image/png,image/webp" aria-label="Elegir una imagen del regalo" onChange={e => void pick(e.target.files?.[0])} />
         <button type="button" className="pn-ownphoto-btn" onClick={() => fileRef.current?.click()} aria-label={image ? 'Cambiar la imagen' : 'Subir una imagen'}>
@@ -69,8 +77,9 @@ function GiftForm({ initial, submitLabel, onSubmit, onCancel }: { initial?: List
         {image && <button type="button" className="pn-link is-muted" onClick={() => setImage(undefined)}>Quitar la imagen</button>}
         {imgError && <p className="pn-error" role="alert">{imgError}</p>}
       </div>
+      )}
       <Field label="Monto en pesos" error={errors.amount}>
-        {a => <input id={a.id} type="text" inputMode="numeric" value={amount} placeholder="180000" onChange={e => { setAmount(e.target.value); setErrors(x => ({ ...x, amount: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
+        {a => <input id={a.id} type="text" inputMode="numeric" value={amount} readOnly={preset} aria-readonly={preset || undefined} placeholder="180000" onChange={e => { setAmount(e.target.value); setErrors(x => ({ ...x, amount: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
       </Field>
       <Field label="Nombre del regalo" error={errors.name}>{a => <input id={a.id} type="text" value={name} placeholder="Auriculares para nuestros viajes" onChange={e => { setName(e.target.value); setErrors(x => ({ ...x, name: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}</Field>
       <Field label="Categoría" optional>{a => <select id={a.id} value={category} onChange={e => setCategory(e.target.value as Category)}>{categories.map(c => <option key={c} value={c}>{c}</option>)}</select>}</Field>
@@ -436,7 +445,6 @@ function GiftsModule() {
       <div id="pn-tabpanel" role="tabpanel" aria-labelledby={`tab-${tab}`} className="pn-tabpanel">
         {tab === 'lista' && (
           <>
-          {items.length >= ALIAS_NUDGE_FROM && !alias && <AliasNudge count={items.length} onGo={() => setTab('cobro')} />}
           {items.length === 0 ? (
             <div className="pn-empty is-centered">
               <span className="pn-empty-ico" aria-hidden="true"><GiftIcon size={22} strokeWidth={1.6} /></span>
@@ -452,6 +460,7 @@ function GiftsModule() {
                   <button type="button" className="pn-btn is-ghost" onClick={() => { setCatView('packs'); setTab('agregar'); }}><Package size={16} aria-hidden="true" />Explorar packs sugeridos</button>
                 </div>
               </div>
+              {items.length >= ALIAS_NUDGE_FROM && !alias && <AliasNudge count={items.length} onGo={() => setTab('cobro')} />}
               <SortableGrid items={items} onMove={(id, to) => update(x => moveGiftTo(x, id, to))} onOpen={setEditing} renderCard={g => (
                 <>
                   <div className="rg-photo gc-photo">
@@ -514,7 +523,7 @@ function GiftsModule() {
                     <li key={set.id} className={`rg-pack${all ? ' is-on' : ''}`}>
                       <div className="rg-pack-cover" style={cover ? { backgroundImage: `url(${cover})` } : undefined}>
                         {all && <span className="rg-pack-chip"><Check size={13} strokeWidth={2.5} aria-hidden="true" />En tu lista</span>}
-                        <div><small>{gs.length} regalos · {formatARS(gs.reduce((n, g) => n + g.amount, 0))}</small><h3>{set.name}</h3></div>
+                        <div><small>{gs.length} regalos</small><h3>{set.name}</h3></div>
                       </div>
                       <div className="rg-pack-body">
                         <p className="rg-text">{set.description}</p>
@@ -551,11 +560,10 @@ function GiftsModule() {
             <div className="rg-section-head">
               <div><h2>Aportes recibidos</h2><p className="pn-muted">Quién te regaló, qué regalos, el monto, la fecha, su mensaje y el comprobante.</p></div>
             </div>
-            {/* Los tres totales están siempre, también antes del primer regalo (en cero). Los regalos se cargan en pesos y no hay cotización conectada: el total en dólares queda en «—». */}
-            <ul className="gl-stats is-three" aria-label="Resumen de aportes recibidos">
+            {/* Los totales están siempre, también antes del primer regalo (en cero). La lista es en pesos: el total en dólares se sacó (2026-11-23) hasta que la pareja pueda elegir la moneda. */}
+            <ul className="gl-stats is-two" aria-label="Resumen de aportes recibidos">
               <li><span>Regalos recibidos</span><strong>{giftCount}</strong><small>{giftCount === 1 ? 'Regalo' : 'Regalos'}</small></li>
               <li><span>Total en pesos</span><strong>{formatARS(counted.reduce((n, c) => n + c.total, 0))}</strong><small>Pesos argentinos</small></li>
-              <li><span>Total en dólares</span><strong aria-label="Sin dato">—</strong><small>Sin cotización conectada</small></li>
             </ul>
             {contrib.failed && <p className="pn-banner" role="alert">No pudimos traer tus aportes. Revisá tu conexión y volvé a abrir esta pestaña.</p>}
             {contrib.loading ? <p className="pn-muted" role="status">Cargando tus aportes…</p> : received.length === 0 ? (
@@ -603,8 +611,8 @@ function GiftsModule() {
 
         {tab === 'cobro' && (
           <div className="pn-config">
-            <div className="pn-block-head">
-              <h2>Datos para recibir tus regalos</h2>
+            <div className="rg-section-head">
+              <div><h2>Datos de cobro</h2><p className="pn-muted">A dónde te llegan los regalos de tus invitados.</p></div>
             </div>
             <div className="pn-cfg-two">
               <section className="pn-cfg-block" aria-labelledby="cfg-alias">
@@ -702,7 +710,7 @@ function GiftsModule() {
             <DialogContent className="pn-dialog is-pack">
               <DialogTitle>{set.name}</DialogTitle>
               <DialogDescription>{set.description}</DialogDescription>
-              <p className="rg-label">{gs.length} regalos incluidos · {formatARS(gs.reduce((n, g) => n + g.amount, 0))} en total</p>
+              <p className="rg-label">{gs.length} regalos incluidos</p>
               <ul className="rg-pack-minis" aria-label={`Regalos del pack ${set.name}`}>
                 {gs.map(g => (
                   <li key={g.id} className="rg-mini">
