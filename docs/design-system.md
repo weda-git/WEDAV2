@@ -325,7 +325,7 @@ Capa «Vidrio» al final de `src/panel.css`, sobre el rediseño. Referencia: un 
 
 ### Tarjeta de regalo única (2026-11-23)
 `src/gift-card.css`. Es la misma tarjeta en «Mis regalos», en el catálogo, en la invitación y en el ejemplo.
-- **Anatomía:** foto cuadrada (bordes de 13 px) con el monto en un globito abajo a la izquierda, el nombre en dos renglones como máximo (15 px, 16 en compu) y, si corresponde, una acción («Agregar», «Regalar»).
+- **Anatomía:** foto cuadrada (bordes de 13 px) con el monto en un globito abajo a la izquierda (letra normal, 15 px, como el nombre), el nombre sin negrita en dos renglones como máximo (15 px, 16 en compu) y, si corresponde, una acción («Agregar», «Regalar»).
 - **«Mis regalos»:** editar y quitar van como botoncitos redondos sobre la foto, sin categoría ni fila extra.
 - **Aporte libre:** una tarjeta tipo gift card en verde Weda.
   - Se agrega desde el catálogo y se quita como cualquier regalo. Su único dato, el monto mínimo, se edita en un diálogo.

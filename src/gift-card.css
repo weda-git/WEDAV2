@@ -44,3 +44,10 @@
 /* Aporte libre: la cara deja lugar al globito del monto. */
 .gc-free-face { padding: 10px 10px 34px; gap: 4px; }
 .gc-free-face strong { font-size: 14px; line-height: 1.25; }
+/* Globito del monto como el original (captura de la dueña, 2026-11-23): letra normal, del mismo tamaño que el nombre, con aire y sombra suave.
+   El nombre también va sin negrita. */
+.gc-photo .gc-price, .dm-root .rg-card.gc .gc-photo .gc-price { left: 10px; bottom: 10px; padding: 6px 14px; font-size: 15px; font-weight: 400; box-shadow: 0 4px 12px rgb(0 0 0 / .14); }
+.dm-root .rg-card.gc .gc-photo .gc-price { font-family: var(--iv-font, inherit); }
+.gc .gc-name { font-weight: 400 !important; }
+.dm-root .rg-card.gc .gc-name { font-weight: 400 !important; }
+@media (max-width: 400px) { .gc-photo .gc-price, .dm-root .rg-card.gc .gc-photo .gc-price { left: 8px; bottom: 8px; padding: 5px 12px; font-size: 14px; } }
