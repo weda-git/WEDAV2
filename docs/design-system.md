@@ -294,6 +294,7 @@ Capa final de `src/panel.css` («Rediseño del panel»), mobile-first. La landin
 - **Aviso de prueba:** se sacó el 2026-11-23 (pedido de la dueña). Solo queda el aviso de cuando terminó el período gratuito.
 - **Encabezados:** el mismo título (28 a 34 px) y el mismo aire. En el celular, las dos acciones van lado a lado, con la principal primero.
 - **Inicio:**
+  - encabezado: el nombre de la pareja arriba, chico, y «Hola de nuevo» grande (34 a 48 px), sin bajada (2026-11-23);
   - «Tu casamiento en tres pasos» (repensado desde cero): lista vertical con los tres pasos a la vista y un anillo de avance «x/3»;
   - el paso actual va en una tarjeta blanca, con una línea de qué falta y un solo botón; los hechos llevan tilde, «Listo» y «Editar»; los que vienen quedan apagados;
   - «Publicar» usa el verde de la marca cuando le toca, y publicada muestra «Ver mi página»;
