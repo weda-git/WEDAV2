@@ -6,13 +6,14 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Field } from './ui';
 import { cleanCbu, maskAlias, maskCbu, validateAlias, validateCbu } from '@/lib/weda/logic';
 import { changePayout, errorText, type PayoutData } from '@/lib/weda/remote';
+import type { Currency } from '@/lib/weda/money';
 
 type Errors = Partial<Record<'alias' | 'cbu' | 'bank' | 'password', string>>;
 
 const normalize = (d: PayoutData): PayoutData => ({ alias: d.alias.trim().toLowerCase(), bank: d.bank.trim(), cbu: cleanCbu(d.cbu.trim()) });
 const same = (a: PayoutData, b: PayoutData) => a.alias === b.alias && a.bank === b.bank && a.cbu === b.cbu;
 
-export function PayoutForm({ current, initial, onDone, onCancel }: { current: PayoutData; initial?: PayoutData | null; onDone: () => void; onCancel: () => void }) {
+export function PayoutForm({ current, initial, onDone, onCancel, currency = 'ARS' }: { current: PayoutData; initial?: PayoutData | null; onDone: () => void; onCancel: () => void; currency?: Currency }) {
   const [data, setData] = useState<PayoutData>(initial ?? current);
   const [step, setStep] = useState<'edit' | 'confirm'>('edit');
   const [password, setPassword] = useState('');
@@ -45,7 +46,7 @@ export function PayoutForm({ current, initial, onDone, onCancel }: { current: Pa
     e.preventDefault();
     if (!first && !password) { setErrors({ password: 'Escribí tu clave actual.' }); return; }
     setBusy(true); setBanner(null);
-    const r = await changePayout(next, first ? '' : password);
+    const r = await changePayout(next, first ? '' : password, currency);
     setBusy(false);
     if (r.ok) { onDone(); return; }
     if (r.code === 'wrong_password') { setPassword(''); setErrors({ password: errorText(r.code) }); passRef.current?.focus(); return; }

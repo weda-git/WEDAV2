@@ -2,7 +2,7 @@
 // y para que, cuando exista una API, se puedan reemplazar por llamadas al servidor sin tocar los componentes.
 import { dressCode as demoDress, menus, type Category, type Gift } from '@/lib/demo-wedding';
 import { catalogGift, setGifts, type GiftSet } from './catalog';
-import { CURRENCY_IN, formatMoney, LIMITS, listCurrency, type Currency } from './money';
+import { CURRENCY_IN, formatMoney, LIMITS, usdFrom, type Currency, type ListMode } from './money';
 import { publishes, planFor, type Feature } from './plans';
 import type {
   AppState, BlockId, EventIconId, Group, Guest, GuestStatus, ListGift, PhotoChoice, PlanId, SiteConfig, SiteEvent, Swatch,
@@ -300,13 +300,11 @@ export const emptyState = (): AppState => ({
 
 export type AddResult = { state: AppState; added: number; skipped: number };
 
-/** Precio de un regalo del catálogo en una moneda (GIFT-10, D3): el fijo en dólares o el de pesos. Sin conversión. */
-export const catalogPrice = (g: Gift, currency: Currency): number => (currency === 'USD' ? (g.amountUsd ?? 0) : g.amount);
-
-const fromCatalog = (id: string, fromSet: string | undefined, currency: Currency): ListGift | null => {
+// GIFT-10 v2 (D5): cada regalo de la lista lleva su precio en pesos y en dólares; el catálogo los trae fijos.
+const fromCatalog = (id: string, fromSet: string | undefined): ListGift | null => {
   const g = catalogGift(id); if (!g) return null;
   return {
-    id: uid('g'), catalogId: g.id, fromSet, name: g.name, text: g.text, amount: catalogPrice(g, currency), category: g.category, icon: g.icon,
+    id: uid('g'), catalogId: g.id, fromSet, name: g.name, text: g.text, amount: g.amount, amountUsd: g.amountUsd ?? usdFrom(g.amount), category: g.category, icon: g.icon,
     image: g.image, pos: g.pos, fit: g.fit, zoom: g.zoom,
   };
 };
@@ -316,7 +314,7 @@ export const hasCatalogGift = (s: AppState, catalogId: string) => s.gifts.items.
 /** Agrega un regalo del catálogo si todavía no está en la lista (no duplica). */
 export function addCatalogGift(s: AppState, catalogId: string, fromSet?: string): AddResult {
   if (hasCatalogGift(s, catalogId)) return { state: s, added: 0, skipped: 1 };
-  const item = fromCatalog(catalogId, fromSet, listCurrency(s.gifts)); if (!item) return { state: s, added: 0, skipped: 0 };
+  const item = fromCatalog(catalogId, fromSet); if (!item) return { state: s, added: 0, skipped: 0 };
   return { state: { ...s, gifts: { ...s.gifts, items: [...s.gifts.items, item] } }, added: 1, skipped: 0 };
 }
 
@@ -326,7 +324,7 @@ export function addSet(s: AppState, set: GiftSet): AddResult {
   const items = [...s.gifts.items];
   for (const g of setGifts(set)) {
     if (items.some(x => x.catalogId === g.id)) { skipped++; continue; }
-    const it = fromCatalog(g.id, set.id, listCurrency(s.gifts)); if (!it) continue;
+    const it = fromCatalog(g.id, set.id); if (!it) continue;
     items.push(it); added++;
   }
   return { state: { ...s, gifts: { ...s.gifts, items } }, added, skipped };
@@ -337,31 +335,18 @@ export const removeGift = (s: AppState, id: string): AppState => ({ ...s, gifts:
 export const removeSetGifts = (s: AppState, giftIds: string[]): AppState => ({ ...s, gifts: { ...s.gifts, items: s.gifts.items.filter(g => !g.catalogId || !giftIds.includes(g.catalogId)) } });
 export const removeSet = (s: AppState, setId: string): AppState => ({ ...s, gifts: { ...s.gifts, items: s.gifts.items.filter(g => g.fromSet !== setId) } });
 
-export function addCustomGift(s: AppState, i: { name: string; amount: number; text?: string | undefined; category?: Category | undefined; image?: string | undefined }): AppState {
-  const g: ListGift = { id: uid('g'), name: i.name.trim(), text: (i.text ?? '').trim(), amount: i.amount, category: i.category ?? 'Proyectos futuros', icon: 'compass', image: i.image, custom: true };
+/** Regalo propio. `amount` en pesos; `amountUsd`, si no viene, se sugiere desde los pesos (D5). */
+export function addCustomGift(s: AppState, i: { name: string; amount: number; amountUsd?: number | undefined; text?: string | undefined; category?: Category | undefined; image?: string | undefined }): AppState {
+  const g: ListGift = { id: uid('g'), name: i.name.trim(), text: (i.text ?? '').trim(), amount: i.amount, amountUsd: i.amountUsd ?? usdFrom(i.amount), category: i.category ?? 'Proyectos futuros', icon: 'compass', image: i.image, custom: true };
   return { ...s, gifts: { ...s.gifts, items: [...s.gifts.items, g] } };
 }
 
-export const updateGift = (s: AppState, id: string, patch: Partial<Pick<ListGift, 'name' | 'text' | 'amount' | 'image' | 'category'>>): AppState => ({
-  // Poner un monto nuevo resuelve el «falta el monto» de un regalo propio después de cambiar de moneda (GIFT-10, D5).
-  ...s, gifts: { ...s.gifts, items: s.gifts.items.map(g => (g.id === id ? { ...g, ...patch, ...('amount' in patch ? { needsAmount: undefined } : {}) } : g)) },
+export const updateGift = (s: AppState, id: string, patch: Partial<Pick<ListGift, 'name' | 'text' | 'amount' | 'amountUsd' | 'image' | 'category'>>): AppState => ({
+  ...s, gifts: { ...s.gifts, items: s.gifts.items.map(g => (g.id === id ? { ...g, ...patch } : g)) },
 });
 
-/**
- * Cambia la moneda de la lista (GIFT-10, D5). Los regalos del catálogo toman su precio fijo en la nueva moneda; los propios quedan
- * marcados «sin monto» hasta que la pareja les ponga uno. El mínimo del aporte libre se borra (era de la otra moneda). No se convierte nada.
- * El servidor rechaza el cambio si la lista ya recibió aportes (D4).
- */
-export function setListCurrency(s: AppState, currency: Currency): AppState {
-  if (listCurrency(s.gifts) === currency) return s;
-  const items = s.gifts.items.map(g => {
-    const c = g.catalogId ? catalogGift(g.catalogId) : undefined;
-    return c ? { ...g, amount: catalogPrice(c, currency), needsAmount: undefined } : { ...g, needsAmount: true as const };
-  });
-  return { ...s, gifts: { ...s.gifts, currency, items, freeAmount: { ...s.gifts.freeAmount, min: null } } };
-}
-/** Regalos propios a los que les falta el monto después de cambiar de moneda. */
-export const giftsMissingAmount = (s: AppState): ListGift[] => s.gifts.items.filter(g => g.needsAmount);
+/** Cambia cómo se muestra la lista (GIFT-10 v2, D2). Ningún regalo pierde su monto: todos tienen precio en las dos monedas (D5). */
+export const setListMode = (s: AppState, mode: ListMode): AppState => (s.gifts.currency === mode ? s : { ...s, gifts: { ...s.gifts, currency: mode } });
 
 export function moveGift(s: AppState, id: string, dir: -1 | 1): AppState {
   const items = [...s.gifts.items];

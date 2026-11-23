@@ -2,7 +2,7 @@
 // - Hidrata después de montar (seguro con SSR).
 // - Se sincroniza entre pestañas y iframes (evento "storage"): así la vista previa del editor se actualiza sola.
 // - Tolera datos ausentes, corruptos o de una versión anterior: en ese caso arranca vacío, sin errores.
-import { isCurrency, LIMITS, type Currency } from './money';
+import { isListMode, LIMITS } from './money';
 import { useRef, useSyncExternalStore } from 'react';
 import { defaultColors, defaultGroup, EVENT_ICON_IDS, defaultSite, emptyState, isHexColor, MAX_AMOUNT, MIN_AMOUNT, normalizeOrder } from './logic';
 import { isPlanId, normalizePlanId } from './plans';
@@ -42,7 +42,7 @@ function listGift(v: unknown): ListGift | null {
     pos: typeof v['pos'] === 'string' ? v['pos'] : undefined, fit: (v['fit'] === 'contain' || v['fit'] === 'white') ? v['fit'] : undefined,
     zoom: isObj(v['zoom']) && typeof v['zoom']['scale'] === 'number' && typeof v['zoom']['origin'] === 'string' ? { scale: v['zoom']['scale'], origin: v['zoom']['origin'] } : undefined,
     custom: v['custom'] === true ? true : undefined,
-    needsAmount: v['needsAmount'] === true ? true : undefined,
+    amountUsd: typeof v['amountUsd'] === 'number' && Number.isInteger(v['amountUsd']) && v['amountUsd'] > 0 ? v['amountUsd'] : undefined,
   };
 }
 
@@ -110,10 +110,11 @@ function publication(v: unknown): AppState['publication'] {
 }
 
 /** Aporte libre (GIFT-09): apagado si no viene; el mínimo, entero entre el mínimo y el máximo generales, o nulo. */
-function freeAmount(v: unknown, currency: Currency = 'ARS'): FreeAmount {
+/** El mínimo del aporte libre se guarda en pesos; en dólares rige el mínimo de la moneda (GIFT-10 v2). */
+function freeAmount(v: unknown): FreeAmount {
   if (!isObj(v)) return { enabled: false, min: null };
   const m = v['min'];
-  return { enabled: bool(v['enabled'], false), min: typeof m === 'number' && Number.isInteger(m) && m >= LIMITS[currency].min && m <= LIMITS[currency].max ? m : null };
+  return { enabled: bool(v['enabled'], false), min: typeof m === 'number' && Number.isInteger(m) && m >= LIMITS.ARS.min && m <= LIMITS.ARS.max ? m : null };
 }
 
 function build(raw: Record<string, unknown>, from: number): AppState {
@@ -128,8 +129,9 @@ function build(raw: Record<string, unknown>, from: number): AppState {
     gifts: {
       cover: typeof g['cover'] === 'string' ? g['cover'] : null, alias: str(g['alias']), bank: str(g['bank']), cbu: str(g['cbu']), acceptCard: bool(g['acceptCard'], false),
       items: arr(g['items']).map(listGift).filter((x): x is ListGift => !!x),
-      freeAmount: freeAmount(g['freeAmount'], isCurrency(g['currency']) ? g['currency'] : 'ARS'),
-      currency: isCurrency(g['currency']) ? g['currency'] : undefined,
+      usd: isObj(g['usd']) ? { alias: str(g['usd']['alias']), bank: str(g['usd']['bank']), cbu: str(g['usd']['cbu']) } : undefined,
+      freeAmount: freeAmount(g['freeAmount']),
+      currency: isListMode(g['currency']) ? g['currency'] : undefined,
       given: arr(g['given']).filter(isObj).filter(x => typeof x['id'] === 'string').map(x => ({
         id: str(x['id']), name: str(x['name']), message: str(x['message']),
         giftName: typeof x['giftName'] === 'string' ? x['giftName'] : undefined,

@@ -1,7 +1,14 @@
 import { expect, test as base, type Page } from '@playwright/test';
 
 /** Cada test falla si la consola del navegador registra errores. */
-export const test = base.extend<{ consoleErrors: string[]; uniqueAccounts: void }>({
+export const test = base.extend<{ consoleErrors: string[]; uniqueAccounts: void; autoCurrency: boolean; currencyHandler: void }>({
+  // GIFT-10 v2: la primera vez que se agrega un regalo, el panel pregunta la moneda de la lista. Los recorridos que no prueban eso
+  // eligen «Pesos» solos (como hacían antes, cuando todo era en pesos). La prueba de moneda lo apaga con `test.use({ autoCurrency: false })`.
+  autoCurrency: [true, { option: true }],
+  currencyHandler: [async ({ page, autoCurrency }, use) => {
+    if (autoCurrency) await page.addLocatorHandler(page.getByRole('dialog', { name: '¿En qué moneda armás tu lista?' }), async d => { await d.getByRole('radio', { name: /^Pesos/ }).click(); });
+    await use();
+  }, { auto: true }],
   // Las cuentas ahora son reales (servidor + base de datos): un mismo correo no se puede registrar dos veces. Cada test recibe un sufijo propio en el
   // correo (lucia@example.com → lucia+<tag>@example.com) al registrarse o ingresar, así los recorridos no chocan entre sí ni con corridas anteriores.
   uniqueAccounts: [async ({ context }, use, testInfo) => {

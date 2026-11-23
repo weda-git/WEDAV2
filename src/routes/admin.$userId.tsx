@@ -3,6 +3,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiFailure, errorText } from '@/lib/weda/remote';
+import { priceIn } from '@/lib/weda/money';
 import { ACTION_LABEL, accountState, dateTime, money, planName, shortDate } from '@/components/admin/format';
 
 export const Route = createFileRoute('/admin/$userId')({ component: AccountPage });
@@ -10,10 +11,10 @@ export const Route = createFileRoute('/admin/$userId')({ component: AccountPage 
 type Detail = {
   account: { id: string; email: string; createdAt: string; lastSignInAt: string | null; suspendedAt: string | null; suspensionNote: string; names: string };
   wedding: null | {
-    slug: string | null; planId: string; date: string; currency: 'ARS' | 'USD';
+    slug: string | null; planId: string; date: string; currency: 'ARS' | 'USD' | 'both';
     publication: { status: string; planId: string; publishedAt: string } | null;
     guests: { id: string; first: string; last: string; status: string; menu: string }[];
-    gifts: { id: string; name: string; amount: number; category: string }[];
+    gifts: { id: string; name: string; amount: number; amountUsd?: number; category: string }[];
     payout: { alias: string; changedAt: string | null } | null;
   };
   contributions: { id: string; currency?: 'ARS' | 'USD'; giverName: string; total: number; status: string; createdAt?: string; hasReceipt: boolean; message: string }[];
@@ -110,7 +111,7 @@ function AccountPage() {
         {w?.gifts.length ? (
           <div className="adm-scroll"><table className="adm-table">
             <thead><tr><th>Regalo</th><th>Categoría</th><th>Monto</th></tr></thead>
-            <tbody>{w.gifts.map(g => <tr key={g.id}><td>{g.name}</td><td>{g.category || '—'}</td><td>{money(g.amount, w.currency)}</td></tr>)}</tbody>
+            <tbody>{w.gifts.map(g => <tr key={g.id}><td>{g.name}</td><td>{g.category || '—'}</td><td>{w.currency === 'USD' ? money(priceIn(g, 'USD'), 'USD') : w.currency === 'both' ? `${money(g.amount)} · ${money(priceIn(g, 'USD'), 'USD')}` : money(g.amount)}</td></tr>)}</tbody>
           </table></div>
         ) : <p className="pn-muted">Sin regalos.</p>}
       </section>

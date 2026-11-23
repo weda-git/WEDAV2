@@ -8,6 +8,7 @@
 //  - Concurrencia optimista: cada guardado lleva la revisión que este dispositivo vio; si otro dispositivo guardó antes (409) se frena
 //    el guardado automático y se pide recargar, en vez de pisar datos.
 //  - Los invitados viajan como operaciones (altas/cambios/bajas), no como lista completa: así no se pierden respuestas del sitio público.
+import type { Currency } from './money';
 import { useSyncExternalStore } from 'react';
 import { hasEvent } from './account';
 import { normalizePlanId, operates, type Access } from './plans';
@@ -30,6 +31,8 @@ export type RemoteState = {
   payments: { enabled: boolean; paidPlan: string | null } | null;
   /** Destino de cobro vigente según el servidor (solo cambia con la clave, `changePayout`). null = sin cuenta o todavía no se sabe. */
   payout: Payout | null;
+  /** Cuenta en dólares vigente (GIFT-10 v2, D4). */
+  payoutUsd: Payout | null;
   /** Datos de cobro cargados en este navegador antes de tener cuenta: no se suben solos, se confirman con la clave. */
   pendingPayout: PayoutData | null;
   /** Qué se puede operar (BR-62), calculado por el servidor con el plan publicado y vigente. null = sin cuenta o todavía no se sabe. */
@@ -59,7 +62,7 @@ export async function api<T = any>(method: string, url: string, body?: unknown):
 
 /* ------------------------------------------------------------------ estado observable */
 
-let remote: RemoteState = { settled: false, user: null, save: 'idle', error: null, notice: null, publication: null, payments: null, payout: null, pendingPayout: null, access: null, impersonating: null };
+let remote: RemoteState = { settled: false, user: null, save: 'idle', error: null, notice: null, publication: null, payments: null, payout: null, payoutUsd: null, pendingPayout: null, access: null, impersonating: null };
 const listeners = new Set<() => void>();
 const set = (p: Partial<RemoteState>) => { remote = { ...remote, ...p }; listeners.forEach(l => l()); };
 const SERVER_REMOTE: RemoteState = remote;
@@ -108,12 +111,14 @@ function adoptPublication(s: AppState, server: { status: string; planId: string;
 
 const payoutOf = (s: AppState): PayoutData => ({ alias: s.gifts.alias.trim(), bank: s.gifts.bank.trim(), cbu: s.gifts.cbu.trim() });
 const withPayout = (s: AppState, p: PayoutData): AppState => ({ ...s, gifts: { ...s.gifts, alias: p.alias, bank: p.bank, cbu: p.cbu } });
+/** La cuenta en dólares (GIFT-10 v2, D4) solo existe con cuenta de Weda: la manda siempre el servidor. */
+const withPayoutUsd = (s: AppState, p: Payout | null): AppState => ({ ...s, gifts: { ...s.gifts, usd: p?.version ? { alias: p.alias, bank: p.bank, cbu: p.cbu } : undefined } });
 
-function adoptPayout(local: AppState, server: Payout): AppState {
+function adoptPayout(local: AppState, server: Payout, usd: Payout | null): AppState {
   const mine = payoutOf(local);
   const differs = (mine.alias || mine.bank || mine.cbu) && (mine.alias !== server.alias || mine.bank !== server.bank || mine.cbu !== server.cbu);
-  set({ payout: server, pendingPayout: differs && server.version === 0 ? mine : null });
-  return withPayout(local, server);
+  set({ payout: server, payoutUsd: usd, pendingPayout: differs && server.version === 0 ? mine : null });
+  return withPayoutUsd(withPayout(local, server), usd);
 }
 
 function mergeFromServer(local: AppState, w: any, email: string): AppState {
@@ -171,7 +176,7 @@ async function attach(email: string, key = email): Promise<void> {
     try { window.localStorage.removeItem(META_KEY); window.localStorage.removeItem(BACKUP_KEY); } catch { /* nada que borrar */ }
   }
   // El destino de cobro manda el del servidor.
-  const local = adoptPayout(getState(), w.payout as Payout);
+  const local = adoptPayout(getState(), w.payout as Payout, (w.payoutUsd as Payout | undefined) ?? null);
   const serverHasData = !!w.draft.onboarded || !!w.draft.couple.first || !!w.draft.couple.second;
   if (!serverHasData && hasEvent(local)) {
     // La cuenta no tiene casamiento pero este navegador tiene uno de esta misma cuenta sin guardar (por ejemplo, se cortó la red al empezar): se sube.
@@ -369,7 +374,7 @@ export async function logout(): Promise<void> {
   try { window.localStorage.removeItem(META_KEY); } catch { /* nada que borrar */ }
   reset();
   started = Promise.resolve();
-  set({ settled: true, user: null, save: 'idle', error: null, notice: null, publication: null, payments: null, payout: null, pendingPayout: null });
+  set({ settled: true, user: null, save: 'idle', error: null, notice: null, publication: null, payments: null, payout: null, payoutUsd: null, pendingPayout: null });
 }
 
 /** Publica de verdad en el servidor lo último guardado. Primero se asegura de que el servidor tenga el borrador actual. */
@@ -401,13 +406,14 @@ export async function unpublishRemote(): Promise<{ ok: true } | { ok: false; cod
  * Cambia adónde transfieren los invitados: con la clave actual y sobre la versión que se vio (si cambió en otro dispositivo, el servidor lo rechaza).
  * Los invitados lo ven cuando se publican los cambios.
  */
-export async function changePayout(data: PayoutData, currentPassword: string): Promise<AuthResult> {
-  if (!remote.user || !remote.payout) return { ok: false, code: 'session_expired' };
+export async function changePayout(data: PayoutData, currentPassword: string, currency: Currency = 'ARS'): Promise<AuthResult> {
+  const base = currency === 'USD' ? remote.payoutUsd : remote.payout;
+  if (!remote.user || !base) return { ok: false, code: 'session_expired' };
   try {
-    const r = await api<{ payout: Payout; pendingChanges: boolean | null }>('POST', '/api/wedding/payout', { ...data, currentPassword, baseVersion: remote.payout.version });
+    const r = await api<{ payout: Payout; payoutUsd: Payout; pendingChanges: boolean | null }>('POST', '/api/wedding/payout', { ...data, currency, currentPassword, baseVersion: base.version });
     const pub = remote.publication;
-    set({ payout: r.payout, pendingPayout: null, ...(pub && typeof r.pendingChanges === 'boolean' ? { publication: { ...pub, pendingChanges: r.pendingChanges } } : {}) });
-    replace(withPayout(getState(), r.payout));
+    set({ payout: r.payout, payoutUsd: r.payoutUsd, pendingPayout: currency === 'ARS' ? null : remote.pendingPayout, ...(pub && typeof r.pendingChanges === 'boolean' ? { publication: { ...pub, pendingChanges: r.pendingChanges } } : {}) });
+    replace(withPayoutUsd(withPayout(getState(), r.payout), r.payoutUsd));
     return { ok: true };
   } catch (e) {
     if (e instanceof ApiFailure && e.status === 401) return { ok: false, code: 'session_expired' };
@@ -449,6 +455,7 @@ export const ERROR_TEXT: Record<string, string> = {
   invalid_bank: 'El nombre del banco es demasiado largo.',
   payout_changed: 'Tus datos de cobro cambiaron desde otro dispositivo. Recargá la página para ver los vigentes.',
   payout_unchanged: 'Son los mismos datos que ya tenías.',
+  invalid_currency: 'Esa moneda no está disponible en esta lista.',
   too_many_changes: 'Ya cambiaste tus datos de cobro 3 veces hoy. Por seguridad, probá de nuevo mañana.',
   feature_requires_plan: 'Esto se habilita al publicar con Celebración.',
   plan_change_pending: 'Por ahora el plan no se puede cambiar después de contratarlo.',

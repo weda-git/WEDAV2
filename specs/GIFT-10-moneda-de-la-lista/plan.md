@@ -1,7 +1,7 @@
 # GIFT-10 · Moneda de la lista de regalos — plan técnico
 
 - **Spec:** [spec.md](spec.md)
-- **Estado:** aprobado (2026-11-23, por la dueña, con la columna de moneda en los aportes)
+- **Estado:** aprobado (2026-11-23). **Actualizado para la v2** de la spec: ver «Cambios de la v2» al final; lo de abajo describe la v1 donde no se contradice.
 - **Rama:** `feat/moneda-lista` desde `main`
 
 ## Enfoque
@@ -75,3 +75,24 @@ El borrador (`weddings.draft`) y la página publicada (`publications.snapshot`) 
 - `02-business-rules-catalog.md`: BR-21.
 - `03-open-decisions-and-risks.md`: RK-05 / IC-23, en parte.
 - `docs/design-system.md`: el formato de los importes.
+
+
+## Cambios de la v2 (2026-11-23)
+- **Modelo:**
+  - `gifts.currency` pasa a ser `'ARS' | 'USD' | 'both'`; sin dato, todavía no se eligió y se muestra en pesos.
+  - Cada regalo de la lista guarda `amount` (pesos) y `amountUsd`.
+  - Se eliminan `needsAmount`, `catalogPrice`, `setListCurrency` y `giftsMissingAmount`; entra `setListMode`.
+- **`money.ts`:**
+  - `usdFrom` (a la decena, para arriba) y `arsFrom` (al millar, para arriba), a `SUGGEST_RATE` = 1500;
+  - `priceIn(g, currency)`, `shownCurrencies(mode)` y `currencyChosen`.
+- **Catálogo:** los dólares se redondean a la decena para arriba.
+- **Cuentas:**
+  - la de pesos sigue en `gifts.alias/bank/cbu`; la de dólares va en `gifts.usd`. Las dos las pone el servidor desde `payout_methods`;
+  - **migración 4:** `payout_methods.currency`. La cuenta vigente de cada moneda es su versión más alta, y la numeración de versiones sigue siendo una por casamiento;
+  - `changePayout` recibe `currency`, y `GET /api/wedding` devuelve `payoutUsd`.
+- **Aportes:**
+  - el invitado manda `currency`, que tiene que estar entre `site.currencies`;
+  - el monto sale de `priceIn` sobre lo publicado;
+  - se quita el bloqueo `currency_locked`.
+- **Publicar:** `hasPayout` pide la cuenta de cada moneda que muestra la lista.
+- **Pruebas e2e:** una nueva (`e2e/currency.spec.ts`). En las demás, el selector de la primera vez elige «Pesos» solo (`autoCurrency` en `e2e/helpers.ts`).

@@ -15,7 +15,10 @@ export type PhotoChoice =
 export type Couple = { first: string; second: string; firstLast?: string; secondLast?: string };
 
 /** Regalo simbólico dentro de la lista de la pareja. `fromSet` recuerda de qué colección vino (si vino de una). */
-import type { Currency } from './money';
+import type { ListMode } from './money';
+
+/** Una cuenta de cobro: alias, banco y CBU (opcional). Vacía = sin cargar. */
+export type PayoutAccount = { alias: string; bank: string; cbu: string };
 
 export type ListGift = {
   id: string;
@@ -24,9 +27,10 @@ export type ListGift = {
   fromSet?: string | undefined;
   name: string;
   text: string;
+  /** Precio en pesos. */
   amount: number;
-  /** Regalo propio que quedó sin monto válido al cambiar la moneda de la lista (GIFT-10, D5): hay que ponerle uno nuevo. */
-  needsAmount?: true | undefined;
+  /** Precio en dólares (GIFT-10 v2, D5). El catálogo lo trae fijo; en los propios se sugiere y la pareja lo puede cambiar. Sin dato (listas anteriores) se sugiere al leerlo. */
+  amountUsd?: number | undefined;
   category: Category;
   icon: IconKey;
   image?: string | undefined;
@@ -127,8 +131,9 @@ export type AppState = {
   preferredPlan: PlanId | null;
   planId: PlanId | null;
   /** `acceptCard`: preferencia de la pareja; en esta etapa no hay cobro real con tarjeta. */
-  /** `currency`: moneda de la lista (GIFT-10). Sin dato = pesos. */
-  gifts: { cover: string | null; alias: string; bank: string; cbu: string; acceptCard: boolean; items: ListGift[]; given: GivenGift[]; freeAmount: FreeAmount; currency?: Currency | undefined };
+  /** `currency`: cómo se muestra la lista, en pesos, dólares o las dos (GIFT-10 v2). Sin dato = todavía no se eligió (se muestra en pesos).
+   *  `alias`/`bank`/`cbu`: la cuenta en pesos; `usd`: la cuenta en dólares (D4). Las dos las pone el servidor desde `payout_methods`. */
+  gifts: { cover: string | null; alias: string; bank: string; cbu: string; usd?: PayoutAccount | undefined; acceptCard: boolean; items: ListGift[]; given: GivenGift[]; freeAmount: FreeAmount; currency?: ListMode | undefined };
   guests: Guest[];
   groups: Group[];
   site: SiteConfig;

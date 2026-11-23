@@ -13,7 +13,7 @@ import { planById, isPlanId, normalizePlanId, operates, planForOperation, planRa
 import type { Guest, PlanId } from '@/lib/weda/types';
 import type { SiteData } from '@/lib/weda/site-model';
 import { MARKETING_CONSENT_VERSION } from '@/lib/weda/consent';
-import { formatMoney, LIMITS, listCurrency, type Currency } from '@/lib/weda/money';
+import { formatMoney, isCurrency, LIMITS, priceIn, type Currency } from '@/lib/weda/money';
 import { layout, sendMail, unsubscribeUrl, verifyUnsubscribe } from './mail';
 import { providerFor, signedTestNotification, type Outcome } from './payments';
 import { externalizeImages } from './media';
@@ -232,6 +232,7 @@ export class Service {
       guests: (await this.guestsOf(wid)),
       publication: pub ? { status: pub['status'] as string, planId: pub['plan_id'] as string, version: pub['version'] as number, publishedAt: pub['published_at'] as string, pendingChanges: (await this.pendingChanges(w)) } : null,
       payout: (await this.activePayout(wid)),
+      payoutUsd: (await this.activePayout(wid, 'USD')),
       access: (await this.access(wid)),
     };
   }
@@ -274,8 +275,6 @@ export class Service {
       if (upserts.length > 0 || removes.length > 0) (await this.assertOperates(wid, 'guests'));
       const before = sanitizeDraft(JSON.parse(w['draft'] as string));
       if (JSON.stringify(draft.groups) !== JSON.stringify(before.groups)) (await this.assertOperates(wid, 'groups'));
-      // GIFT-10 (D4, BR-21): con aportes recibidos la moneda de la lista queda fija; no se mezclan monedas en lo recibido.
-      if (listCurrency(draft.gifts) !== listCurrency(before.gifts) && (await this.db.get('SELECT 1 FROM contributions WHERE wedding_id = ? LIMIT 1', wid))) throw conflict('currency_locked');
       const t = now();
       const next = (w['revision'] as number) + 1;
       // El destino de cobro que mande el cliente se descarta: solo cambia por changePayout (con clave).
@@ -295,9 +294,9 @@ export class Service {
 
   /* ------------------------------------------------------------------ destino de cobro (GIFT-14, BR-30) */
 
-  /** Destino vigente: la versión más alta de `payout_methods`. Versión 0 = todavía no se cargó ninguno. */
-  private async activePayout(wid: string): Promise<Payout> {
-    const r = (await this.db.get('SELECT version, alias, bank, cbu, created_at FROM payout_methods WHERE wedding_id = ? ORDER BY version DESC LIMIT 1', wid)) as Row | undefined;
+  /** Destino vigente de una moneda: su versión más alta en `payout_methods` (GIFT-10 v2, D4). Versión 0 = todavía no se cargó ninguno. */
+  private async activePayout(wid: string, currency: Currency = 'ARS'): Promise<Payout> {
+    const r = (await this.db.get('SELECT version, alias, bank, cbu, created_at FROM payout_methods WHERE wedding_id = ? AND currency = ? ORDER BY version DESC LIMIT 1', wid, currency)) as Row | undefined;
     return r
       ? { version: r['version'] as number, alias: r['alias'] as string, bank: r['bank'] as string, cbu: r['cbu'] as string, changedAt: r['created_at'] as string }
       : { version: 0, alias: '', bank: '', cbu: '', changedAt: null };
@@ -306,7 +305,8 @@ export class Service {
   /** El borrador siempre lleva el destino vigente: así lo leen el panel, la publicación y el snapshot, y ningún guardado lo reescribe. */
   private async withPayout(draft: DraftState, wid: string): Promise<DraftState> {
     const p = (await this.activePayout(wid));
-    return { ...draft, gifts: { ...draft.gifts, alias: p.alias, bank: p.bank, cbu: p.cbu } };
+    const u = (await this.activePayout(wid, 'USD'));
+    return { ...draft, gifts: { ...draft.gifts, alias: p.alias, bank: p.bank, cbu: p.cbu, usd: u.version ? { alias: u.alias, bank: u.bank, cbu: u.cbu } : undefined } };
   }
 
   /**
@@ -316,8 +316,10 @@ export class Service {
    * Nunca edita una versión: agrega la siguiente. Avisa por correo al dueño (con los datos enmascarados), también en la primera carga.
    * Los invitados lo ven recién al publicar los cambios (la página pública es una copia).
    */
-  async changePayout(s: Session, input: Row): Promise<{ payout: Payout; pendingChanges: boolean | null }> {
+  async changePayout(s: Session, input: Row): Promise<{ payout: Payout; payoutUsd: Payout; pendingChanges: boolean | null }> {
     const next = parsePayout(input);
+    // GIFT-10 v2 (D4): cada moneda tiene su cuenta, con sus versiones; la clave, el límite diario y el aviso valen igual para las dos.
+    const currency: Currency = input['currency'] === undefined ? 'ARS' : isCurrency(input['currency']) ? input['currency'] : (() => { throw invalid('invalid_currency'); })();
     const password = typeof input['currentPassword'] === 'string' ? input['currentPassword'] : '';
     const baseVersion = input['baseVersion'];
     if (typeof baseVersion !== 'number' || !Number.isInteger(baseVersion)) throw invalid('invalid_version');
@@ -328,30 +330,32 @@ export class Service {
     const prev = await this.db.tx('weda', async () => {
       const wid = (await this.ensureWedding(s.userId))['id'] as string;
       (await this.assertNotPaused(wid));
-      const cur = (await this.activePayout(wid));
+      const cur = (await this.activePayout(wid, currency));
       if (cur.version !== baseVersion) throw conflict('payout_changed', String(cur.version));
       if (cur.alias === next.alias && cur.bank === next.bank && cur.cbu === next.cbu) throw invalid('payout_unchanged');
       const since = new Date(Date.now() - PAYOUT_WINDOW_MS).toISOString();
       const recent = (await this.db.get("SELECT COUNT(*) AS n FROM payout_methods WHERE wedding_id = ? AND source = 'owner' AND created_at > ?", wid, since)) as Row;
       if (Number(recent['n']) >= PAYOUT_MAX_CHANGES) throw new ApiError(429, 'too_many_changes');
-      (await this.db.run("INSERT INTO payout_methods (id,wedding_id,version,alias,bank,cbu,created_by,created_at,source) VALUES (?,?,?,?,?,?,?,?,'owner')", newId('pay'), wid, cur.version + 1, next.alias, next.bank, next.cbu, s.userId, now()));
+      const top = (await this.db.get('SELECT MAX(version) AS v FROM payout_methods WHERE wedding_id = ?', wid)) as Row | undefined;
+      (await this.db.run("INSERT INTO payout_methods (id,wedding_id,version,alias,bank,cbu,created_by,created_at,source,currency) VALUES (?,?,?,?,?,?,?,?,'owner',?)", newId('pay'), wid, Number(top?.['v'] ?? 0) + 1, next.alias, next.bank, next.cbu, s.userId, now(), currency));
       return cur;
     });
     this.payoutLimiter.reset(s.userId);
-    void this.mailPayoutChanged(s.email, prev, next);
+    void this.mailPayoutChanged(s.email, prev, next, currency);
     const w = (await this.ensureWedding(s.userId));
-    return { payout: (await this.activePayout(w['id'] as string)), pendingChanges: (await this.pendingChanges(w)) };
+    return { payout: (await this.activePayout(w['id'] as string)), payoutUsd: (await this.activePayout(w['id'] as string, 'USD')), pendingChanges: (await this.pendingChanges(w)) };
   }
 
-  private mailPayoutChanged(to: string, prev: Payout, next: { alias: string; bank: string; cbu: string }) {
+  private mailPayoutChanged(to: string, prev: Payout, next: { alias: string; bank: string; cbu: string }, currency: Currency) {
+    const which = currency === 'USD' ? 'tu cuenta en dólares' : 'tu cuenta en pesos';
     const show = (p: { alias: string; bank: string; cbu: string }) => [`Alias: ${p.alias ? maskAlias(p.alias) : 'sin alias'}`, ...(p.cbu ? [`CBU: ${maskCbu(p.cbu)}`] : []), ...(p.bank ? [`Banco: ${p.bank}`] : [])].join(' · ');
     const body = layout({
       title: prev.version ? 'Cambiaron tus datos de cobro' : 'Cargaste tus datos de cobro',
       paragraphs: [
-        `${prev.version ? 'Se cambió' : 'Se cargó'} adónde transfieren tus invitados los regalos, desde tu cuenta de Weda.`,
+        `${prev.version ? 'Se cambió' : 'Se cargó'} ${which}: adónde transfieren tus invitados los regalos, desde tu cuenta de Weda.`,
         ...(prev.version ? [`Antes: ${show(prev)}`] : []),
         `${prev.version ? 'Ahora' : 'Datos'}: ${show(next)}`,
-        'Tus invitados lo van a ver cuando publiques los cambios de tu página.',
+        'Tus invitados lo van a ver cuando actualices tu página.',
         'Si no fuiste vos, cambiá tu clave ahora y escribinos a hola@weda.app.',
       ],
       button: { label: 'Cambiar mi clave', url: `${this.cfg.publicUrl}/clave` },
@@ -561,8 +565,10 @@ export class Service {
     const wantsFree = b['freeAmount'] !== undefined && b['freeAmount'] !== null;
     if (ids.length > 30 || (ids.length < 1 && !wantsFree)) throw invalid('invalid_gifts');
     if (!p.snapshot.blocks.gifts) throw conflict('gifts_disabled');
-    // GIFT-10: la moneda es la de la página que vio el invitado (las publicadas antes no la tienen: pesos).
-    const cur: Currency = p.snapshot.currency ?? 'ARS';
+    // GIFT-10 v2 (D3, D8): la moneda la elige el invitado entre las que muestra la página (las publicadas antes: solo pesos).
+    // El monto de cada regalo sale de la página publicada en esa moneda; nunca del cliente.
+    const shown: Currency[] = p.snapshot.currencies?.length ? p.snapshot.currencies : ['ARS'];
+    const cur: Currency = b['currency'] === undefined ? shown[0]! : isCurrency(b['currency']) && shown.includes(b['currency']) ? b['currency'] : (() => { throw invalid('invalid_currency'); })();
     const gifts = ids.map(id => p.snapshot.gifts.find(g => g.id === id));
     if (gifts.some(g => !g)) throw invalid('unknown_gift');
     let free: number | null = null;
@@ -570,11 +576,11 @@ export class Service {
       const fa = p.snapshot.freeAmount;
       if (!fa?.enabled) throw conflict('free_amount_disabled');
       const v = b['freeAmount'];
-      if (typeof v !== 'number' || !Number.isInteger(v) || v < Math.max(fa.min, LIMITS[cur].min) || v > LIMITS[cur].max) throw invalid('invalid_free_amount');
+      if (typeof v !== 'number' || !Number.isInteger(v) || v < (cur === 'ARS' ? Math.max(fa.min, LIMITS.ARS.min) : LIMITS.USD.min) || v > LIMITS[cur].max) throw invalid('invalid_free_amount');
       free = v;
     }
     const lines = [
-      ...gifts.map(g => ({ kind: 'gift' as const, giftId: g!.id, name: g!.name, suggested: Math.round(g!.amount), amount: Math.round(g!.amount) })),
+      ...gifts.map(g => ({ kind: 'gift' as const, giftId: g!.id, name: g!.name, suggested: Math.round(priceIn(g!, cur)), amount: Math.round(priceIn(g!, cur)) })),
       ...(free !== null ? [{ kind: 'free' as const, giftId: null, name: null, suggested: null, amount: free }] : []),
     ];
     // El comprobante se sube antes de la transacción (subir no retiene el candado de la base); si el aporte no se registra, se borra.

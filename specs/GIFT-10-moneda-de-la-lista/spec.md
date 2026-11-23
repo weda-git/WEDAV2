@@ -1,8 +1,8 @@
 # GIFT-10 · Moneda de la lista de regalos (pesos, dólares o las dos) — spec v2
 
-- **Estado:** a aprobar (v2, 2026-11-23). Reemplaza la v1 («una moneda por lista»), aprobada y construida en el PR #45 pero no publicada.
+- **Estado:** construida (v2 aprobada por la dueña el 2026-11-23, con D7 a D11 y la migración 4). Reemplaza la v1 («una moneda por lista»), que nunca se publicó.
 - **Tamaño:** crítica (dinero: importes, aportes y cuentas de cobro; cambia el esquema de la base)
-- **Plan:** [plan.md](plan.md) (se actualiza al aprobar esta spec)
+- **Plan:** [plan.md](plan.md)
 
 ## Problema
 La v1 dejaba elegir una sola moneda con un selector «Moneda de tu lista» que no se entendía. La dueña quiere:
