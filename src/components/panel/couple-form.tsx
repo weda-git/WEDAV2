@@ -88,6 +88,12 @@ export function CoupleForm({ onDone, onCancel }: { onDone?: () => void; onCancel
   const [place, setPlace] = useState(state.site.events[0]?.name ?? '');
   const [photo, setPhoto] = useState<PhotoChoice>(state.photo);
   const [errors, setErrors] = useState<ReturnType<typeof validateOnboarding>>({});
+  // La foto se guarda apenas se elige o se quita, sin esperar a «Guardar» (pedido de la dueña, 2026-11-23). El resto de los datos sigue con «Guardar».
+  const choosePhoto = (p: PhotoChoice) => {
+    setPhoto(p);
+    update(s => ({ ...s, photo: p }));
+    toast(p.kind === 'none' ? 'Quitamos la foto.' : 'Foto guardada.');
+  };
 
   const save = (e: React.FormEvent) => {
     e.preventDefault();
@@ -129,7 +135,7 @@ export function CoupleForm({ onDone, onCancel }: { onDone?: () => void; onCancel
           </div>
         </div>
       </div>
-      <PhotoTile value={photo} onChange={setPhoto} />
+      <PhotoTile value={photo} onChange={choosePhoto} />
       <div className="pn-actions is-end">
         {onCancel && <button type="button" className="pn-btn is-ghost" onClick={onCancel}>Cancelar</button>}
         <button type="submit" className="pn-btn">Guardar</button>
