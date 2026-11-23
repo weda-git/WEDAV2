@@ -291,7 +291,7 @@ Capa final de `src/panel.css` («Rediseño del panel»), mobile-first. La landin
   - Una sola acción principal por pantalla, oscura y llena (`--rd-ink`): la del encabezado de cada sección, la del paso actual del Inicio, «Listo» al editar una sección, la que confirma en un diálogo y `.pn-btn.is-primary` cuando algo falta hacer (configurar el cobro).
   - Las secundarias van con borde y sin relleno (`.is-ghost`, «Agregar» de las secciones).
   - «Publicar» arriba conserva su verde claro con texto oscuro: es el único botón de ese color.
-- **Aviso de prueba:** una línea liviana con un punto verde. La fecha exacta se ve solo desde 900 px.
+- **Aviso de prueba:** se sacó el 2026-11-23 (pedido de la dueña). Solo queda el aviso de cuando terminó el período gratuito.
 - **Encabezados:** el mismo título (28 a 34 px) y el mismo aire. En el celular, las dos acciones van lado a lado, con la principal primero.
 - **Inicio:**
   - «Tu casamiento en tres pasos» (repensado desde cero): lista vertical con los tres pasos a la vista y un anillo de avance «x/3»;
