@@ -40,7 +40,7 @@ test.describe('Perfil A · pareja apurada: de la landing al panel en el menor n�
 
   test('el siguiente paso del Inicio es único y lleva a elegir regalos; no hay nada obligatorio antes de Publicar', async ({ page }) => {
     await onboard(page, 'Camila', 'Juan');
-    await expect(page.getByRole('heading', { name: 'Armá tu lista de regalos' })).toBeVisible();
+    await expect(page.locator('.hs-item[aria-current="step"]').getByRole('heading', { name: 'Lista de regalos' })).toBeVisible(); // paso actual (rediseño 2026-11-21)
     await page.getByRole('link', { name: 'Armar mi lista' }).click();
     await expect(page).toHaveURL(/\/panel\/regalos/);
     // Publicar está siempre a mano y abre la elección de producto.
@@ -111,7 +111,7 @@ test.describe('Fecha y lugar opcionales: qué pasa en cada pantalla que los usa'
     // Inicio: el banner muestra solo los pasos, sin nombres ni fecha.
     await expect(page.getByRole('region', { name: /tres pasos/ })).not.toContainText('Fecha por definir');
     // El siguiente paso no depende de la fecha ni del lugar.
-    await expect(page.getByRole('heading', { name: 'Armá tu lista de regalos' })).toBeVisible();
+    await expect(page.locator('.hs-item[aria-current="step"]').getByRole('heading', { name: 'Lista de regalos' })).toBeVisible(); // paso actual (rediseño 2026-11-21)
     // Editor: la portada marca la fecha como pendiente y los eventos no inventan un lugar.
     await nav(page, 'Tu página').click();
     await expect(page.getByRole('button', { name: /Editar Portada.*Falta la fecha/ })).toBeVisible();
