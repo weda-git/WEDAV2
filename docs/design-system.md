@@ -313,7 +313,7 @@ Capa «Vidrio» al final de `src/panel.css`, sobre el rediseño. Referencia: un 
 - **Fondo:** casi blanco con un gris muy suave (`--gl-bg`, #f7f7f5 a #f4f4f1), con dos manchas de color apenas perceptibles. Así hay poca diferencia con los paneles (cambio del 2026-11-23: antes era un degradé cálido más oscuro). También se ve mientras carga (`.pn-root-wait`).
 - **Compu:**
   - el menú y el contenido son paneles flotantes translúcidos (`--gl-panel`, `--gl-panel-strong`), con desenfoque (`--gl-blur`), borde claro y esquinas de 26 a 28 px;
-  - el logo ocupa la misma fila de 72 px que «Vista previa» y «Publicar».
+  - el logo ocupa la misma fila de 72 px que «Vista previa» y «Publicar», que van adentro del panel del contenido, arriba a la derecha (2026-11-23).
 - **Celular:** las barras de arriba y de abajo son de vidrio.
 - **«Publicar»:** verde Weda fuerte (`--weda-green` #747453, texto blanco; contraste ≥ 4,5:1), con una sombra verde suave.
 - **Inicio:**
