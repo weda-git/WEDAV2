@@ -1,8 +1,8 @@
 # GIFT-10 · Moneda de la lista de regalos (pesos o dólares) — spec
 
-- **Estado:** borrador (2026-11-23)
+- **Estado:** aprobada (2026-11-23, por la dueña, con las propuestas D4 a D9)
 - **Tamaño:** crítica (dinero: importes, totales y aportes; cambia el esquema de la base)
-- **Plan:** se escribe cuando se apruebe esta spec
+- **Plan:** [plan.md](plan.md)
 
 ## Problema
 Hoy todos los importes de la lista de regalos son pesos implícitos: no tienen moneda guardada, el panel mostraba un «total en dólares» sin dato y una pareja que quiere recibir regalos en dólares no puede. Se busca que cada pareja elija si su lista es en pesos o en dólares, y que todo lo que se ve (regalos, aportes, totales y correos) lo diga en esa moneda.
