@@ -1,0 +1,46 @@
+/* =========================================================================
+   Tarjeta de regalo única (2026-11-23, pedido de la dueña: «que el regalo sea como un commodity»).
+   La misma en «Mis regalos», en el catálogo, en la invitación y en el ejemplo: foto cuadrada, nombre en dos renglones como máximo,
+   el monto siempre visible en un globito sobre la foto (abajo a la izquierda) y, si corresponde, una acción («Agregar», «Regalar»).
+   En «Mis regalos», editar y quitar van como botoncitos sobre la foto (la tarjeta no se alarga).
+   El nombre es un h3: la tipografía global fuerza los títulos con !important, por eso acá también.
+   ========================================================================= */
+.gc { display: flex; flex-direction: column; min-width: 0; padding: 6px 6px 12px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px rgb(59 60 58 / .08), 0 1px 2px rgb(59 60 58 / .04); }
+.gc.gc { border: 0; }
+.gc-photo { position: relative; display: grid; place-items: center; aspect-ratio: 1 / 1; border-radius: 13px; overflow: hidden; background: #ece9df; color: #6b6b5a; }
+.gc-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.gc .gc-name { margin: 10px 6px 0 !important; min-height: 2.6em; font-size: 15px !important; line-height: 1.3 !important; letter-spacing: 0 !important; font-weight: 500 !important; text-align: left !important; text-wrap: pretty; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.gc-price { display: block; margin: 4px 6px 0; font-size: 15px; line-height: 1.2; font-weight: 600; font-variant-numeric: tabular-nums; color: var(--text-main, #3b3c3a); }
+.gc-price small { font-size: 12px; font-weight: 500; color: var(--pn-muted, #6b6b6b); }
+.gc .gc-action { width: 100%; margin: 10px 0 0 !important; justify-content: center; }
+/* Botoncitos sobre la foto: editar y quitar. */
+.gc-tools { position: absolute; top: 6px; right: 6px; z-index: 2; display: flex; gap: 6px; }
+.gc-tools button { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 50%; background: rgb(255 255 255 / .92); color: #3b3c3a; box-shadow: 0 1px 4px rgb(0 0 0 / .12); cursor: pointer; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+.gc-tools button:hover { background: #fff; }
+/* Marca «ya está en tu lista» (catálogo). */
+.gc-check { position: absolute; top: 8px; left: 8px; z-index: 2; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: #747453; color: #fff; }
+.gc.is-in { box-shadow: 0 0 0 2px #747453; }
+/* Aporte libre como tarjeta de regalo (tipo gift card). */
+.gc-free .gc-photo { background: linear-gradient(135deg, #6c6c4d 0%, #84845f 55%, #a3a37e 100%); color: #fff; }
+.gc-free-face { display: grid; justify-items: center; gap: 6px; padding: 12px; text-align: center; }
+.gc-free-face strong { font-size: 16px; font-weight: 600; letter-spacing: .01em; }
+.gc-free-face span { font-size: 12px; opacity: .85; }
+@media (min-width: 900px) { .gc .gc-name { font-size: 16px !important; } .gc-price { font-size: 16px; } }
+
+/* En la invitación (y el ejemplo): la misma tarjeta, por encima de los estilos propios del sitio. */
+.dm-root .rg-card.gc { display: flex; flex-direction: column; grid-row: auto; grid-template-rows: none; padding: 6px 6px 12px; border-radius: 18px; background: #fff; box-shadow: 0 0 0 1px rgb(59 60 58 / .08), 0 1px 2px rgb(59 60 58 / .04); }
+.dm-root .rg-card.gc .gc-photo { aspect-ratio: 1 / 1; border-radius: 13px; }
+.dm-root .rg-card.gc .gc-action { margin-top: 10px !important; }
+.dm-root .rg-card.gc.in-cart { box-shadow: 0 0 0 2px var(--iv-btn, #747453); }
+.dm-root .gc-free .gc-photo { background: linear-gradient(135deg, #6c6c4d 0%, #84845f 55%, #a3a37e 100%); color: #fff; }
+.dm-root .gc-free .gc-photo label { color: #fff; }
+/* El sitio fuerza su letra del nombre con !important: acá gana la tarjeta única (mismo tamaño y renglones), con la tipografía de la invitación. */
+.dm-root .rg-card.gc .gc-name { align-self: stretch !important; margin: 10px 6px 0 !important; min-height: 2.6em; font: 500 15px/1.3 var(--iv-font, inherit) !important; white-space: normal !important; text-overflow: clip !important; display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden !important; text-align: left !important; }
+.dm-root .rg-card.gc .gc-price { font-family: var(--iv-font, inherit); }
+
+/* El monto, en un globito sobre la foto (abajo a la izquierda), como antes (pedido de la dueña, 2026-11-23). */
+.gc-photo .gc-price, .dm-root .rg-card.gc .gc-photo .gc-price { position: absolute; left: 8px; bottom: 8px; z-index: 2; margin: 0; padding: 5px 11px; border-radius: 999px; background: rgb(255 255 255 / .95); box-shadow: 0 1px 4px rgb(0 0 0 / .1); font-size: 13px; line-height: 1.2; font-weight: 600; font-variant-numeric: tabular-nums; color: #3b3c3a; white-space: nowrap; }
+.gc .gc-name { margin-bottom: 0 !important; }
+/* Aporte libre: la cara deja lugar al globito del monto. */
+.gc-free-face { padding: 10px 10px 34px; gap: 4px; }
+.gc-free-face strong { font-size: 14px; line-height: 1.25; }
