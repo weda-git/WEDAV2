@@ -1,6 +1,6 @@
 # GIFT-10 · Moneda de la lista de regalos (pesos o dólares) — spec
 
-- **Estado:** aprobada (2026-11-23, por la dueña, con las propuestas D4 a D9)
+- **Estado:** en construcción (aprobada 2026-11-23 por la dueña, con las propuestas D4 a D9)
 - **Tamaño:** crítica (dinero: importes, totales y aportes; cambia el esquema de la base)
 - **Plan:** [plan.md](plan.md)
 
@@ -53,7 +53,8 @@ Propuestas de esta spec (a aprobar junto con ella):
 - El libro inmutable de transacciones (GIFT-12).
 
 ## Preguntas abiertas
-- **Precios en dólares del catálogo (D3):** los define la dueña. Hacen falta para los 26 regalos y las 6 gift cards antes de construir. **Bloquea** la construcción (no la aprobación de la spec). Propuesta para las gift cards: US$ 50, 100, 150, 250, 300 y 500.
+- **Precios en dólares del catálogo (D3):** criterio de la dueña (2026-11-23): $ 1.500 por dólar, redondeado para arriba y sin decimales; las gift cards a decenas (US$ 40, 70, 100, 170, 200 y 340). Los revisa antes de publicar.
+- **Cambio respecto del plan:** un regalo propio sin monto en la nueva moneda **no bloquea** publicar: no se muestra en la invitación hasta que tenga monto, y «Antes de publicar» lo avisa (así nunca aparece un monto viejo con la otra moneda).
 - **Textos legales:** los términos en borrador hablan de pesos; el asesor legal los revisa (RK-08). No bloquea.
 
 ## Revisión de consistencia (antes de construir)

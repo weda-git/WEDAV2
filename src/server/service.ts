@@ -13,7 +13,7 @@ import { planById, isPlanId, normalizePlanId, operates, planForOperation, planRa
 import type { Guest, PlanId } from '@/lib/weda/types';
 import type { SiteData } from '@/lib/weda/site-model';
 import { MARKETING_CONSENT_VERSION } from '@/lib/weda/consent';
-import { formatARS } from '@/lib/demo-wedding';
+import { formatMoney, LIMITS, listCurrency, type Currency } from '@/lib/weda/money';
 import { layout, sendMail, unsubscribeUrl, verifyUnsubscribe } from './mail';
 import { providerFor, signedTestNotification, type Outcome } from './payments';
 import { externalizeImages } from './media';
@@ -272,7 +272,10 @@ export class Service {
       (await this.assertNotPaused(wid));
       // BR-62: el contenido se guarda siempre; las operaciones de gestión (invitados, mesas) solo con el plan publicado y vigente. Todo o nada.
       if (upserts.length > 0 || removes.length > 0) (await this.assertOperates(wid, 'guests'));
-      if (JSON.stringify(draft.groups) !== JSON.stringify(sanitizeDraft(JSON.parse(w['draft'] as string)).groups)) (await this.assertOperates(wid, 'groups'));
+      const before = sanitizeDraft(JSON.parse(w['draft'] as string));
+      if (JSON.stringify(draft.groups) !== JSON.stringify(before.groups)) (await this.assertOperates(wid, 'groups'));
+      // GIFT-10 (D4, BR-21): con aportes recibidos la moneda de la lista queda fija; no se mezclan monedas en lo recibido.
+      if (listCurrency(draft.gifts) !== listCurrency(before.gifts) && (await this.db.get('SELECT 1 FROM contributions WHERE wedding_id = ? LIMIT 1', wid))) throw conflict('currency_locked');
       const t = now();
       const next = (w['revision'] as number) + 1;
       // El destino de cobro que mande el cliente se descarta: solo cambia por changePayout (con clave).
@@ -558,6 +561,8 @@ export class Service {
     const wantsFree = b['freeAmount'] !== undefined && b['freeAmount'] !== null;
     if (ids.length > 30 || (ids.length < 1 && !wantsFree)) throw invalid('invalid_gifts');
     if (!p.snapshot.blocks.gifts) throw conflict('gifts_disabled');
+    // GIFT-10: la moneda es la de la página que vio el invitado (las publicadas antes no la tienen: pesos).
+    const cur: Currency = p.snapshot.currency ?? 'ARS';
     const gifts = ids.map(id => p.snapshot.gifts.find(g => g.id === id));
     if (gifts.some(g => !g)) throw invalid('unknown_gift');
     let free: number | null = null;
@@ -565,7 +570,7 @@ export class Service {
       const fa = p.snapshot.freeAmount;
       if (!fa?.enabled) throw conflict('free_amount_disabled');
       const v = b['freeAmount'];
-      if (typeof v !== 'number' || !Number.isInteger(v) || v < Math.max(fa.min, MIN_AMOUNT) || v > MAX_AMOUNT) throw invalid('invalid_free_amount');
+      if (typeof v !== 'number' || !Number.isInteger(v) || v < Math.max(fa.min, LIMITS[cur].min) || v > LIMITS[cur].max) throw invalid('invalid_free_amount');
       free = v;
     }
     const lines = [
@@ -588,7 +593,7 @@ export class Service {
       const id = newId('apo');
       const t = now();
       const total = lines.reduce((n, l) => n + l.amount, 0);
-      (await this.db.run("INSERT INTO contributions (id,wedding_id,giver_name,giver_email,message,how,status,total,idempotency_key,manage_token_hash,created_at,updated_at) VALUES (?,?,?,?,?,?,'pending_review',?,?,?,?,?)", id, p.wid, giver, giverEmail, message, 'alias', total, key, hash, t, t));
+      (await this.db.run("INSERT INTO contributions (id,wedding_id,giver_name,giver_email,message,how,status,total,idempotency_key,manage_token_hash,created_at,updated_at,currency) VALUES (?,?,?,?,?,?,'pending_review',?,?,?,?,?,?)", id, p.wid, giver, giverEmail, message, 'alias', total, key, hash, t, t, cur));
       if (b['marketingOptIn'] === true) (await this.grantConsent(giverEmail, 'gift', p.wid));
       for (const l of lines) (await this.db.run('INSERT INTO contribution_items (contribution_id,kind,gift_id,gift_name,suggested_amount,amount) VALUES (?,?,?,?,?,?)', id, l.kind, l.giftId, l.name, l.suggested, l.amount));
       (await this.db.run("INSERT INTO contribution_events (contribution_id,kind,actor,from_status,to_status,note,at) VALUES (?,'created','guest',NULL,'pending_review','',?)", id, t));
@@ -602,7 +607,7 @@ export class Service {
     if (res.replay && written) await this.files.removeReceipt(written); // reintento: el aporte ya tenía su comprobante
     if (!res.replay) (await this.track('gift_submitted'));
     // Constancia para quien regaló (no bloquea: si el correo falla, el regalo ya quedó registrado).
-    if (!res.replay) void this.mailGiftReceipt({ id: res.id, to: giverEmail, giver, couple: p.snapshot.names, gifts: lines.map(l => ({ name: l.name ?? FREE_AMOUNT_LABEL, amount: l.amount })), manage, optedIn: b['marketingOptIn'] === true });
+    if (!res.replay) void this.mailGiftReceipt({ id: res.id, currency: cur, to: giverEmail, giver, couple: p.snapshot.names, gifts: lines.map(l => ({ name: l.name ?? FREE_AMOUNT_LABEL, amount: l.amount })), manage, optedIn: b['marketingOptIn'] === true });
     return res;
   }
 
@@ -611,15 +616,15 @@ export class Service {
   }
 
   /** Constancia del regalo: qué regaló, el total, que la pareja revisa el comprobante y el enlace para adjuntarlo o cambiarlo. */
-  private mailGiftReceipt(o: { id: string; to: string; giver: string; couple: string; gifts: { name: string; amount: number }[]; manage: string; optedIn: boolean }) {
+  private mailGiftReceipt(o: { id: string; currency: Currency; to: string; giver: string; couple: string; gifts: { name: string; amount: number }[]; manage: string; optedIn: boolean }) {
     const total = o.gifts.reduce((n, g) => n + g.amount, 0);
     const first = o.giver.split(/\s+/)[0] ?? o.giver;
     const body = layout({
       title: `¡Gracias por tu regalo, ${first}!`,
       paragraphs: [
         `Le avisamos a ${o.couple} que les hiciste un regalo:`,
-        ...o.gifts.map(g => `· ${g.name}: ${formatARS(g.amount)}`),
-        `Total: ${formatARS(total)}.`,
+        ...o.gifts.map(g => `· ${g.name}: ${formatMoney(g.amount, o.currency)}`),
+        `Total: ${formatMoney(total, o.currency)}.`,
         'La transferencia va directo a la cuenta de los novios. Ellos revisan tu comprobante para confirmarlo.',
       ],
       button: { label: 'Adjuntar o cambiar el comprobante', url: this.comprobanteUrl(o.id, o.manage) },
@@ -715,7 +720,7 @@ export class Service {
     if (!w) return [];
     const rows = (await this.db.all('SELECT * FROM contributions WHERE wedding_id = ? ORDER BY created_at DESC, id', w['id'] as string)) as Row[];
     return Promise.all(rows.map(async c => ({
-      id: c['id'] as string, giverName: c['giver_name'] as string, giverEmail: (c['giver_email'] as string | undefined) ?? '', message: c['message'] as string, how: c['how'] as string, status: c['status'] as string, total: c['total'] as number, createdAt: c['created_at'] as string,
+      id: c['id'] as string, currency: ((c['currency'] as Currency | undefined) ?? 'ARS'), giverName: c['giver_name'] as string, giverEmail: (c['giver_email'] as string | undefined) ?? '', message: c['message'] as string, how: c['how'] as string, status: c['status'] as string, total: c['total'] as number, createdAt: c['created_at'] as string,
       items: ((await this.db.all('SELECT kind, gift_id, gift_name, amount FROM contribution_items WHERE contribution_id = ? ORDER BY id', c['id'] as string)) as Row[]).map(i => ({ kind: i['kind'] as 'gift' | 'free', giftId: (i['gift_id'] as string | null) ?? '', giftName: (i['gift_name'] as string | null) ?? '', amount: i['amount'] as number })),
       hasReceipt: !!(await this.db.get('SELECT 1 FROM receipts WHERE contribution_id = ?', c['id'] as string)),
       history: ((await this.db.all('SELECT kind, actor, from_status, to_status, note, at FROM contribution_events WHERE contribution_id = ? ORDER BY id', c['id'] as string)) as Row[]).map(e => ({ kind: e['kind'] as string, actor: e['actor'] as string, from: (e['from_status'] as string | null) ?? null, to: (e['to_status'] as string | null) ?? null, note: e['note'] as string, at: e['at'] as string })),

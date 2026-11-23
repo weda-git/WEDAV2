@@ -15,6 +15,8 @@ export type PhotoChoice =
 export type Couple = { first: string; second: string; firstLast?: string; secondLast?: string };
 
 /** Regalo simbólico dentro de la lista de la pareja. `fromSet` recuerda de qué colección vino (si vino de una). */
+import type { Currency } from './money';
+
 export type ListGift = {
   id: string;
   /** Id del catálogo de Weda; ausente en los regalos propios. */
@@ -23,6 +25,8 @@ export type ListGift = {
   name: string;
   text: string;
   amount: number;
+  /** Regalo propio que quedó sin monto válido al cambiar la moneda de la lista (GIFT-10, D5): hay que ponerle uno nuevo. */
+  needsAmount?: true | undefined;
   category: Category;
   icon: IconKey;
   image?: string | undefined;
@@ -123,7 +127,8 @@ export type AppState = {
   preferredPlan: PlanId | null;
   planId: PlanId | null;
   /** `acceptCard`: preferencia de la pareja; en esta etapa no hay cobro real con tarjeta. */
-  gifts: { cover: string | null; alias: string; bank: string; cbu: string; acceptCard: boolean; items: ListGift[]; given: GivenGift[]; freeAmount: FreeAmount };
+  /** `currency`: moneda de la lista (GIFT-10). Sin dato = pesos. */
+  gifts: { cover: string | null; alias: string; bank: string; cbu: string; acceptCard: boolean; items: ListGift[]; given: GivenGift[]; freeAmount: FreeAmount; currency?: Currency | undefined };
   guests: Guest[];
   groups: Group[];
   site: SiteConfig;

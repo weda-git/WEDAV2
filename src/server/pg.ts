@@ -285,6 +285,10 @@ export const PG_MIGRATIONS: string[] = [
   ALTER TABLE admin_impersonations ENABLE ROW LEVEL SECURITY;
   ALTER TABLE admin_actions ENABLE ROW LEVEL SECURITY;
   `,
+  // 3 · GIFT-10 (2026-11-23): moneda de cada aporte, guardada al llegar. Los existentes son pesos. Solo agrega una columna.
+  `
+  ALTER TABLE contributions ADD COLUMN currency TEXT NOT NULL DEFAULT 'ARS' CHECK (currency IN ('ARS','USD'));
+  `,
 ];
 
 /** Corre las migraciones pendientes, en orden y una sola vez, con un candado para que dos procesos no las corran a la vez (CA-3). */

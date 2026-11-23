@@ -1,6 +1,7 @@
 // Datos que necesita la página pública de un casamiento (invitación + lista de regalos + confirmación).
 // /ejemplo usa los datos de la demo (src/lib/demo-wedding.ts); /sitio/$slug y la vista previa usan los de la pareja.
 // Los componentes públicos leen siempre de acá, así son los MISMOS componentes en los dos casos.
+import { listCurrency, type Currency } from './money';
 import { createContext, useContext, type ReactNode } from 'react';
 import {
   alias as demoAlias, calendar, categories as demoCategories, dressCode as demoDress, eventDate as demoEventDate, eventOffset as demoOffset,
@@ -51,6 +52,8 @@ export type SiteData = {
   playlist: { name: string; tracks: { title: string; artist: string }[]; embed?: string | null | undefined };
   message: { title: string; text: string };
   gifts: Gift[];
+  /** Moneda de la lista (GIFT-10). Las páginas publicadas antes no la tienen: son pesos. */
+  currency?: Currency | undefined;
   /** Aporte de importe libre (GIFT-09): si los invitados pueden elegir cuánto regalar, y el mínimo efectivo. */
   freeAmount: { enabled: boolean; min: number };
   giftCategories: Category[];
@@ -109,6 +112,7 @@ export const demoSiteData: SiteData = {
   playlist: demoPlaylist,
   message: { title: 'Que vengas ya es un regalo.', text: '' },
   gifts: demoGifts,
+  currency: 'ARS',
   freeAmount: { enabled: false, min: MIN_AMOUNT }, // /ejemplo no cambia (D7)
   giftCategories: demoCategories,
   giftsCover: null,
@@ -135,7 +139,8 @@ export function siteFromState(s: AppState): SiteData {
   const first = events.find(e => /^\d{2}:\d{2}/.test(e.time));
   const start = date && first ? `${date}T${first.time.slice(0, 5)}:00${demoOffset}` : date ? `${date}T00:00:00${demoOffset}` : null;
   const photo = resolvePhoto(s.photo);
-  const gifts: Gift[] = s.gifts.items.map(g => ({
+  // GIFT-10 (D5): un regalo propio sin monto en la moneda de la lista no se muestra (su monto viejo es de la otra moneda).
+  const gifts: Gift[] = s.gifts.items.filter(g => !g.needsAmount).map(g => ({
     id: g.id, name: g.name, text: g.text, amount: g.amount, category: g.category, icon: g.icon, image: g.image, pos: g.pos, fit: g.fit, zoom: g.zoom,
   }));
   const present = demoCategories.filter(c => gifts.some(g => g.category === c));
@@ -183,8 +188,9 @@ export function siteFromState(s: AppState): SiteData {
     playlist: { name: s.site.playlist.name.trim() || `Nuestra fiesta · ${names}`, tracks: s.site.playlist.tracks, embed: spotify },
     message: { title: s.site.message.title.trim() || 'Que vengas ya es un regalo.', text: s.site.message.text.trim() },
     gifts,
+    currency: listCurrency(s.gifts),
     // Opción dentro de la lista (D5): solo si la lista se publica y tiene al menos un regalo.
-    freeAmount: { enabled: publishes(s.planId, 'gifts') && gifts.length > 0 && s.gifts.freeAmount.enabled, min: freeAmountMin(s.gifts.freeAmount.min) },
+    freeAmount: { enabled: publishes(s.planId, 'gifts') && gifts.length > 0 && s.gifts.freeAmount.enabled, min: freeAmountMin(s.gifts.freeAmount.min, listCurrency(s.gifts)) },
     giftCategories: present,
     giftsCover: s.gifts.cover,
     alias: s.gifts.alias.trim(),

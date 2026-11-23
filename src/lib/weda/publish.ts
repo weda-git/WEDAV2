@@ -33,6 +33,9 @@ export function publishSummary(s: AppState, planId: PlanId): PublishSummary {
   if (publishes(planId, 'site') && !s.date) warnings.push('Todavía no definiste la fecha: la portada va a decir «Fecha a confirmar».');
   const todo: PublishTodo[] = [];
   if (publishes(planId, 'gifts') && s.gifts.items.length === 0) todo.push({ text: 'Elegí al menos un regalo para tu lista.', to: '/panel/regalos', cta: 'Elegir regalos' });
+  // GIFT-10 (D5): regalos propios sin monto en la moneda de la lista; mientras tanto no se muestran en la invitación.
+  const missing = s.gifts.items.filter(g => g.needsAmount).length;
+  if (publishes(planId, 'gifts') && missing > 0) todo.push({ text: missing === 1 ? 'Un regalo propio no tiene monto en la moneda de tu lista: no se muestra hasta que se lo pongas.' : `${missing} regalos propios no tienen monto en la moneda de tu lista: no se muestran hasta que se lo pongas.`, to: '/panel/regalos', cta: 'Poner los montos' });
   if (publishes(planId, 'gifts') && s.gifts.items.length > 0 && s.gifts.alias.trim() === '') todo.push({ text: 'Configurá cómo vas a recibir los regalos (alias).', to: '/panel/regalos', cta: 'Configurar cobro', search: { tab: 'cobro' } });
   if (publishes(planId, 'site') && !s.date) todo.push({ text: 'Definí la fecha del casamiento.', to: '/panel', cta: 'Definir la fecha', search: { editar: 'datos' } });
   if (publishes(planId, 'site')) for (const g of sectionGaps(s)) todo.push({ text: `Completá «${g.label}»: está activada pero le faltan datos.`, to: '/panel/sitio', cta: 'Completar' });

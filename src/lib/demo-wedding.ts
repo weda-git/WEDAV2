@@ -114,6 +114,8 @@ export type Gift = {
   name: string;
   text: string;
   amount: number;
+  /** Precio fijo en dólares (GIFT-10, D3): referencia $ 1.500 por dólar, redondeado para arriba, sin decimales; gift cards en decenas. Sin conversión en vivo. */
+  amountUsd?: number | undefined;
   category: Category;
   /** Solo luna de miel: lugar al que corresponde. 'Cualquiera' = sirve para cualquier destino. */
   destination?: Destination | 'Cualquiera' | undefined;
@@ -129,39 +131,39 @@ export type Gift = {
 
 /** Catálogo curado de la demo: 32 regalos repartidos entre cinco categorías (8 · 6 · 8 · 4 · 6 gift cards). */
 export const gifts: Gift[] = [
-  { id: 'excursion', name: 'Excursión en barco', text: 'Un día de navegación y snorkel en aguas turquesa.', amount: 250000, category: 'Experiencias', destination: 'Cualquiera', icon: 'compass', image: '/regalo-excursion.jpg' },
-  { id: 'cena-mar', name: 'Cena frente al mar', text: 'Una mesa al atardecer en la costa de Puglia, solo para los dos.', amount: 180000, category: 'Experiencias', destination: 'Europa', icon: 'utensils', image: '/regalo-cena-mar.webp', pos: 'center 68%' },
-  { id: 'masajes', name: 'Spa para dos', text: 'Un día de spa y una sesión de masajes para arrancar el viaje en calma.', amount: 300000, category: 'Experiencias', destination: 'Cualquiera', icon: 'sprout', image: '/lm-masajes.webp' },
-  { id: 'vinos', name: 'Cata en Mendoza', text: 'Una tarde de cata de vinos en una bodega del Valle de Uco.', amount: 95000, category: 'Experiencias', icon: 'wine', image: '/regalo-cata-mendoza.webp', pos: 'center 52%' },
-  { id: 'globo', name: 'Paseo en globo', text: 'Un amanecer en el aire, solo para los dos.', amount: 360000, category: 'Experiencias', destination: 'Cualquiera', icon: 'compass', image: '/lm-globo.webp?v=2', pos: 'center 55%' },
-  { id: 'sup', name: 'Alquiler tabla SUP', text: 'Una mañana de remo suave sobre agua transparente, para los dos.', amount: 190000, category: 'Experiencias', destination: 'Cualquiera', icon: 'compass', image: '/lm-sup.webp' },
-  { id: 'vuelo-interno', name: 'Pasaje luna de miel', text: 'Entre todos nos acercan los pasajes. Cada aporte suma.', amount: 1500000, category: 'Luna de miel', destination: 'Cualquiera', icon: 'plane', image: '/lm-avion.jpg', pos: 'center 45%' },
-  { id: 'boutique', name: 'Noche en hotel boutique', text: 'Un hotel chico y con encanto, para una noche especial.', amount: 380000, category: 'Luna de miel', destination: 'Cualquiera', icon: 'bed', image: '/lm-boutique.webp?v=2', pos: 'center 45%' },
-  { id: 'isla', name: 'Estadía en una isla', text: 'Unos días de playa, mar y desconexión.', amount: 305000, category: 'Luna de miel', destination: 'Cualquiera', icon: 'bed', image: '/lm-isla.webp' },
-  { id: 'santorini', name: 'Día en Santorini', text: 'Un día para recorrer la isla, sus pueblos blancos y sus atardeceres.', amount: 305000, category: 'Luna de miel', destination: 'Europa', icon: 'compass', image: '/lm-santorini.webp' },
-  { id: 'patagonia', name: 'Viaje a la Patagonia', text: 'Lagos, montañas y glaciares en un solo viaje.', amount: 345000, category: 'Luna de miel', destination: 'Sudamérica', icon: 'trees', image: '/lm-patagonia.webp' },
-  { id: 'japon', name: 'Estadía en Japón', text: 'Unos días entre ciudades, templos y buena comida.', amount: 305000, category: 'Luna de miel', destination: 'Asia', icon: 'bed', image: '/lm-japon.webp' },
-  { id: 'marruecos', name: 'Viaje a Marruecos', text: 'Medinas, té de menta y noches en el desierto.', amount: 345000, category: 'Luna de miel', destination: 'África', icon: 'bed', image: '/lm-marruecos.webp' },
-  { id: 'nueva-york', name: 'Viaje a Nueva York', text: 'Una escapada a la ciudad que nunca duerme.', amount: 300000, category: 'Luna de miel', destination: 'Estados Unidos', icon: 'bed', image: '/lm-nueva-york.webp' },
-  { id: 'ollas', name: 'Juego de ollas', text: 'Tres piezas esmaltadas para las primeras cenas en casa.', amount: 120000, category: 'Hogar', icon: 'chef', image: '/lista-de-regalos-olla.jpg' },
-  { id: 'vajilla', name: 'Set de vajilla', text: 'Platos y bowls en blanco mate para la mesa de todos los días.', amount: 130000, category: 'Hogar', icon: 'utensils', image: '/regalo-vajilla.jpg', pos: 'center 55%' },
-  { id: 'cafetera', name: 'Cafetera Nespresso', text: 'Para los cafés de todas las mañanas en casa.', amount: 150000, category: 'Hogar', icon: 'coffee', image: '/regalo-cafetera.webp', pos: 'center 55%' },
-  { id: 'sabanas', name: 'Juego de sábanas', text: 'Sábanas de lino y algodón para estrenar la cama de casa.', amount: 90000, category: 'Hogar', icon: 'sheets', image: '/regalo-sabanas.webp', pos: 'center 50%' },
-  { id: 'horno', name: 'Horno de empotrar', text: 'Un horno de vidrio negro para la cocina nueva, de esos que dan ganas de invitar gente.', amount: 650000, category: 'Hogar', icon: 'chef', image: '/regalo-horno.webp', pos: 'center 55%' },
-  { id: 'lampara', name: 'Lámpara de living', text: 'Luz cálida para las noches de lectura.', amount: 75000, category: 'Hogar', icon: 'lamp', image: '/lista-de-regalos-lampara.jpg' },
-  { id: 'cava', name: 'Cava de vinos', text: 'Una cava para guardar las botellas de los brindis que vienen.', amount: 280000, category: 'Hogar', icon: 'wine', image: '/regalo-cava-vinos.webp', pos: 'center 62%' },
-  { id: 'heladera', name: 'Heladera dos puertas', text: 'Una heladera grande, de acero y de dos puertas, para la cocina de casa.', amount: 1400000, category: 'Hogar', icon: 'chef', image: '/regalo-heladera-2.webp', pos: 'center 36%', zoom: { scale: 1.06, origin: '18% 50%' } },
-  { id: 'casa', name: 'Fondo para la casa', text: 'Para terminar de armar nuestro primer hogar, de a poco.', amount: 500000, category: 'Proyectos futuros', icon: 'home', image: '/regalo-casa.jpg' },
-  { id: 'remodelacion', name: 'Remodelar la casa', text: 'Para las obras de la casa: paredes, instalaciones y terminaciones.', amount: 550000, category: 'Proyectos futuros', icon: 'home', image: '/regalo-remodelacion.webp', pos: 'center 40%' },
-  { id: 'parrilla', name: 'Parrilla', text: 'Para los asados con amigos, los domingos en casa.', amount: 320000, category: 'Proyectos futuros', icon: 'home', image: '/regalo-parrilla-2.jpg', fit: 'white' },
-  { id: 'fogonero', name: 'Fogonero de jardín', text: 'Para las noches de fuego y charla bajo las estrellas.', amount: 140000, category: 'Proyectos futuros', icon: 'trees', image: '/regalo-fogonero.webp', pos: 'center 50%' },
+  { id: 'excursion', name: 'Excursión en barco', text: 'Un día de navegación y snorkel en aguas turquesa.', amount: 250000, amountUsd: 167, category: 'Experiencias', destination: 'Cualquiera', icon: 'compass', image: '/regalo-excursion.jpg' },
+  { id: 'cena-mar', name: 'Cena frente al mar', text: 'Una mesa al atardecer en la costa de Puglia, solo para los dos.', amount: 180000, amountUsd: 120, category: 'Experiencias', destination: 'Europa', icon: 'utensils', image: '/regalo-cena-mar.webp', pos: 'center 68%' },
+  { id: 'masajes', name: 'Spa para dos', text: 'Un día de spa y una sesión de masajes para arrancar el viaje en calma.', amount: 300000, amountUsd: 200, category: 'Experiencias', destination: 'Cualquiera', icon: 'sprout', image: '/lm-masajes.webp' },
+  { id: 'vinos', name: 'Cata en Mendoza', text: 'Una tarde de cata de vinos en una bodega del Valle de Uco.', amount: 95000, amountUsd: 64, category: 'Experiencias', icon: 'wine', image: '/regalo-cata-mendoza.webp', pos: 'center 52%' },
+  { id: 'globo', name: 'Paseo en globo', text: 'Un amanecer en el aire, solo para los dos.', amount: 360000, amountUsd: 240, category: 'Experiencias', destination: 'Cualquiera', icon: 'compass', image: '/lm-globo.webp?v=2', pos: 'center 55%' },
+  { id: 'sup', name: 'Alquiler tabla SUP', text: 'Una mañana de remo suave sobre agua transparente, para los dos.', amount: 190000, amountUsd: 127, category: 'Experiencias', destination: 'Cualquiera', icon: 'compass', image: '/lm-sup.webp' },
+  { id: 'vuelo-interno', name: 'Pasaje luna de miel', text: 'Entre todos nos acercan los pasajes. Cada aporte suma.', amount: 1500000, amountUsd: 1000, category: 'Luna de miel', destination: 'Cualquiera', icon: 'plane', image: '/lm-avion.jpg', pos: 'center 45%' },
+  { id: 'boutique', name: 'Noche en hotel boutique', text: 'Un hotel chico y con encanto, para una noche especial.', amount: 380000, amountUsd: 254, category: 'Luna de miel', destination: 'Cualquiera', icon: 'bed', image: '/lm-boutique.webp?v=2', pos: 'center 45%' },
+  { id: 'isla', name: 'Estadía en una isla', text: 'Unos días de playa, mar y desconexión.', amount: 305000, amountUsd: 204, category: 'Luna de miel', destination: 'Cualquiera', icon: 'bed', image: '/lm-isla.webp' },
+  { id: 'santorini', name: 'Día en Santorini', text: 'Un día para recorrer la isla, sus pueblos blancos y sus atardeceres.', amount: 305000, amountUsd: 204, category: 'Luna de miel', destination: 'Europa', icon: 'compass', image: '/lm-santorini.webp' },
+  { id: 'patagonia', name: 'Viaje a la Patagonia', text: 'Lagos, montañas y glaciares en un solo viaje.', amount: 345000, amountUsd: 230, category: 'Luna de miel', destination: 'Sudamérica', icon: 'trees', image: '/lm-patagonia.webp' },
+  { id: 'japon', name: 'Estadía en Japón', text: 'Unos días entre ciudades, templos y buena comida.', amount: 305000, amountUsd: 204, category: 'Luna de miel', destination: 'Asia', icon: 'bed', image: '/lm-japon.webp' },
+  { id: 'marruecos', name: 'Viaje a Marruecos', text: 'Medinas, té de menta y noches en el desierto.', amount: 345000, amountUsd: 230, category: 'Luna de miel', destination: 'África', icon: 'bed', image: '/lm-marruecos.webp' },
+  { id: 'nueva-york', name: 'Viaje a Nueva York', text: 'Una escapada a la ciudad que nunca duerme.', amount: 300000, amountUsd: 200, category: 'Luna de miel', destination: 'Estados Unidos', icon: 'bed', image: '/lm-nueva-york.webp' },
+  { id: 'ollas', name: 'Juego de ollas', text: 'Tres piezas esmaltadas para las primeras cenas en casa.', amount: 120000, amountUsd: 80, category: 'Hogar', icon: 'chef', image: '/lista-de-regalos-olla.jpg' },
+  { id: 'vajilla', name: 'Set de vajilla', text: 'Platos y bowls en blanco mate para la mesa de todos los días.', amount: 130000, amountUsd: 87, category: 'Hogar', icon: 'utensils', image: '/regalo-vajilla.jpg', pos: 'center 55%' },
+  { id: 'cafetera', name: 'Cafetera Nespresso', text: 'Para los cafés de todas las mañanas en casa.', amount: 150000, amountUsd: 100, category: 'Hogar', icon: 'coffee', image: '/regalo-cafetera.webp', pos: 'center 55%' },
+  { id: 'sabanas', name: 'Juego de sábanas', text: 'Sábanas de lino y algodón para estrenar la cama de casa.', amount: 90000, amountUsd: 60, category: 'Hogar', icon: 'sheets', image: '/regalo-sabanas.webp', pos: 'center 50%' },
+  { id: 'horno', name: 'Horno de empotrar', text: 'Un horno de vidrio negro para la cocina nueva, de esos que dan ganas de invitar gente.', amount: 650000, amountUsd: 434, category: 'Hogar', icon: 'chef', image: '/regalo-horno.webp', pos: 'center 55%' },
+  { id: 'lampara', name: 'Lámpara de living', text: 'Luz cálida para las noches de lectura.', amount: 75000, amountUsd: 50, category: 'Hogar', icon: 'lamp', image: '/lista-de-regalos-lampara.jpg' },
+  { id: 'cava', name: 'Cava de vinos', text: 'Una cava para guardar las botellas de los brindis que vienen.', amount: 280000, amountUsd: 187, category: 'Hogar', icon: 'wine', image: '/regalo-cava-vinos.webp', pos: 'center 62%' },
+  { id: 'heladera', name: 'Heladera dos puertas', text: 'Una heladera grande, de acero y de dos puertas, para la cocina de casa.', amount: 1400000, amountUsd: 934, category: 'Hogar', icon: 'chef', image: '/regalo-heladera-2.webp', pos: 'center 36%', zoom: { scale: 1.06, origin: '18% 50%' } },
+  { id: 'casa', name: 'Fondo para la casa', text: 'Para terminar de armar nuestro primer hogar, de a poco.', amount: 500000, amountUsd: 334, category: 'Proyectos futuros', icon: 'home', image: '/regalo-casa.jpg' },
+  { id: 'remodelacion', name: 'Remodelar la casa', text: 'Para las obras de la casa: paredes, instalaciones y terminaciones.', amount: 550000, amountUsd: 367, category: 'Proyectos futuros', icon: 'home', image: '/regalo-remodelacion.webp', pos: 'center 40%' },
+  { id: 'parrilla', name: 'Parrilla', text: 'Para los asados con amigos, los domingos en casa.', amount: 320000, amountUsd: 214, category: 'Proyectos futuros', icon: 'home', image: '/regalo-parrilla-2.jpg', fit: 'white' },
+  { id: 'fogonero', name: 'Fogonero de jardín', text: 'Para las noches de fuego y charla bajo las estrellas.', amount: 140000, amountUsd: 94, category: 'Proyectos futuros', icon: 'trees', image: '/regalo-fogonero.webp', pos: 'center 50%' },
   // Gift cards (pedido de la dueña, 2026-11-23): el invitado regala un monto fijo, para lo que la pareja quiera. Reemplazan al aporte libre en el panel.
-  { id: 'gift-card-50000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 50000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-50000.svg' },
-  { id: 'gift-card-100000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 100000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-100000.svg' },
-  { id: 'gift-card-150000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 150000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-150000.svg' },
-  { id: 'gift-card-250000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 250000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-250000.svg' },
-  { id: 'gift-card-300000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 300000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-300000.svg' },
-  { id: 'gift-card-500000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 500000, category: 'Gift cards', icon: 'ticket', image: '/gift-card-500000.svg' },
+  { id: 'gift-card-50000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 50000, amountUsd: 40, category: 'Gift cards', icon: 'ticket', image: '/gift-card-50000.svg' },
+  { id: 'gift-card-100000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 100000, amountUsd: 70, category: 'Gift cards', icon: 'ticket', image: '/gift-card-100000.svg' },
+  { id: 'gift-card-150000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 150000, amountUsd: 100, category: 'Gift cards', icon: 'ticket', image: '/gift-card-150000.svg' },
+  { id: 'gift-card-250000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 250000, amountUsd: 170, category: 'Gift cards', icon: 'ticket', image: '/gift-card-250000.svg' },
+  { id: 'gift-card-300000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 300000, amountUsd: 200, category: 'Gift cards', icon: 'ticket', image: '/gift-card-300000.svg' },
+  { id: 'gift-card-500000', name: 'Gift card', text: 'Para que lo usen en lo que quieran.', amount: 500000, amountUsd: 340, category: 'Gift cards', icon: 'ticket', image: '/gift-card-500000.svg' },
 ];
 
 export const formatARS = (n: number) =>

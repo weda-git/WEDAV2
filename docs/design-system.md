@@ -339,3 +339,9 @@ Capa «Vidrio» al final de `src/panel.css`, sobre el rediseño. Referencia: un 
 - **Aportes recibidos:** sin el total en dólares hasta que la pareja pueda elegir la moneda de la lista (pendiente, lleva spec).
 - **Alias:** si falta y la lista ya tiene 3 regalos o más, aparece un banner en «Mis regalos»: ícono, «Ya elegiste N regalos», una línea y «Cargar alias». En el catálogo no aparece.
 - **Pestañas en el celular:** cuatro parejas en una fila (Mis regalos · Catálogo · Aportes · Cobro).
+
+### Montos y moneda (GIFT-10, 2026-11-23)
+- Un solo formato para los montos de la lista (`formatMoney` en `src/lib/weda/money.ts`): «$ 250.000» en pesos (igual que antes) y «US$ 250» en dólares, siempre enteros y con espacio que no se corta.
+- **Selector «Moneda de tu lista» (Pesos / Dólares):** va debajo del título de «Mis regalos», así el título queda en el mismo lugar que en las otras pestañas. Con aportes recibidos queda fijo, con su aviso.
+- **Regalo propio sin monto** después de cambiar la moneda: el globito dice «Falta el monto» en rojo oscuro; no se muestra en la invitación hasta que tenga monto.
+- **Filtro por monto de la invitación:** en pesos, cortes en 200.000 y 500.000; en dólares, en 150 y 350.

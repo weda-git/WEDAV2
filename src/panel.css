@@ -2183,3 +2183,10 @@ body:has(.pn-app) { background: #f6f6f3; }
   .rg-grid .rg-card.gc, .pn-catalog .pn-gcard.gc { padding: 5px 5px 10px; }
 }
 .pn-app .pn-config > .rg-section-head { margin-top: 0; }
+
+/* Moneda de la lista (GIFT-10): selector arriba de «Mis regalos», aviso de cobro en dólares y regalo sin monto. */
+.rg-currency { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin: 0 0 16px; }
+.rg-currency > span { font-size: 14px; color: var(--pn-muted); }
+.rg-currency .pn-hint { flex-basis: 100%; margin: 0; }
+.rg-usd-note { margin: 0 0 16px; padding: 10px 14px; border-radius: 12px; background: #f3f2e9; font-size: 14px; line-height: 1.4; }
+.gc-photo .gc-price.is-missing { background: #8a2f1f; color: #fff; }

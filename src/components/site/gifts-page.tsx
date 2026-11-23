@@ -10,10 +10,20 @@ import { Button } from '@/components/ui/button';
 import { useRsvp } from '@/components/rsvp-dialog';
 import { SiteCover } from './site-cover';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { formatARS, type Category, type Gift, type IconKey } from '@/lib/demo-wedding';
+import type { Category, Gift, IconKey } from '@/lib/demo-wedding';
+import { formatMoney } from '@/lib/weda/money';
 import { useSite, useSiteActions, type GiftSubmission, type Giver } from '@/lib/weda/site-model';
 import { MARKETING_CONSENT_TEXT } from '@/lib/weda/consent';
 import '@/gift-card.css';
+
+/** Formato de montos con la moneda de la lista publicada (GIFT-10): «$ 250.000» o «US$ 250». Las páginas viejas son pesos. */
+/** Cortes del filtro por monto según la moneda (GIFT-10): en pesos 200.000 y 500.000; en dólares 150 y 350. */
+const BANDS = { ARS: [200000, 500000], USD: [150, 350] } as const;
+
+function useMoney() {
+  const cur = useSite().currency ?? 'ARS';
+  return { cur, money: (n: number) => formatMoney(n, cur) };
+}
 
 const icons: Record<IconKey, LucideIcon> = {
   utensils: Utensils, bed: BedDouble, chef: ChefHat, plane: Plane, sofa: Sofa, lamp: Lamp, wine: Wine,
@@ -24,6 +34,7 @@ const icons: Record<IconKey, LucideIcon> = {
    nombre y un botón. */
 /* Los regalos son simbólicos (BR-19): ningún aporte anterior, propio o ajeno, cambia su disponibilidad. Sin «Ya elegido», «Agotado» ni stock. */
 function GiftCard({ gift, inCart, onPick }: { gift: Gift; inCart: boolean; onPick: (g: Gift) => void }) {
+  const { money } = useMoney();
   const Icon = icons[gift.icon];
   return (
     <article className={`rg-card gc${inCart ? ' in-cart' : ''}`}>
@@ -32,7 +43,7 @@ function GiftCard({ gift, inCart, onPick }: { gift: Gift; inCart: boolean; onPic
         {gift.image
           ? <img src={gift.image} alt="" loading="lazy" style={gift.pos || gift.zoom ? { objectPosition: gift.pos, ...(gift.zoom ? { transform: `scale(${gift.zoom.scale})`, transformOrigin: gift.zoom.origin } : {}) } : undefined} />
           : <span className="rg-icon" aria-hidden="true"><Icon size={34} strokeWidth={1.2} /></span>}
-        <span className="gc-price">{formatARS(gift.amount)}</span>
+        <span className="gc-price">{money(gift.amount)}</span>
       </div>
       <h3 className="gc-name" title={gift.name}>{gift.name}</h3>
       <button type="button" className="rg-btn gc-action" onClick={() => onPick(gift)}>
@@ -45,10 +56,11 @@ function GiftCard({ gift, inCart, onPick }: { gift: Gift; inCart: boolean; onPic
 /* Aporte libre (GIFT-09): primera tarjeta de la grilla, con la misma forma que las demás. El invitado escribe cuánto quiere regalar
    (con el mínimo que fijó la pareja) y lo suma a su regalo. Si ya está en el carrito, el monto se puede cambiar desde acá. */
 function FreeCard({ min, current, onAdd }: { min: number; current: number | null; onAdd: (amount: number) => void }) {
+  const { money, cur } = useMoney();
   const [raw, setRaw] = useState(current ? String(current) : '');
   const [error, setError] = useState<string | null>(null);
   const add = () => {
-    const err = validateFreeAmount(raw, min);
+    const err = validateFreeAmount(raw, min, cur);
     setError(err);
     if (!err) onAdd(parseAmount(raw));
   };
@@ -58,7 +70,7 @@ function FreeCard({ min, current, onAdd }: { min: number; current: number | null
         <span className="rg-icon" aria-hidden="true"><Banknote size={30} strokeWidth={1.2} /></span>
         <label htmlFor={FREE_GIFT_ID}>Elegí cuánto querés regalar</label>
         <span className="rg-free-input"><span aria-hidden="true">$</span><input id={FREE_GIFT_ID} type="text" inputMode="numeric" autoComplete="off" placeholder="Monto" value={raw} onChange={e => { setRaw(e.target.value); setError(null); }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }} aria-invalid={!!error} aria-describedby={error ? 'rg-free-error' : min > 1000 ? 'rg-free-min' : undefined} /></span>
-        {error ? <p className="rg-free-error" id="rg-free-error" role="alert">{error}</p> : min > 1000 && <p className="rg-free-min" id="rg-free-min">Mínimo {formatARS(min)}</p>}
+        {error ? <p className="rg-free-error" id="rg-free-error" role="alert">{error}</p> : min > 1000 && <p className="rg-free-min" id="rg-free-min">Mínimo {money(min)}</p>}
       </div>
       <h3 className="gc-name">Aporte libre</h3>
       <button type="button" className="rg-btn gc-action" onClick={add}>
@@ -96,6 +108,7 @@ function Thumb({ gift }: { gift: Gift }) {
    «Agregar otro regalo» vuelve a la lista sin perder lo elegido. */
 type DialogView = 'cart' | 'pay';
 function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChangeFree, onSent, returnFocus }: { open: boolean; gifts: Gift[]; onClose: () => void; onFinished: () => void; onRemove: (g: Gift) => void; onChangeFree: () => void; onSent: (gs: Gift[], giver: Giver, extra: GiftSubmission) => void | Promise<void>; returnFocus: { current: HTMLElement | null } }) {
+  const { money, cur } = useMoney();
   const [view, setView] = useState<DialogView>('cart');
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
@@ -152,8 +165,8 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
           <div className="rg-thanks">
             <span className="rg-check" aria-hidden="true"><Check size={22} strokeWidth={1.8} /></span>
             <DialogTitle>¡Gracias, {sent.first}!</DialogTitle>
-            <DialogDescription>Le regalaste <strong>{formatARS(sent.total)}</strong> a {site.names.replace(/\s*&\s*/, ' y ')}.</DialogDescription>
-            {sent.gifts.length > 1 && <ul className="rg-sent">{sent.gifts.map(g => <li key={g.id}>{g.name}<span>{formatARS(g.amount)}</span></li>)}</ul>}
+            <DialogDescription>Le regalaste <strong>{money(sent.total)}</strong> a {site.names.replace(/\s*&\s*/, ' y ')}.</DialogDescription>
+            {sent.gifts.length > 1 && <ul className="rg-sent">{sent.gifts.map(g => <li key={g.id}>{g.name}<span>{money(g.amount)}</span></li>)}</ul>}
             <button type="button" className="dm-solid" onClick={close}>Listo</button>
           </div>
         ) : view === 'cart' ? (
@@ -170,14 +183,14 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
                   <Thumb gift={g} />
                   <div className="rg-cart-info">
                     <strong>{g.name}</strong>
-                    <span>{formatARS(g.amount)}</span>
+                    <span>{money(g.amount)}</span>
                   </div>
                   {isFreeGift(g) && <button type="button" className="rg-remove" onClick={onChangeFree} aria-label="Cambiar el monto del aporte libre">Cambiar</button>}
                   <button type="button" className="rg-remove" onClick={() => remove(g)} aria-label={`Quitar ${g.name}`}><X size={14} aria-hidden="true" />Quitar</button>
                 </li>
               ))}
             </ul>
-            <p className="rg-total"><span>Total</span><strong>{formatARS(total)}</strong></p>
+            <p className="rg-total"><span>Total</span><strong>{money(total)}</strong></p>
             <div className="rg-actions">
               <button type="button" className="dm-solid" onClick={() => setView('pay')} disabled={items.length === 0}>Continuar</button>
               <button type="button" className="dm-ghost" onClick={keepShopping}>Agregar otro regalo</button>
@@ -207,7 +220,7 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
             <div className="rg-pay-grid">
               {/* Lo importante primero: cuánto y adónde transferir, con alias y CBU para copiar. */}
               <section className="rg-transfer" aria-label="Datos para transferir">
-                <p className="rg-amount"><span>Transferí</span><strong>{formatARS(total)}</strong></p>
+                <p className="rg-amount"><span>Transferí</span><strong>{money(total)}</strong></p>
                 {how === 'alias' || !site.acceptCard ? (
                   alias ? (
                     <dl className="rg-bankcard">
@@ -274,6 +287,7 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
 }
 
 export function GiftsPage() {
+  const { money, cur } = useMoney();
   const rsvp = useRsvp();
   const site = useSite();
   const { recordGift } = useSiteActions();
@@ -286,8 +300,9 @@ export function GiftsPage() {
   const [nudge, setNudge] = useState(false);
   const returnFocus = useRef<HTMLElement | null>(null);
   const [range, setRange] = useState<'all' | 'asc' | 'desc' | 'low' | 'mid' | 'high'>('all');
+  const [lo, hi] = BANDS[cur];
   const [query, setQuery] = useState('');
-  const inRange = (g: Gift) => range === 'all' || range === 'asc' || range === 'desc' || (range === 'low' ? g.amount <= 200000 : range === 'mid' ? g.amount > 200000 && g.amount <= 500000 : g.amount > 500000);
+  const inRange = (g: Gift) => range === 'all' || range === 'asc' || range === 'desc' || (range === 'low' ? g.amount <= lo : range === 'mid' ? g.amount > lo && g.amount <= hi : g.amount > hi);
   const norm = (t: string) => t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const found = (g: Gift) => !query.trim() || norm(g.name).includes(norm(query.trim()));
   const visible = gifts.filter(g => (filter === 'Todos' || g.category === filter) && inRange(g) && found(g));
@@ -332,9 +347,9 @@ export function GiftsPage() {
             <option value="all">Cualquier monto</option>
             <option value="asc">Menor a mayor</option>
             <option value="desc">Mayor a menor</option>
-            <option value="low">Hasta $ 200.000</option>
-            <option value="mid">$ 200.000 a $ 500.000</option>
-            <option value="high">Más de $ 500.000</option>
+            <option value="low">Hasta {money(lo)}</option>
+            <option value="mid">{money(lo)} a {money(hi)}</option>
+            <option value="high">Más de {money(hi)}</option>
           </select>
         </label>
       </div>
@@ -352,9 +367,9 @@ export function GiftsPage() {
             <option value="all">Cualquier monto</option>
             <option value="asc">Menor a mayor</option>
             <option value="desc">Mayor a menor</option>
-            <option value="low">Hasta $ 200.000</option>
-            <option value="mid">$ 200.000 a $ 500.000</option>
-            <option value="high">Más de $ 500.000</option>
+            <option value="low">Hasta {money(lo)}</option>
+            <option value="mid">{money(lo)} a {money(hi)}</option>
+            <option value="high">Más de {money(hi)}</option>
           </select>
         </label>
       </div>
@@ -374,7 +389,7 @@ export function GiftsPage() {
 
     {cart.length > 0 && !cartOpen && (
       <div className="rg-cart-bar" role="region" aria-label="Tu regalo">
-        <p><strong>{cart.length === 1 ? '1 regalo' : `${cart.length} regalos`}</strong><span>{formatARS(cart.reduce((n, g) => n + g.amount, 0))}</span></p>
+        <p><strong>{cart.length === 1 ? '1 regalo' : `${cart.length} regalos`}</strong><span>{money(cart.reduce((n, g) => n + g.amount, 0))}</span></p>
         <button type="button" className="dm-solid" onClick={e => { returnFocus.current = e.currentTarget; setCartOpen(true); }}>Ver mi regalo</button>
       </div>
     )}
