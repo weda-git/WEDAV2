@@ -2089,3 +2089,19 @@ body:has(.pn-app) { background: #f1ede3; }
 @media (prefers-reduced-motion: reduce) { .hs-item, .hs-item.is-current .hs-cta svg { transition: none; } .hs-item.is-current:hover { transform: none; } }
 /* Mientras carga, el mismo fondo cálido del vidrio: sin salto de blanco a color. */
 .pn-root-wait { background: linear-gradient(160deg, #f3eee4 0%, #ece9dc 38%, #e3e4d3 70%, #f1ece2 100%); }
+
+/* Fondo más claro (pedido de la dueña, 2026-11-23): casi blanco con un gris muy suave, poca diferencia con los paneles.
+   Las manchas de color pasan a ser apenas perceptibles. */
+.pn-app {
+  --gl-bg: linear-gradient(180deg, #f7f7f5 0%, #f4f4f1 100%);
+  --gl-panel: rgb(255 255 255 / .7); --gl-panel-strong: rgb(255 255 255 / .86); --gl-edge: rgb(255 255 255 / .9);
+  --gl-shadow: 0 1px 2px rgb(59 60 58 / .03), 0 12px 32px rgb(80 76 56 / .05);
+}
+body:has(.pn-app) { background: #f6f6f3; }
+@media (min-width: 1024px) { body:has(.pn-app) { background: #f6f6f3; } }
+.pn-app::before { background: radial-gradient(55% 45% at 88% 6%, rgb(149 149 113 / .07), transparent 70%), radial-gradient(45% 40% at 8% 96%, rgb(214 190 150 / .07), transparent 70%); }
+.pn-root-wait { background: linear-gradient(180deg, #f7f7f5 0%, #f4f4f1 100%); }
+@media (max-width: 1023px) {
+  .pn-top { background: rgb(247 247 245 / .8); }
+  .pn-side { background: rgb(251 251 250 / .85); }
+}
