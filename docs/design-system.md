@@ -322,3 +322,14 @@ Capa «Vidrio» al final de `src/panel.css`, sobre el rediseño. Referencia: un 
   - toda la tarjeta lleva a su sección (el botón se estira por debajo);
   - el verde pasa suave al paso siguiente cuando completás uno;
   - los pasos hechos llevan la línea y el tilde en verde.
+
+### Tarjeta de regalo única (2026-11-23)
+`src/gift-card.css`. Es la misma tarjeta en «Mis regalos», en el catálogo, en la invitación y en el ejemplo.
+- **Anatomía:** foto cuadrada (bordes de 13 px) con el monto en un globito abajo a la izquierda (letra normal, 15 px, como el nombre), el nombre sin negrita en dos renglones como máximo (15 px, 16 en compu) y, si corresponde, una acción («Agregar», «Regalar»).
+- **«Mis regalos»:** editar y quitar van como botoncitos redondos sobre la foto, sin categoría ni fila extra.
+- **Aporte libre:** una tarjeta tipo gift card en verde Weda.
+  - Se agrega desde el catálogo y se quita como cualquier regalo. Su único dato, el monto mínimo, se edita en un diálogo.
+  - En la invitación conserva el campo para escribir el monto.
+- **Catálogo y packs:** el monto siempre visible; cada pack muestra su total y el precio de cada regalo que incluye.
+- **Alias:** si falta, aparece un aviso de una línea («Falta tu alias… Configurar») en «Mis regalos» y en el catálogo.
+- **Pestañas en el celular:** cuatro parejas en una fila (Mis regalos · Catálogo · Aportes · Cobro).

@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
-import { Check, ChevronRight, Copy, Eye, Gift as GiftIcon, ImagePlus, Package, Pencil, Plus, X } from 'lucide-react';
+import { Banknote, Check, ChevronRight, Copy, Eye, Gift as GiftIcon, ImagePlus, Package, Pencil, Plus, X } from 'lucide-react';
 import { Field, OperationNotice, useToast } from '@/components/panel/ui';
 import { PayoutForm } from '@/components/panel/payout-form';
 import { centerChild, useScrollFade } from '@/components/panel/scroll-row';
@@ -19,6 +19,7 @@ import { update, useAppState } from '@/lib/weda/store';
 import { api, useRemote } from '@/lib/weda/remote';
 import type { Category } from '@/lib/demo-wedding';
 import type { ListGift } from '@/lib/weda/types';
+import '@/gift-card.css';
 
 export const Route = createFileRoute('/panel/regalos')({
   validateSearch: (q: Record<string, unknown>): { tab?: 'cobro' } => (q['tab'] === 'cobro' ? { tab: 'cobro' } : {}),
@@ -87,20 +88,41 @@ const SET_COVER: Record<string, string> = {
   proyectos: '/regalo-casa.jpg', 'primer-hogar': '/lista-de-regalos-olla.jpg', escapada: '/regalo-cena-mar.webp',
 };
 
-/* Foto cuadrada, nombre, monto y una sola acción. El estado «en tu lista» se marca con tilde sobre la foto y botón liviano. */
+/* Tarjeta única de regalo (gift-card.css): foto, nombre, monto siempre visible y una sola acción. «En tu lista»: tilde sobre la foto. */
 function CatalogCard({ gift, inList, onAdd, onRemove }: { gift: Gift; inList: boolean; onAdd: () => void; onRemove: () => void }) {
   return (
-    <li className={`pn-gcard${inList ? ' is-in' : ''}`}>
-      <div className="pn-gphoto">
+    <li className={`pn-gcard gc${inList ? ' is-in' : ''}`}>
+      <div className="pn-gphoto gc-photo">
         {gift.image ? <img src={gift.image} alt="" loading="lazy" style={gift.pos ? { objectPosition: gift.pos } : undefined} /> : <GiftIcon size={34} strokeWidth={1.3} aria-hidden="true" />}
-        <span className="rg-price">{formatARS(gift.amount)}</span>
-        {inList && <span className="pn-gcheck" aria-hidden="true"><Check size={16} strokeWidth={2.5} /></span>}
+        {inList && <span className="gc-check" aria-hidden="true"><Check size={16} strokeWidth={2.5} /></span>}
+        <span className="gc-price">{formatARS(gift.amount)}</span>
       </div>
-      <h3 title={gift.name}>{gift.name}</h3>
+      <h3 className="gc-name" title={gift.name}>{gift.name}</h3>
       {inList
-        ? <button type="button" className="pn-btn is-small is-white" onClick={onRemove} aria-label={`Quitar ${gift.name} de tu lista`}><Check size={15} aria-hidden="true" />Quitar</button>
-        : <button type="button" className="pn-btn is-small" onClick={onAdd} aria-label={`Agregar ${gift.name} a tu lista`}><Plus size={15} aria-hidden="true" />Agregar</button>}
+        ? <button type="button" className="pn-btn is-small is-ghost gc-action" onClick={onRemove} aria-label={`Quitar ${gift.name} de tu lista`}><Check size={15} aria-hidden="true" />En tu lista</button>
+        : <button type="button" className="pn-btn is-small gc-action" onClick={onAdd} aria-label={`Agregar ${gift.name} a tu lista`}><Plus size={15} aria-hidden="true" />Agregar</button>}
     </li>
+  );
+}
+
+/** Cara de la tarjeta «Aporte libre» (tipo gift card): el invitado elige cuánto regalar. */
+function FreeFace() {
+  return (
+    <span className="gc-free-face">
+      <Banknote size={34} strokeWidth={1.4} aria-hidden="true" />
+      <strong>El monto que quieran</strong>
+    </span>
+  );
+}
+const freePrice = (min: number | null) => (min ? <>Desde {formatARS(min)}</> : <>Monto libre</>);
+
+/** Aviso corto de que falta el alias (en «Mis regalos» y en el catálogo). Sin el alias, los invitados no saben a dónde transferir. */
+function AliasNudge({ onGo }: { onGo: () => void }) {
+  return (
+    <div className="rg-nudge" role="status">
+      <span><strong>Falta tu alias</strong> para recibir los regalos.</span>
+      <button type="button" className="pn-btn is-small is-primary" onClick={onGo}>Configurar<ChevronRight size={15} aria-hidden="true" /></button>
+    </div>
   );
 }
 
@@ -150,26 +172,25 @@ function BankFields({ bank, cbu, alias }: { bank: string; cbu: string; alias: st
   );
 }
 
-/* Aporte libre (GIFT-09, D6): la pareja deja que sus invitados elijan cuánto regalar, con un mínimo opcional. Se guarda solo, como el
-   resto del borrador, y llega a los invitados al publicar. El mínimo inválido no se guarda (queda el último válido). */
-function FreeAmountBlock({ enabled, min }: { enabled: boolean; min: number | null }) {
+/* Aporte libre (GIFT-09, D6) como tarjeta tipo gift card (2026-11-23): se agrega o se quita como cualquier regalo, y su único dato es el
+   monto mínimo (opcional). Se guarda solo, como el resto del borrador. El mínimo inválido no se guarda (queda el último válido). */
+const saveFree = (patch: Partial<{ enabled: boolean; min: number | null }>) => update(x => ({ ...x, gifts: { ...x.gifts, freeAmount: { ...x.gifts.freeAmount, ...patch } } }));
+function FreeAmountDialog({ min, onClose }: { min: number | null; onClose: () => void }) {
   const [raw, setRaw] = useState(min ? String(min) : '');
-  const [touched, setTouched] = useState(false);
   const err = raw.trim() === '' ? undefined : validateFreeAmount(raw, MIN_AMOUNT) ?? undefined;
-  const save = (patch: Partial<{ enabled: boolean; min: number | null }>) => update(x => ({ ...x, gifts: { ...x.gifts, freeAmount: { ...x.gifts.freeAmount, ...patch } } }));
   return (
-    <section className="pn-cfg-block rg-free-cfg" aria-labelledby="cfg-free">
-      <div className="pn-cfg-head"><h2 id="cfg-free">Aporte libre</h2><span className={`pn-chip${enabled ? ' is-ok' : ''}`}>{enabled ? 'Activado' : 'Desactivado'}</span></div>
-      <p className="pn-muted">Además de los regalos de tu lista, tus invitados pueden regalar el monto que quieran. Te llega igual que un regalo: con su comprobante, para que lo revises.</p>
-      <label className="pn-check"><input type="checkbox" checked={enabled} onChange={e => save({ enabled: e.target.checked })} /><span>Dejar que tus invitados elijan cuánto regalar</span></label>
-      {enabled && (
-        <Field label="Monto mínimo" optional error={touched ? err : undefined} hint="Si lo dejás vacío, el mínimo es $ 1.000.">
+    <Dialog open onOpenChange={o => { if (!o) onClose(); }}>
+      <DialogContent className="pn-dialog">
+        <DialogTitle>Aporte libre</DialogTitle>
+        <DialogDescription>Tus invitados eligen cuánto regalar. Te llega igual que un regalo, con su comprobante.</DialogDescription>
+        <Field label="Monto mínimo" optional error={err} hint="Si lo dejás vacío, el mínimo es $ 1.000.">
           {a => <input id={a.id} type="text" inputMode="numeric" value={raw} placeholder="Por ejemplo, 20.000" autoComplete="off"
-            onChange={e => { const v = e.target.value; setRaw(v); if (v.trim() === '') save({ min: null }); else if (!validateFreeAmount(v, MIN_AMOUNT)) save({ min: parseAmount(v) }); }}
-            onBlur={() => setTouched(true)} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
+            onChange={e => { const v = e.target.value; setRaw(v); if (v.trim() === '') saveFree({ min: null }); else if (!validateFreeAmount(v, MIN_AMOUNT)) saveFree({ min: parseAmount(v) }); }}
+            aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
         </Field>
-      )}
-    </section>
+        <div className="pn-actions is-end"><button type="button" className="pn-btn" onClick={onClose}>Listo</button></div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -178,7 +199,7 @@ function FreeAmountBlock({ enabled, min }: { enabled: boolean; min: number | nul
    Fluidez: la tarjeta que se lleva sigue al puntero por transform directo (sin pasar por el render), las demás se deslizan a su nuevo lugar (FLIP) y al soltar la tarjeta se asienta en su hueco.
    El lugar nuevo se decide con la grilla sin transformaciones (offsets), no con lo que se ve en pantalla, para que las animaciones no la confundan. */
 const SETTLE_MS = 170;
-function SortableGrid({ items, onMove, onOpen, renderCard }: { items: ListGift[]; onMove: (id: string, to: number) => void; onOpen: (g: ListGift) => void; renderCard: (g: ListGift, i: number) => React.ReactNode }) {
+function SortableGrid({ items, onMove, onOpen, renderCard, tail }: { tail?: ReactNode; items: ListGift[]; onMove: (id: string, to: number) => void; onOpen: (g: ListGift) => void; renderCard: (g: ListGift, i: number) => React.ReactNode }) {
   const listRef = useRef<HTMLUListElement>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [order, setOrder] = useState<string[] | null>(null);
@@ -305,7 +326,7 @@ function SortableGrid({ items, onMove, onOpen, renderCard }: { items: ListGift[]
       <p id="pn-sort-help" className="pn-sr">Para cambiar el orden con el teclado, mantené Alt y usá las flechas.</p>
       <ul ref={listRef} className={`rg-grid rg-sortable${dragId ? ' is-dragging' : ''}`} aria-label="Regalos de tu lista (podés ordenarlos arrastrando)">
         {shown.map((g, i) => (
-          <li key={g.id} data-id={g.id} className={`rg-card${dragId === g.id ? ' is-drag' : ''}`} tabIndex={0}
+          <li key={g.id} data-id={g.id} className={`rg-card gc${dragId === g.id ? ' is-drag' : ''}`} tabIndex={0}
             aria-roledescription="elemento ordenable" aria-describedby="pn-sort-help"
             onPointerDown={e => onPointerDown(e, g.id)} onPointerMove={onPointerMove} onPointerUp={() => finish(true)} onPointerCancel={() => finish(false)}
             onContextMenu={e => { if (st.current?.touch) e.preventDefault(); }}
@@ -314,6 +335,7 @@ function SortableGrid({ items, onMove, onOpen, renderCard }: { items: ListGift[]
             {renderCard(g, i)}
           </li>
         ))}
+        {tail}
       </ul>
     </>
   );
@@ -337,6 +359,9 @@ function GiftsModule() {
   const remote = useRemote();
   const payout = remote.user ? remote.payout : null;
   const [editing, setEditing] = useState<ListGift | null>(null);
+  const [freeOpen, setFreeOpen] = useState(false);
+  const free = s.gifts.freeAmount;
+  const toggleFree = (on: boolean) => { saveFree({ enabled: on }); toast(on ? 'Agregaste el aporte libre.' : 'Quitaste el aporte libre.', 'ok', { label: 'Deshacer', onClick: () => saveFree({ enabled: !on }) }); };
   // El botón de la barra superior (panel.tsx) pide abrir la vista previa de la lista.
 
   const contrib = useContributions(s);
@@ -405,12 +430,7 @@ function GiftsModule() {
       <div id="pn-tabpanel" role="tabpanel" aria-labelledby={`tab-${tab}`} className="pn-tabpanel">
         {tab === 'lista' && (
           <>
-          {items.length > 0 && !alias && (
-            <div className="rg-setup" role="status">
-              <div><strong>Falta un paso para recibir aportes</strong><p>Cargá tu alias: es lo que tus invitados ven para saber a dónde mandar su regalo.</p></div>
-              <button type="button" className="pn-btn" onClick={() => setTab('cobro')}>Cargar alias<ChevronRight size={15} aria-hidden="true" /></button>
-            </div>
-          )}
+          {items.length > 0 && !alias && <AliasNudge onGo={() => setTab('cobro')} />}
           {items.length === 0 ? (
             <div className="pn-empty is-centered">
               <span className="pn-empty-ico" aria-hidden="true"><GiftIcon size={22} strokeWidth={1.6} /></span>
@@ -428,23 +448,30 @@ function GiftsModule() {
               </div>
               <SortableGrid items={items} onMove={(id, to) => update(x => moveGiftTo(x, id, to))} onOpen={setEditing} renderCard={g => (
                 <>
-                  <div className="rg-photo">
+                  <div className="rg-photo gc-photo">
                     {g.image ? <img src={g.image} alt="" loading="lazy" draggable={false} style={g.pos ? { objectPosition: g.pos } : undefined} /> : <GiftIcon size={34} strokeWidth={1.3} aria-hidden="true" />}
-                    <span className="rg-price">{formatARS(g.amount)}</span>
-                  </div>
-                  <div className="rg-body">
-                    <h3>{g.name}</h3>
-                    <div className="rg-foot">
-                      <span className="rg-cat">{g.category}</span>
-                      <div className="rg-actions">
-                        <button type="button" className="pn-icon" onClick={() => setEditing(g)} aria-label={`Editar ${g.name}`}><Pencil size={16} aria-hidden="true" /></button>
-                        <button type="button" className="pn-icon" onClick={() => rm(g)} aria-label={`Quitar ${g.name}`}><X size={16} aria-hidden="true" /></button>
-                      </div>
+                    <div className="rg-actions gc-tools">
+                      <button type="button" onClick={() => setEditing(g)} aria-label={`Editar ${g.name}`}><Pencil size={15} aria-hidden="true" /></button>
+                      <button type="button" onClick={() => rm(g)} aria-label={`Quitar ${g.name}`}><X size={15} aria-hidden="true" /></button>
                     </div>
+                    <span className="gc-price">{formatARS(g.amount)}</span>
                   </div>
+                  <h3 className="gc-name">{g.name}</h3>
                 </>
+              )} tail={free.enabled && (
+                <li className="rg-card gc gc-free" tabIndex={0} onClick={e => { if (!(e.target as HTMLElement).closest('.rg-actions')) setFreeOpen(true); }}
+                  onKeyDown={e => { if ((e.key === 'Enter' || e.key === ' ') && e.target === e.currentTarget) { e.preventDefault(); setFreeOpen(true); } }}>
+                  <div className="rg-photo gc-photo">
+                    <FreeFace />
+                    <div className="rg-actions gc-tools">
+                      <button type="button" onClick={() => setFreeOpen(true)} aria-label="Editar el aporte libre"><Pencil size={15} aria-hidden="true" /></button>
+                      <button type="button" onClick={() => toggleFree(false)} aria-label="Quitar el aporte libre"><X size={15} aria-hidden="true" /></button>
+                    </div>
+                    <span className="gc-price">{freePrice(free.min)}</span>
+                  </div>
+                  <h3 className="gc-name">Aporte libre</h3>
+                </li>
               )} />
-              <FreeAmountBlock enabled={s.gifts.freeAmount.enabled} min={s.gifts.freeAmount.min} />
             </>
           )}
           <details className="rg-help">
@@ -461,6 +488,7 @@ function GiftsModule() {
 
         {tab === 'agregar' && (
           <div className="rg-catalog">
+            {!alias && <AliasNudge onGo={() => setTab('cobro')} />}
             <div className="rg-section-head">
               <div><h2>Catálogo sugerido y packs</h2><p className="pn-muted">Elegí packs curados completos o agregá regalos individuales a tu lista.</p></div>
               <div className="pn-switch is-small" role="group" aria-label="Qué querés ver">
@@ -481,7 +509,7 @@ function GiftsModule() {
                     <li key={set.id} className={`rg-pack${all ? ' is-on' : ''}`}>
                       <div className="rg-pack-cover" style={cover ? { backgroundImage: `url(${cover})` } : undefined}>
                         {all && <span className="rg-pack-chip"><Check size={13} strokeWidth={2.5} aria-hidden="true" />En tu lista</span>}
-                        <div><small>{gs.length} regalos</small><h3>{set.name}</h3></div>
+                        <div><small>{gs.length} regalos · {formatARS(gs.reduce((n, g) => n + g.amount, 0))}</small><h3>{set.name}</h3></div>
                       </div>
                       <div className="rg-pack-body">
                         <p className="rg-text">{set.description}</p>
@@ -503,6 +531,13 @@ function GiftsModule() {
                         <span className="pn-owndot" aria-hidden="true"><Plus size={28} strokeWidth={1.6} /></span>
                         <strong>Crear regalo</strong>
                       </button>
+                    </li>
+                    <li className={`pn-gcard gc gc-free${free.enabled ? ' is-in' : ''}`}>
+                      <div className="pn-gphoto gc-photo"><FreeFace />{free.enabled && <span className="gc-check" aria-hidden="true"><Check size={16} strokeWidth={2.5} /></span>}<span className="gc-price">{freePrice(free.min)}</span></div>
+                      <h3 className="gc-name">Aporte libre</h3>
+                      {free.enabled
+                        ? <button type="button" className="pn-btn is-small is-ghost gc-action" onClick={() => toggleFree(false)} aria-label="Quitar el aporte libre de tu lista"><Check size={15} aria-hidden="true" />En tu lista</button>
+                        : <button type="button" className="pn-btn is-small gc-action" onClick={() => toggleFree(true)} aria-label="Agregar el aporte libre a tu lista"><Plus size={15} aria-hidden="true" />Agregar</button>}
                     </li>
                     {catalog.map(g => <CatalogCard key={g.id} gift={g} inList={hasCatalogGift(s, g.id)} onAdd={() => addOne(g.id)} onRemove={() => rmCatalog(g.id)} />)}
                   </ul>
@@ -657,6 +692,8 @@ function GiftsModule() {
         </Dialog>
       )}
 
+      {freeOpen && <FreeAmountDialog min={free.min} onClose={() => setFreeOpen(false)} />}
+
       {packOpen && (() => {
         const set = packOpen;
         const gs = setGifts(set);
@@ -667,12 +704,12 @@ function GiftsModule() {
             <DialogContent className="pn-dialog is-pack">
               <DialogTitle>{set.name}</DialogTitle>
               <DialogDescription>{set.description}</DialogDescription>
-              <p className="rg-label">{gs.length} regalos incluidos</p>
+              <p className="rg-label">{gs.length} regalos incluidos · {formatARS(gs.reduce((n, g) => n + g.amount, 0))} en total</p>
               <ul className="rg-pack-minis" aria-label={`Regalos del pack ${set.name}`}>
                 {gs.map(g => (
                   <li key={g.id} className="rg-mini">
                     <span className="rg-mini-photo">{g.image ? <img src={g.image} alt="" loading="lazy" style={g.pos ? { objectPosition: g.pos } : undefined} /> : <GiftIcon size={24} strokeWidth={1.3} aria-hidden="true" />}</span>
-                    <span className="rg-mini-name">{g.name}</span>
+                    <span className="rg-mini-name">{g.name}<strong className="rg-mini-price">{formatARS(g.amount)}</strong></span>
                   </li>
                 ))}
               </ul>

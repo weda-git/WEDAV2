@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { formatARS, type Category, type Gift, type IconKey } from '@/lib/demo-wedding';
 import { useSite, useSiteActions, type GiftSubmission, type Giver } from '@/lib/weda/site-model';
 import { MARKETING_CONSENT_TEXT } from '@/lib/weda/consent';
+import '@/gift-card.css';
 
 const icons: Record<IconKey, LucideIcon> = {
   utensils: Utensils, bed: BedDouble, chef: ChefHat, plane: Plane, sofa: Sofa, lamp: Lamp, wine: Wine,
@@ -25,16 +26,16 @@ const icons: Record<IconKey, LucideIcon> = {
 function GiftCard({ gift, inCart, onPick }: { gift: Gift; inCart: boolean; onPick: (g: Gift) => void }) {
   const Icon = icons[gift.icon];
   return (
-    <article className={`rg-card${inCart ? ' in-cart' : ''}`}>
+    <article className={`rg-card gc${inCart ? ' in-cart' : ''}`}>
       {/* Tocar la foto también regala (pedido de la dueña, 2026-11-20). Con teclado se usa el botón «Regalar», que hace lo mismo. */}
-      <div className={`rg-photo is-pickable${gift.fit ? ' is-contain' : ''}${gift.fit === 'white' ? ' is-white' : ''}`} style={gift.fit && gift.image ? ({ '--bg': `url(${gift.image})` } as React.CSSProperties) : undefined} onClick={() => onPick(gift)}>
+      <div className={`rg-photo gc-photo is-pickable${gift.fit ? ' is-contain' : ''}${gift.fit === 'white' ? ' is-white' : ''}`} style={gift.fit && gift.image ? ({ '--bg': `url(${gift.image})` } as React.CSSProperties) : undefined} onClick={() => onPick(gift)}>
         {gift.image
           ? <img src={gift.image} alt="" loading="lazy" style={gift.pos || gift.zoom ? { objectPosition: gift.pos, ...(gift.zoom ? { transform: `scale(${gift.zoom.scale})`, transformOrigin: gift.zoom.origin } : {}) } : undefined} />
           : <span className="rg-icon" aria-hidden="true"><Icon size={34} strokeWidth={1.2} /></span>}
-        <span className="rg-price">{formatARS(gift.amount)}</span>
+        <span className="gc-price">{formatARS(gift.amount)}</span>
       </div>
-      <h3 title={gift.name}>{gift.name}</h3>
-      <button type="button" className="rg-btn" onClick={() => onPick(gift)}>
+      <h3 className="gc-name" title={gift.name}>{gift.name}</h3>
+      <button type="button" className="rg-btn gc-action" onClick={() => onPick(gift)}>
         {inCart ? <><Check size={14} aria-hidden="true" />En tu regalo</> : 'Regalar'}
       </button>
     </article>
@@ -52,15 +53,15 @@ function FreeCard({ min, current, onAdd }: { min: number; current: number | null
     if (!err) onAdd(parseAmount(raw));
   };
   return (
-    <article className={`rg-card rg-free${current ? ' in-cart' : ''}`}>
-      <div className="rg-photo rg-free-box">
+    <article className={`rg-card rg-free gc gc-free${current ? ' in-cart' : ''}`}>
+      <div className="rg-photo rg-free-box gc-photo">
         <span className="rg-icon" aria-hidden="true"><Banknote size={30} strokeWidth={1.2} /></span>
         <label htmlFor={FREE_GIFT_ID}>Elegí cuánto querés regalar</label>
         <span className="rg-free-input"><span aria-hidden="true">$</span><input id={FREE_GIFT_ID} type="text" inputMode="numeric" autoComplete="off" placeholder="Monto" value={raw} onChange={e => { setRaw(e.target.value); setError(null); }} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }} aria-invalid={!!error} aria-describedby={error ? 'rg-free-error' : min > 1000 ? 'rg-free-min' : undefined} /></span>
         {error ? <p className="rg-free-error" id="rg-free-error" role="alert">{error}</p> : min > 1000 && <p className="rg-free-min" id="rg-free-min">Mínimo {formatARS(min)}</p>}
       </div>
-      <h3>Aporte libre</h3>
-      <button type="button" className="rg-btn" onClick={add}>
+      <h3 className="gc-name">Aporte libre</h3>
+      <button type="button" className="rg-btn gc-action" onClick={add}>
         {current ? <><Check size={14} aria-hidden="true" />Cambiar monto</> : 'Agregar'}
       </button>
     </article>

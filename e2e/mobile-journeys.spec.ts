@@ -50,7 +50,7 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
     await page.getByRole('list', { name: 'Packs de regalos' }).getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Hogar', exact: true }) }).getByRole('button', { name: 'Agregar' }).click();
     await page.getByRole('tab', { name: /Mis regalos/ }).click();
     // Falta el alias, pero no bloquea: el aviso lo explica y se puede seguir.
-    await expect(page.getByRole('status').filter({ hasText: 'Falta un paso para recibir aportes' })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: 'Falta tu alias' })).toBeVisible();   // aviso corto (2026-11-23)
     await page.getByRole('tab', { name: /Cobro/ }).click();
     await expect(page.getByRole('region', { name: 'Transferencia bancaria' }).getByText('Sin configurar')).toBeVisible();
 
@@ -63,11 +63,13 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
     await page.getByRole('tab', { name: /Cobro/ }).click();
     await page.getByRole('region', { name: 'Transferencia bancaria' }).getByRole('button', { name: 'Configurar' }).click();
     await page.getByRole('dialog').getByLabel('Alias').fill('lucia.violeta');
-    await page.getByRole('dialog').getByRole('button', { name: 'Listo' }).click();
+    // Desde el 2026-11-07 se revisa y se confirma (la primera vez no pide la clave).
+    await page.getByRole('dialog').getByRole('button', { name: 'Revisar' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Confirmar', exact: true }).click();
     await expect(page.getByRole('region', { name: 'Transferencia bancaria' }).getByText('Configurado')).toBeVisible();
     await page.getByRole('tab', { name: /Mis regalos/ }).click();
     await expect(page.getByRole('list', { name: /Regalos de tu lista/ }).getByRole('listitem')).toHaveCount(8);
-    await expect(page.getByText('Falta un paso para recibir aportes')).toHaveCount(0);
+    await expect(page.getByText('Falta tu alias')).toHaveCount(0);
     await expect.poll(async () => (await stored(page)).gifts.alias).toBe('lucia.violeta');   // el guardado local es diferido
     await page.reload({ waitUntil: 'networkidle' });
     expect((await stored(page)).gifts.alias).toBe('lucia.violeta');
