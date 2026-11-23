@@ -60,7 +60,6 @@ function Home() {
         <div className="hx-hero-copy">
           <p className="hx-couple">{coupleLabel(s.couple)}</p>
           <h1>Hola de nuevo</h1>
-          <p>Tres pasos y tu casamiento está en línea.</p>
         </div>
       </header>
 
