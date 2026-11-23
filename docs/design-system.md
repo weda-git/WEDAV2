@@ -297,7 +297,7 @@ Capa final de `src/panel.css` («Rediseño del panel»), mobile-first. La landin
   - «Tu casamiento en tres pasos» (repensado desde cero): lista vertical con los tres pasos a la vista y un anillo de avance «x/3»;
   - el paso actual va en una tarjeta blanca, con una línea de qué falta y un solo botón; los hechos llevan tilde, «Listo» y «Editar»; los que vienen quedan apagados;
   - «Publicar» usa el verde de la marca cuando le toca, y publicada muestra «Ver mi página»;
-  - sin los accesos que repetían los pasos 2 y 3;
+  - sin la foto en arco (repetía la del perfil y se metía en los pasos) y sin los accesos que repetían los pasos 2 y 3;
   - «Organización» (invitados y mesas) como lista liviana.
 - **Menos cajas:** los números de invitados van en una sola superficie.
 - **Movimiento:**

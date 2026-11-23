@@ -2012,3 +2012,7 @@ html body:has(.pn-root)[data-scroll-locked] .right-scroll-bar-position, html bod
   .hs-item:not(:last-child)::after { left: 33px; }
 }
 @media (prefers-reduced-motion: reduce) { .hs-item.is-current { animation: none; } .hs-ring-fill, .hs-mark { transition: none; } }
+
+/* Inicio sin foto: el encabezado es solo texto y los pasos arrancan con aire propio. */
+.hx-hero { grid-template-columns: minmax(0, 1fr) !important; }
+.hx-hero-photo { display: none !important; }

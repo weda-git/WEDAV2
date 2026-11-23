@@ -3,7 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowRight, ChevronRight, Gift, LayoutGrid, Lock, Users } from 'lucide-react';
 import { CoupleDialog } from '@/components/panel/couple-form';
 import { GetStarted } from '@/components/panel/get-started';
-import { coupleLabel, isSamplePhoto, photoPosition, resolvePhoto } from '@/lib/weda/logic';
+import { coupleLabel } from '@/lib/weda/logic';
 import { operates, planForOperation, type Operation } from '@/lib/weda/plans';
 import { useRemote } from '@/lib/weda/remote';
 import { useAppState } from '@/lib/weda/store';
@@ -15,7 +15,8 @@ export const Route = createFileRoute('/panel/')({
 });
 
 /* Inicio (diseño de la dueña, 2026-10-28; rediseño 2026-11-21): encabezado con los nombres y la foto de la pareja, el avance y los tres pasos
-   (regalos → sitio → publicación) con el paso actual destacado y, separada, la organización que no se publica. */
+   (regalos → sitio → publicación) con el paso actual destacado y, separada, la organización que no se publica.
+   Sin la foto en arco (2026-11-21): repetía la del perfil y se metía en el bloque de pasos. */
 function Home() {
   const s = useAppState();
   const access = useRemote().access;
@@ -60,9 +61,6 @@ function Home() {
           <p className="hx-couple">{coupleLabel(s.couple)}</p>
           <h1>Hola de nuevo</h1>
           <p>Tres pasos y tu casamiento está en línea.</p>
-        </div>
-        <div className="hx-hero-photo" aria-hidden="true">
-          <img src={resolvePhoto(s.photo)} alt="" style={{ objectPosition: photoPosition(s.photo) }} data-sample={isSamplePhoto(s.photo) ? '' : undefined} />
         </div>
       </header>
 
