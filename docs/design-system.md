@@ -327,9 +327,11 @@ Capa «Vidrio» al final de `src/panel.css`, sobre el rediseño. Referencia: un 
 `src/gift-card.css`. Es la misma tarjeta en «Mis regalos», en el catálogo, en la invitación y en el ejemplo.
 - **Anatomía:** foto cuadrada (bordes de 13 px) con el monto en un globito abajo a la izquierda (letra normal, 15 px, como el nombre), el nombre sin negrita en dos renglones como máximo (15 px, 16 en compu) y, si corresponde, una acción («Agregar», «Regalar»).
 - **«Mis regalos»:** editar y quitar van como botoncitos redondos sobre la foto, sin categoría ni fila extra.
-- **Aporte libre:** una tarjeta tipo gift card en verde Weda.
-  - Se agrega desde el catálogo y se quita como cualquier regalo. Su único dato, el monto mínimo, se edita en un diálogo.
-  - En la invitación conserva el campo para escribir el monto.
+- **Gift cards** (2026-11-23, en reemplazo del aporte libre en el panel):
+  - un pack «Gift cards» en el catálogo, con cuatro montos fijos ($ 25.000, $ 50.000, $ 100.000 y $ 200.000) y su categoría propia;
+  - cada una tiene su imagen en un tono de verde Weda (`public/gift-card-<monto>.svg`) y el pack su portada sin texto (`public/gift-card-pack.svg`);
+  - se agregan y se quitan como cualquier regalo.
+- **Aporte libre:** ya no se ofrece. Si una pareja ya lo tenía activado, su tarjeta sigue en «Mis regalos» para editar el mínimo o quitarlo, y en la invitación conserva el campo para escribir el monto.
 - **Catálogo y packs:** el monto siempre visible; cada pack muestra su total y el precio de cada regalo que incluye.
-- **Alias:** si falta, aparece un aviso de una línea («Falta tu alias… Configurar») en «Mis regalos» y en el catálogo.
+- **Alias:** si falta y la lista ya tiene 3 regalos o más, aparece un banner en «Mis regalos»: ícono, «Ya elegiste N regalos», una línea y «Cargar alias». En el catálogo no aparece.
 - **Pestañas en el celular:** cuatro parejas en una fila (Mis regalos · Catálogo · Aportes · Cobro).

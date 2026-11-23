@@ -2153,3 +2153,17 @@ body:has(.pn-app) { background: #f6f6f3; }
   .rg-section-head { gap: 10px; }
   .rg-section-head .pn-muted { font-size: 13px; }
 }
+
+/* Banner del alias (2026-11-23): aparece con 3 regalos o más y sin alias. Ícono, título con el avance, una línea y el botón. */
+.rg-alias-banner { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px 16px; margin: 0 0 20px; padding: 16px 18px; border-radius: 18px;
+  background: linear-gradient(135deg, #f4f3ea 0%, #ecebdd 100%); box-shadow: inset 0 0 0 1px rgb(116 116 83 / .16); animation: rd-in .3s var(--rd-ease, ease) both; }
+.rg-alias-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #747453; color: #fff; }
+.rg-alias-copy h2 { margin: 0; font-size: 16px !important; line-height: 1.3 !important; font-weight: 600 !important; letter-spacing: 0 !important; }
+.rg-alias-copy p { margin: 2px 0 0; font-size: 14px; line-height: 1.4; color: var(--pn-muted); }
+.pn-app .rg-alias-cta { background: #747453; color: #fff; border-color: transparent; border-radius: 999px; padding: 0 18px; white-space: nowrap; }
+.pn-app .rg-alias-cta:hover:not(:disabled) { background: #646446; }
+@media (max-width: 640px) {
+  .rg-alias-banner { grid-template-columns: auto minmax(0, 1fr); padding: 14px; }
+  .rg-alias-cta { grid-column: 1 / -1; width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) { .rg-alias-banner { animation: none; } }
