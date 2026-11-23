@@ -1,7 +1,7 @@
 # GIFT-10 · Moneda de la lista de regalos — plan técnico
 
 - **Spec:** [spec.md](spec.md)
-- **Estado:** propuesto (2026-11-23)
+- **Estado:** aprobado (2026-11-23, por la dueña, con la columna de moneda en los aportes)
 - **Rama:** `feat/moneda-lista` desde `main`
 
 ## Enfoque
