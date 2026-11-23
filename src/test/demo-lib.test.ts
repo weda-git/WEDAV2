@@ -46,9 +46,9 @@ describe("cuenta regresiva", () => {
 });
 
 describe("catálogo de regalos de la demo", () => {
-  it("tiene entre 20 y 30 regalos y ninguna categoría con menos de 4", () => {
+  it("tiene entre 20 y 35 regalos (con las gift cards) y ninguna categoría con menos de 4", () => {
     expect(gifts.length).toBeGreaterThanOrEqual(20);
-    expect(gifts.length).toBeLessThanOrEqual(30);
+    expect(gifts.length).toBeLessThanOrEqual(35);
     for (const c of categories) expect(gifts.filter(g => g.category === c).length).toBeGreaterThanOrEqual(4);
   });
   it("no repite ids ni tiene importes inválidos", () => {
