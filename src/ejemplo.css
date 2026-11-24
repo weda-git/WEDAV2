@@ -641,3 +641,8 @@
 .rg-cur-opt.is-on { color: #1f201e; }
 .rg-cur-opt.is-on .rg-cur-coin { background: #2f3337; }
 .rg-cur-opt:focus-visible { outline: 2px solid #2f3337; outline-offset: 2px; }
+/* GIFT-15: WhatsApp de quien regala (país + número). */
+.rg-phone { display: grid; grid-template-columns: 92px 1fr; gap: 8px; }
+.rg-phone select { min-height: 50px; padding: 0 10px; border-radius: 14px; border: 1px solid rgb(59 60 58 / .25); background: #fff; font: inherit; font-size: 16px; color: var(--foreground); }
+.rg-field input[type="tel"] { width: 100%; min-height: 50px; padding: 0 16px; border-radius: 14px; border: 1px solid rgb(59 60 58 / .25); background: #fff; color: var(--foreground); font: inherit; font-size: 16px; outline: none; }
+.rg-field input[type="tel"]:focus-visible, .rg-phone select:focus-visible { border-color: var(--ej-slate); box-shadow: 0 0 0 3px rgb(149 149 113 / .35); }

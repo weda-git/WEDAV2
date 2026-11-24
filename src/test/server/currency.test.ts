@@ -8,7 +8,7 @@ let env: Env;
 beforeAll(async () => { env = await makeEnv(); });
 afterAll(() => env.close());
 
-const contribution = (key: string, extra: Record<string, unknown> = {}) => ({ idempotencyKey: `key-${key}-0001`, manageToken: `token-del-invitado-${key}`, giverName: 'Tía Nora', giverEmail: 'nora@correo.com', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') }, ...extra });
+const contribution = (key: string, extra: Record<string, unknown> = {}) => ({ idempotencyKey: `key-${key}-0001`, manageToken: `token-del-invitado-${key}`, giverName: 'Tía Nora', giverEmail: 'nora@correo.com', giverPhone: '5491155554444', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') }, ...extra });
 /** Lista en las dos monedas: g1 vale $ 180.000 o US$ 120. */
 const both = (d: AppState): AppState => ({ ...d, gifts: { ...d.gifts, currency: 'both', items: d.gifts.items.map(g => ({ ...g, amountUsd: g.id === 'g1' ? 120 : 200 })) } });
 

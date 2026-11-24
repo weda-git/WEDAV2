@@ -6,6 +6,7 @@ test.use({ autoCurrency: false });
 const shot = async (page: import('@playwright/test').Page, name: string) => { if (process.env['SHOTS']) await page.screenshot({ path: `${process.env['SHOTS']}/${name}.png` }); };
 
 test('pesos y dólares: elegir al empezar, los dos precios, una cuenta por moneda y el invitado elige', async ({ page, context }) => {
+  test.setTimeout(150_000);
   await onboard(page, 'Ana', 'Leo');
   await page.goto('/panel/regalos', { waitUntil: 'networkidle' });
   await page.getByRole('tab', { name: 'Catálogo' }).click();

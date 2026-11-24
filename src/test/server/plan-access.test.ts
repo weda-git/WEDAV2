@@ -13,7 +13,7 @@ const put = async (c: Client, draft: AppState, guests?: unknown) => {
   const w = (await c.get('/api/wedding')).body;
   return c.put('/api/wedding', { baseRevision: w.revision, draft, ...(guests ? { guests } : {}) });
 };
-const contribution = (key: string) => ({ idempotencyKey: `key-${key}-0001`, manageToken: `token-del-invitado-${key}`, giverName: 'Tía Nora', giverEmail: 'nora@correo.com', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') } });
+const contribution = (key: string) => ({ idempotencyKey: `key-${key}-0001`, manageToken: `token-del-invitado-${key}`, giverName: 'Tía Nora', giverEmail: 'nora@correo.com', giverPhone: '5491155554444', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') } });
 
 describe('sin compuerta de pago (desarrollo y pruebas): opera lo publicado', () => {
   let env: Env;

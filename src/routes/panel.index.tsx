@@ -26,6 +26,10 @@ function Home() {
   // Ya estando en el Inicio (por ejemplo, desde el diálogo de publicar) el parámetro cambia sin montar la pantalla de nuevo: se abre igual.
   useEffect(() => { if (editar === 'datos') setEditing(true); }, [editar]);
   const closeEditing = () => { setEditing(false); if (editar) void navigate({ to: '/panel', search: {}, replace: true }); };
+  // ONB-06 (D7): las parejas que se registraron antes no tienen WhatsApp. Un aviso que se puede cerrar (se recuerda en este navegador).
+  const [waHidden, setWaHidden] = useState(() => { try { return window.localStorage.getItem('weda-wa-nudge') === 'off'; } catch { return false; } });
+  const hideWa = () => { setWaHidden(true); try { window.localStorage.setItem('weda-wa-nudge', 'off'); } catch { /* sin almacenamiento: se oculta igual hasta recargar */ } };
+  const askWa = s.onboarded && !s.couple.whatsapp && !waHidden;
 
   type Tile = { key: string; title: string; text: string; Icon: typeof Gift; tone?: string; to?: string; search?: Record<string, string>; op?: Operation; onClick?: () => void };
   /* Administración de fondo. No se publica y no hace falta para publicar. */
@@ -62,6 +66,14 @@ function Home() {
           <h1>Hola de nuevo</h1>
         </div>
       </header>
+
+      {askWa && (
+        <section className="pn-wa-nudge" aria-label="Tu WhatsApp">
+          <p><strong>Sumá tu WhatsApp.</strong> Así podemos ayudarte rápido si necesitás algo con tu cuenta. No lo publicamos.</p>
+          <button type="button" className="pn-btn is-small" onClick={() => setEditing(true)}>Sumar mi WhatsApp</button>
+          <button type="button" className="pn-link is-muted" onClick={hideWa}>Ahora no</button>
+        </section>
+      )}
 
       <GetStarted />
 

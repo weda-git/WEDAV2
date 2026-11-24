@@ -64,9 +64,11 @@ test.describe('Persona K · publicar cuanto antes: el camino mínimo, contado', 
     await page.waitForURL(/\/crear$/);
     await act(() => page.fill('#on-first', 'Ana'));
     await act(() => page.fill('#on-second', 'Leo'));
+    await act(() => page.fill('#on-phone', '11 5555 4444'));
     await act(() => page.getByRole('button', { name: 'Continuar' }).click());
     await page.waitForURL(/\/crear\/fecha/);
-    // La fecha se puede dejar vacía: no hace falta tildar nada.
+    // ONB-06: la fecha es obligatoria salvo «Todavía no la sabemos».
+    await act(() => page.getByLabel('Todavía no la sabemos').check());
     await act(() => page.getByRole('button', { name: 'Continuar' }).click());
     await page.waitForURL(/\/crear\/foto/);
     await act(() => page.getByRole('button', { name: 'Omitir por ahora' }).click());
@@ -75,8 +77,9 @@ test.describe('Persona K · publicar cuanto antes: el camino mínimo, contado', 
     await act(() => page.getByRole('button', { name: 'Publicar Celebración', exact: true }).click());
     await act(() => page.getByRole('dialog').getByRole('button', { name: 'Publicar', exact: true }).click());
     await expect(page.getByRole('heading', { name: '¡Tu página está publicada!' })).toBeVisible({ timeout: 15_000 });
-    // Medido el 2026-10-28: 12 acciones (4 campos escritos y 8 toques), 5 pantallas (cuenta, nombres, fecha, foto, panel) + el diálogo. Si cambia, actualizar conversion-and-friction.md.
-    expect(actions).toBe(12);
+    // Medido el 2026-10-28: 12 acciones. Desde el 2026-11-23 (ONB-06): 14, por el WhatsApp obligatorio y «Todavía no la sabemos»
+    // (5 campos escritos y 9 toques), 5 pantallas (cuenta, nombres, fecha, foto, panel) + el diálogo. Si cambia, actualizar conversion-and-friction.md.
+    expect(actions).toBe(14);
     await expect.poll(async () => (await stored(page)).slug).toMatch(/^ana-y-leo/); // el guardado local es diferido
   });
 });

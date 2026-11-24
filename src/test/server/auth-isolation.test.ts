@@ -131,7 +131,7 @@ describe('aislamiento entre parejas', () => {
   it('el plan de una pareja nunca habilita operar el casamiento de otra (BR-62, PAY-01)', async () => {
     const a = env.client(); await signUp(a, 'plan-a@correo.com');
     const slugA = (await publishWith(a, draftFor('Rita', 'Ciro', { planId: 'regalos' }))).slug;
-    const giver = { idempotencyKey: 'key-iso-0001', manageToken: 'token-del-invitado-iso1', giverName: 'Tía', giverEmail: 't@correo.com', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') } };
+    const giver = { idempotencyKey: 'key-iso-0001', manageToken: 'token-del-invitado-iso1', giverName: 'Tía', giverEmail: 't@correo.com', giverPhone: '5491155554444', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') } };
     const c = (await env.client().post(`/api/public/${slugA}/contributions`, giver)).body;
     const b = env.client(); await signUp(b, 'plan-b@correo.com');
     await publishWith(b, draftFor('Sara', 'Dino'));                              // B tiene Celebración publicada

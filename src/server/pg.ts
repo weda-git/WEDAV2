@@ -294,6 +294,12 @@ export const PG_MIGRATIONS: string[] = [
   `
   ALTER TABLE payout_methods ADD COLUMN currency TEXT NOT NULL DEFAULT 'ARS' CHECK (currency IN ('ARS','USD'));
   `,
+  // 5 · GIFT-15 (2026-11-23): WhatsApp de quien regala (obligatorio desde ahora; los aportes anteriores quedan sin número) y cuándo la
+  // pareja tocó «Agradecer por WhatsApp». Solo agrega columnas.
+  `
+  ALTER TABLE contributions ADD COLUMN giver_phone TEXT NOT NULL DEFAULT '';
+  ALTER TABLE contributions ADD COLUMN thanked_at TEXT;
+  `,
 ];
 
 /** Corre las migraciones pendientes, en orden y una sola vez, con un candado para que dos procesos no las corran a la vez (CA-3). */

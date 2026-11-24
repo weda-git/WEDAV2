@@ -13,7 +13,7 @@ const withFree = (d: AppState, enabled: boolean, min: number | null = null): App
 let n = 0;
 const body = (over: Record<string, unknown> = {}) => {
   n += 1;
-  return { idempotencyKey: `key-libre-${n}`, manageToken: `token-del-invitado-libre-${n}`, giverName: 'Tía Nora', giverEmail: 'nora@correo.com', message: '', how: 'alias', giftIds: [], receipt: { data: Buffer.from(PNG).toString('base64') }, ...over };
+  return { idempotencyKey: `key-libre-${n}`, manageToken: `token-del-invitado-libre-${n}`, giverName: 'Tía Nora', giverEmail: 'nora@correo.com', giverPhone: '5491155554444', message: '', how: 'alias', giftIds: [], receipt: { data: Buffer.from(PNG).toString('base64') }, ...over };
 };
 
 async function couple(email: string, draft: AppState) {

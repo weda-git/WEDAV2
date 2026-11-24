@@ -8,7 +8,7 @@ let env: Env;
 beforeAll(async () => { env = await makeEnv(); });
 afterAll(() => env.close());
 
-const gift = (key: string) => ({ idempotencyKey: key, manageToken: `token-${key}-0000000000`, giverName: 'Tía Nora', giverEmail: 'nora@correo.com', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') } });
+const gift = (key: string) => ({ idempotencyKey: key, manageToken: `token-${key}-0000000000`, giverName: 'Tía Nora', giverEmail: 'nora@correo.com', giverPhone: '5491155554444', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') } });
 
 describe('comprobantes (CA-7)', () => {
   it('solo la pareja dueña abre un comprobante: otra pareja y alguien sin sesión no', async () => {

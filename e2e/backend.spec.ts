@@ -16,8 +16,10 @@ async function signUpAndOnboard(page: Page, email: string, first: string, second
   await page.waitForURL(/\/crear$/);
   await page.fill('#on-first', first);
   await page.fill('#on-second', second);
+  await page.fill('#on-phone', '11 5555 4444');
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.waitForURL(/\/crear\/fecha/);
+  await page.getByLabel('Todavía no la sabemos').check();
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.waitForURL(/\/crear\/foto/);
   await page.getByRole('button', { name: 'Omitir por ahora' }).click();
@@ -187,6 +189,7 @@ test.describe('sitio publicado, confirmaciones y regalos', () => {
     await dlg.locator('#rg-name').fill('Nora');
     await dlg.locator('#rg-surname').fill('Díaz');
     await dlg.locator('#rg-email').fill('nora@example.com');
+    await dlg.locator('#rg-phone').fill('11 5555 4444');
     await dlg.locator('#rg-proof').setInputFiles({ name: 'comprobante.png', mimeType: 'image/png', buffer: PNG });
     // Falla el envío (red caída): el regalo y su comprobante viajan juntos, así que no queda un regalo sin comprobante. Reintentar no duplica.
     await page.route('**/api/public/*/contributions', r => r.abort('failed'));

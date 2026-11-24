@@ -213,7 +213,7 @@ describe('invitados y confirmaciones', () => {
 
 describe('aportes, comprobantes y órdenes', () => {
   let slug = '';
-  const body = (over: Record<string, unknown> = {}) => ({ idempotencyKey: 'key-0000-0001', manageToken: 'token-del-invitado-0001', giverName: 'Tía Nora', giverEmail: 'nora@correo.com', message: '¡Felicitaciones!', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') }, ...over });
+  const body = (over: Record<string, unknown> = {}) => ({ idempotencyKey: 'key-0000-0001', manageToken: 'token-del-invitado-0001', giverName: 'Tía Nora', giverEmail: 'nora@correo.com', giverPhone: '5491155554444', message: '¡Felicitaciones!', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') }, ...over });
   beforeAll(async () => {
     const o = env.client(); await signUp(o, 'regalos@correo.com');
     await saveDraft(o, draftFor('Gala', 'Pablo'));
@@ -230,12 +230,12 @@ describe('aportes, comprobantes y órdenes', () => {
     expect((await send({ idempotencyKey: 'key-mail-0001', giverEmail: '' })).status).toBe(400);
     expect((await send({ idempotencyKey: 'key-mail-0002', giverEmail: 'no-es-un-correo' })).status).toBe(400);
     const consents = async () => (await env.svc.db.all("SELECT email, source, text_version, revoked_at FROM marketing_consents WHERE email = 'ana@correo.com'"));
-    const ok = await send({ idempotencyKey: 'key-mail-0003', manageToken: 'token-del-invitado-mail3', giverEmail: ' Ana@Correo.com ', giftIds: ['g1'] });
+    const ok = await send({ idempotencyKey: 'key-mail-0003', manageToken: 'token-del-invitado-mail3', giverEmail: ' Ana@Correo.com ', giverPhone: '5491155554444', giftIds: ['g1'] });
     expect(ok.status).toBe(201);
     expect((await consents())).toEqual([]); // sin casilla tildada, no entra a la base de novedades
     const mine = (await o.get('/api/contributions')).body.contributions.find((c: any) => c.id === ok.body.id);
     expect(mine.giverEmail).toBe('ana@correo.com');
-    const opt = await send({ idempotencyKey: 'key-mail-0004', manageToken: 'token-del-invitado-mail4', giverEmail: 'ana@correo.com', giftIds: ['g2'], marketingOptIn: true });
+    const opt = await send({ idempotencyKey: 'key-mail-0004', manageToken: 'token-del-invitado-mail4', giverEmail: 'ana@correo.com', giverPhone: '5491155554444', giftIds: ['g2'], marketingOptIn: true });
     expect(opt.status).toBe(201);
     expect((await consents())).toEqual([{ email: 'ana@correo.com', source: 'gift', text_version: MARKETING_CONSENT_VERSION, revoked_at: null }]);
   });
@@ -245,7 +245,7 @@ describe('aportes, comprobantes y órdenes', () => {
     await saveDraft(o, draftFor('Ivo', 'Mia'));
     const own = (await o.post('/api/wedding/publish')).body.slug;
     const g = env.client();
-    const r = await g.post(`/api/public/${own}/contributions`, body({ idempotencyKey: 'key-mails-0001', manageToken: 'token-del-invitado-mails1', giverEmail: 'juan@correo.com', marketingOptIn: true }));
+    const r = await g.post(`/api/public/${own}/contributions`, body({ idempotencyKey: 'key-mails-0001', manageToken: 'token-del-invitado-mails1', giverEmail: 'juan@correo.com', giverPhone: '5491155554444', marketingOptIn: true }));
     expect(r.status).toBe(201);
     const log = async (kind: string) => (await env.svc.db.all('SELECT to_email, status FROM mail_log WHERE ref = ? AND kind = ?', r.body.id, kind));
     // El correo sale sin esperar a la respuesta: se espera a que quede registrado.

@@ -27,8 +27,8 @@ function Privacy() {
 
       <h2>Qué datos tratamos y para qué</h2>
       <ul>
-        <li><strong>Parejas que usan Weda:</strong> correo y clave de la cuenta, nombres, fecha y datos del casamiento, fotos, lista de regalos y datos de cobro que cargan (alias, banco). Para prestar el servicio: armar y publicar la página, la lista de regalos y la gestión de invitados.</li>
-        <li><strong>Invitados que regalan:</strong> nombre, apellido, correo, mensaje, regalos elegidos, monto y comprobante de la transferencia. Para informar el regalo a la pareja, enviarte la constancia y, si falta, pedirte el comprobante. Los ve la pareja del casamiento. Weda no cobra ni mueve dinero: la transferencia va directo a la cuenta de los novios.</li>
+        <li><strong>Parejas que usan Weda:</strong> correo y clave de la cuenta, WhatsApp, nombres, fecha y datos del casamiento, fotos, lista de regalos y datos de cobro que cargan (alias, banco). Para prestar el servicio: armar y publicar la página, la lista de regalos y la gestión de invitados. El WhatsApp lo usamos para contactarte por tu cuenta y darte soporte; no lo publicamos.</li>
+        <li><strong>Invitados que regalan:</strong> nombre, apellido, correo, WhatsApp, mensaje, regalos elegidos, monto y comprobante de la transferencia. Para informar el regalo a la pareja, enviarte la constancia y, si falta, pedirte el comprobante. Los ve la pareja del casamiento, que puede escribirte por WhatsApp para agradecerte. Weda no te manda mensajes por WhatsApp. Weda no cobra ni mueve dinero: la transferencia va directo a la cuenta de los novios.</li>
         <li><strong>Invitados que confirman asistencia:</strong> nombre, apellido, correo, si asisten y el menú elegido. Para que la pareja organice el casamiento.</li>
         <li><strong>Novedades de Weda:</strong> solo si tildás la casilla «Quiero recibir novedades y promociones de Weda por correo», usamos tu correo para enviarte novedades y promociones de Weda. No es necesario para regalar ni para confirmar asistencia. Guardamos la fecha y el texto que aceptaste.</li>
       </ul>

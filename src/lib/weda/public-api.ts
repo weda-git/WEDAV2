@@ -45,7 +45,7 @@ export async function sendGift(slug: string, gifts: Gift[], giver: Giver, extra:
     if (extra.proof.size > 5 * 1024 * 1024) throw new ApiFailure(413, 'file_too_large');
     const receipt = { data: await toBase64(extra.proof) };
     await api('POST', `/api/public/${encodeURIComponent(slug)}/contributions`, {
-      idempotencyKey: extra.attempt.key, manageToken: extra.attempt.token, currency: extra.currency, giftIds: gifts.filter(g => !isFreeGift(g)).map(g => g.id), freeAmount: gifts.find(isFreeGift)?.amount, giverName: giver.name, giverEmail: giver.email, marketingOptIn: giver.marketingOptIn, message: giver.message, how: giver.how, receipt,
+      idempotencyKey: extra.attempt.key, manageToken: extra.attempt.token, currency: extra.currency, giftIds: gifts.filter(g => !isFreeGift(g)).map(g => g.id), freeAmount: gifts.find(isFreeGift)?.amount, giverName: giver.name, giverEmail: giver.email, giverPhone: giver.phone, marketingOptIn: giver.marketingOptIn, message: giver.message, how: giver.how, receipt,
     });
   } catch (e) { throw new Error(messageFor(e)); }
 }

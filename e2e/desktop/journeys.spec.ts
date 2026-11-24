@@ -24,8 +24,10 @@ test.describe('Perfil A · pareja apurada: de la landing al panel en el menor n�
     await page.getByRole('button', { name: 'Registrarme', exact: true }).click();
     await page.waitForURL(/\/crear$/);
     await fillNamesAndContinue(page, 'Camila', 'Juan');
-    // Mejora: fecha y lugar se pueden dejar vacíos sin activar ningún interruptor.
-    await expect(page.getByRole('switch')).toHaveCount(0);
+    // ONB-06: la fecha es obligatoria; quien no la sabe tilda «Todavía no la sabemos».
+    await page.getByRole('button', { name: 'Continuar' }).click();
+    await expect(page.getByText(/Elegí la fecha/)).toBeVisible();
+    await page.getByLabel('Todavía no la sabemos').check();
     await page.getByRole('button', { name: 'Continuar' }).click();
     await page.waitForURL(/\/crear\/foto/);
     await page.getByRole('button', { name: 'Omitir por ahora' }).click();
@@ -179,7 +181,7 @@ test.describe('Validaciones del alta', () => {
     await page.locator('#on-date').evaluate((el: HTMLInputElement) => { el.removeAttribute('min'); });
     await page.fill('#on-date', '2020-01-01');
     await page.getByRole('button', { name: 'Continuar' }).click();
-    await expect(page.getByText('La fecha ya pasó. Elegí una fecha futura o dejala vacía.')).toBeVisible();
+    await expect(page.getByText('La fecha ya pasó. Elegí una fecha futura o marcá «Todavía no la sabemos».')).toBeVisible();
     await expect(page).toHaveURL(/\/crear\/fecha/);
     await page.fill('#on-date', '2031-12-20');
     await page.fill('#on-place', 'Jardín de los Olivos');

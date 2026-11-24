@@ -5,6 +5,8 @@ import { Field, useToast } from './ui';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { readImage } from '@/lib/weda/images';
 import { todayIso, validateOnboarding } from '@/lib/weda/logic';
+import { PhoneField } from './phone-field';
+import { normalizePhone, splitPhone, validatePhone } from '@/lib/weda/phone';
 import { update, useAppState } from '@/lib/weda/store';
 import type { PhotoChoice } from '@/lib/weda/types';
 
@@ -87,7 +89,8 @@ export function CoupleForm({ onDone, onCancel }: { onDone?: () => void; onCancel
   // El lugar es el nombre de la ceremonia (primer momento de la página): se completa o se edita también desde «Tu página».
   const [place, setPlace] = useState(state.site.events[0]?.name ?? '');
   const [photo, setPhoto] = useState<PhotoChoice>(state.photo);
-  const [errors, setErrors] = useState<ReturnType<typeof validateOnboarding>>({});
+  const [phone, setPhone] = useState(() => splitPhone(state.couple.whatsapp ?? ''));
+  const [errors, setErrors] = useState<ReturnType<typeof validateOnboarding> & { phone?: string | undefined }>({});
   // La foto se guarda apenas se elige o se quita, sin esperar a «Guardar» (pedido de la dueña, 2026-11-23). El resto de los datos sigue con «Guardar».
   const choosePhoto = (p: PhotoChoice) => {
     setPhoto(p);
@@ -104,9 +107,14 @@ export function CoupleForm({ onDone, onCancel }: { onDone?: () => void; onCancel
     const found = validateOnboarding({ first, second, date, noDate }, changed ? todayIso() : '0000-01-01');
     // Sin el interruptor «Todavía no tenemos fecha», el aviso de fecha pasada no lo menciona.
     if (found.date) found.date = found.date.replace('marcá «Todavía no tenemos fecha»', 'dejala vacía');
-    setErrors(found);
-    if (Object.keys(found).length) return;
-    const couple = { first: first.trim(), second: second.trim(), ...(firstLast.trim() ? { firstLast: firstLast.trim() } : {}), ...(secondLast.trim() ? { secondLast: secondLast.trim() } : {}) };
+    // ONB-06: el WhatsApp se puede cambiar; si ya había uno, no se puede dejar vacío. Las cuentas anteriores sin WhatsApp lo pueden dejar vacío.
+    const hadPhone = !!state.couple.whatsapp;
+    const phoneErr = phone.number.trim() || hadPhone ? validatePhone(phone.country, phone.number) : null;
+    const all = { ...found, ...(phoneErr ? { phone: phoneErr } : {}) };
+    setErrors(all);
+    if (Object.keys(all).length) return;
+    const whatsapp = phone.number.trim() ? normalizePhone(phone.country, phone.number) : null;
+    const couple = { first: first.trim(), second: second.trim(), ...(firstLast.trim() ? { firstLast: firstLast.trim() } : {}), ...(secondLast.trim() ? { secondLast: secondLast.trim() } : {}), ...(whatsapp ? { whatsapp } : {}) };
     update(s => ({
       ...s, couple, date: noDate ? null : date, photo,
       site: { ...s.site, events: s.site.events.map((ev, i) => (i === 0 ? { ...ev, name: place.trim() } : ev)) },
@@ -126,6 +134,8 @@ export function CoupleForm({ onDone, onCancel }: { onDone?: () => void; onCancel
           <Field label="Nombre de tu pareja" error={errors.second}>{a => <input type="text" id={a.id} autoComplete="off" value={second} onChange={e => setSecond(e.target.value)} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}</Field>
           <Field label="Apellido de tu pareja">{a => <input type="text" id={a.id} autoComplete="off" value={secondLast} onChange={e => setSecondLast(e.target.value)} aria-describedby={a.describedBy} />}</Field>
         </div>
+        <PhoneField id="pn-couple-phone" label="Tu WhatsApp" hint="Para escribirte si necesitás ayuda con tu cuenta. No lo publicamos." country={phone.country} number={phone.number} error={errors.phone}
+          onChange={v => { setPhone(v); setErrors(x => ({ ...x, phone: undefined })); }} />
         <div className="pn-two pn-when-row">
           <div className="pn-when">
             <Field label="Fecha del casamiento" optional error={errors.date}>{a => <input type="date" id={a.id} value={date} onChange={e => setDate(e.target.value)} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}</Field>

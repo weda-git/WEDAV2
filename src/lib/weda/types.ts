@@ -12,7 +12,8 @@ export type PhotoChoice =
   | { kind: 'none' };
 
 /** Nombres de la pareja. Los apellidos son opcionales: se piden al empezar y por ahora no se muestran en ningún lado. */
-export type Couple = { first: string; second: string; firstLast?: string; secondLast?: string };
+/** `whatsapp`: el de la pareja (ONB-06), en formato internacional solo con números. Nunca se publica (GIFT-15, D8). */
+export type Couple = { first: string; second: string; firstLast?: string; secondLast?: string; whatsapp?: string };
 
 /** Regalo simbólico dentro de la lista de la pareja. `fromSet` recuerda de qué colección vino (si vino de una). */
 import type { ListMode } from './money';

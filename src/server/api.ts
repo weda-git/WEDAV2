@@ -235,6 +235,7 @@ async function route(req: Request, cfg: ServerConfig, injected: Service | undefi
         return json(200, r);
       }
       if (b && c === 'remind' && method === 'POST') return json(200, await svc.remindReceipt((await session()).userId, b));
+      if (b && c === 'thanked' && method === 'POST') return json(200, await svc.markThanked((await session()).userId, b));
       if (b && c === 'receipt' && method === 'GET') {
         const r = (await svc.readReceipt((await session()).userId, b));
         return new Response(new Uint8Array(r.bytes), { status: 200, headers: { 'content-type': r.mime, 'cache-control': 'private, no-store', 'x-content-type-options': 'nosniff', 'content-security-policy': "sandbox; default-src 'none'", 'content-disposition': 'inline' } });

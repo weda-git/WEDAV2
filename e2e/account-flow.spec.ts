@@ -48,7 +48,7 @@ test.describe('Cuenta · el evento guardado se conserva', () => {
     await page.getByRole('button', { name: 'Ingresar', exact: true }).click();
     await page.waitForURL(/\/panel/);
     await expect(page.locator('#on-first')).toHaveCount(0);
-    expect(await couple(page)).toEqual({ first: 'Lucía', second: 'Violeta' });
+    expect(await couple(page)).toEqual({ first: 'Lucía', second: 'Violeta', whatsapp: '5491155554444' });
     await page.reload({ waitUntil: 'networkidle' });
     await expect(page).toHaveURL(/\/panel/);
   });
@@ -59,6 +59,6 @@ test.describe('Cuenta · el evento guardado se conserva', () => {
     await expect(page.locator('#on-first')).toBeVisible();
     await fillNamesAndContinue(page, 'Carla', 'Dani');
     await page.reload({ waitUntil: 'networkidle' });
-    expect(await couple(page)).toEqual({ first: 'Carla', second: 'Dani' });
+    expect(await couple(page)).toEqual({ first: 'Carla', second: 'Dani', whatsapp: '5491155554444' });
   });
 });

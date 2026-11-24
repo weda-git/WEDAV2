@@ -50,7 +50,7 @@ Anexo del [Product Blueprint](00-product-blueprint.md). Fecha de la auditoría: 
 
 | ID | Funcionalidad | Estado documental | Estado en código | Tests | Observaciones |
 |---|---|---|---|---|---|
-| ONB-01 | Alta en pasos: cuenta → nombres → fecha (opcional) → foto (opcional) → panel | DOCUMENTADO | **Implementada** (`crear.*`) | U (`weda-logic` onboarding) · E2E | El plan ya no se elige acá: se elige al publicar |
+| ONB-01 | Alta en pasos: cuenta → nombres y WhatsApp → fecha → foto (opcional) → panel | DOCUMENTADO; **ajustado por ONB-06** (2026-11-23) | **Implementada** (`crear.*`): el WhatsApp de la pareja es obligatorio y la fecha también, salvo «Todavía no la sabemos» ([spec GIFT-15](../../specs/GIFT-15-whatsapp-y-agradecer/spec.md)) | E (`whatsapp.spec.ts`, `helpers.ts`) | |
 | ONB-02 | Prueba gratuita: se ve y se arma todo sin plan; el plan se elige al publicar | DECIDIDO (D-01, D-02, 2026-11-03) | **Implementada** (2026-11-04, PAY-01): se ve y se edita todo; operar invitados y mesas exige Celebración publicada | U (planes) | PAY-01 | Dos planes acumulativos de pago único: **Regalos ARS 120.000** · **Celebración ARS 140.000** (BR-13, D-09) | DECIDIDO (dueña, 2026-11-03, D-01) | **Implementada** (`plans.ts`; `completo` se lee como Celebración) | U (`weda-logic` planes, `landing-plans`, `payments`) | Impuestos sin decidir (DP-17). *Antes: tres planes con Celebración Plus 150.000* |
 | ONB-03 | Banner «Primeros pasos» y progreso por etapas | DOCUMENTADO | **Implementada** (`journey.ts`) | U (`weda-logic` journey) | |
 | ONB-04 | Panel sin cuenta (borrador local) | DOCUMENTADO | **Implementada**: sin cuenta se guarda en `localStorage`; publicar exige cuenta | U (`store-performance`, `app-routing`) | Alineado con lo auditado (F-02) |
@@ -102,6 +102,7 @@ Anexo del [Product Blueprint](00-product-blueprint.md). Fecha de la auditoría: 
 | GIFT-12 | Libro inmutable de transacciones | **DECIDIDO** (A5) | **No implementada** (el estado del aporte es mutable) | — | |
 | GIFT-13 | Exportar regalos, aportes y resumen financiero; ZIP de comprobantes | **DECIDIDO** | **No implementada** | — | Hoy solo se exportan invitados |
 | GIFT-14 | Cambio de alias con reautenticación, confirmación, auditoría y aviso (Q4) | **DECIDIDO** (extras en P5) | **Implementada y probada, nivel base** (2026-10-31): `POST /api/wedding/payout` con la clave, sobre la versión vigente, hasta 3 cambios por día; versiones de solo agregado; correo al dueño con datos enmascarados; un guardado del borrador ya no cambia el destino | U (`payout`: 8, `auth-isolation`, `payout-form`: 4) | Los invitados lo ven al publicar los cambios. Extras de DP-01 pendientes; los aportes todavía no registran a qué destino se informaron |
+| GIFT-15 | WhatsApp de quien regala y «Agradecer por WhatsApp» | **DECIDIDO** (dueña, 2026-11-23) | **Implementada** ([spec](../../specs/GIFT-15-whatsapp-y-agradecer/spec.md)): WhatsApp obligatorio al regalar (servidor y página); en «Aportes recibidos», un botón abre WhatsApp con un mensaje de agradecimiento listo y el aporte queda «Agradecido»; nunca se publica; enmascarado en la administración | U (`whatsapp.test.ts`), S (`server/whatsapp.test.ts`, `admin.test.ts`), E (`whatsapp.spec.ts`) | Weda no manda mensajes de WhatsApp por su cuenta |
 
 ## 7. Micrositio y constructor (SITE)
 
