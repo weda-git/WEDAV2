@@ -1,6 +1,6 @@
 // Lista de regalos pública. Es la MISMA página para /ejemplo/regalos y para la lista de cada pareja: todo viene de useSite().
 import { FREE_GIFT_ID, freeGift, isEmail, isFreeGift, parseAmount, validateFreeAmount } from '@/lib/weda/logic';
-import { createContext, useContext, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import {
   ArrowRight, Banknote, BedDouble, BedSingle, Check, ChefHat, Coffee, Compass, Copy, Dog, House, Lamp,
@@ -31,17 +31,38 @@ function useMoney() {
   return { cur, money: (n: number) => formatMoney(n, cur), price: (g: Gift) => (isFreeGift(g) ? g.amount : priceIn(g, cur)) };
 }
 
-/** Selector de moneda de la lista (referencia de la dueña: dos círculos «AR$» y «US$», el elegido resaltado). Solo con «Las dos». */
-function CurrencySwitch({ cur, onChange }: { cur: Currency; onChange: (c: Currency) => void }) {
+/** Moneda de la lista, junto a los filtros (2026-11-24, pedido de la dueña): dos botones chicos «AR$» y «US$», como un filtro más. Solo con «Las dos». */
+function CurrencyMini({ cur, onChange }: { cur: Currency; onChange: (c: Currency) => void }) {
   return (
-    <div className="rg-cur" role="radiogroup" aria-label="Ver los precios en">
-      <span className="rg-cur-label" aria-hidden="true">Ver precios en</span>
+    <div className="rg-curmini" role="radiogroup" aria-label="Moneda de los precios">
       {(['ARS', 'USD'] as Currency[]).map(c => (
-        <button key={c} type="button" role="radio" aria-checked={cur === c} className={`rg-cur-opt${cur === c ? ' is-on' : ''}`} onClick={() => onChange(c)}>
-          <span className="rg-cur-coin" aria-hidden="true">{CURRENCY_SYMBOL[c]}</span><span>{CURRENCY_LABEL[c]}</span>
-        </button>
+        <button key={c} type="button" role="radio" aria-checked={cur === c} aria-label={CURRENCY_LABEL[c]} className={cur === c ? 'on' : ''} onClick={() => onChange(c)}>{CURRENCY_SYMBOL[c]}</button>
       ))}
     </div>
+  );
+}
+
+/** Al entrar a una lista en pesos y dólares, el invitado elige cómo ver los precios. Diseño de la referencia de la dueña (2026-11-24):
+ *  título en mayúsculas con la X a la derecha, una línea, las dos monedas en fila (círculo y sigla; la elegida, oscura) y la moneda actual.
+ *  Se pregunta una vez por lista en esta pestaña; después se cambia con `CurrencyMini`. Cerrar sin elegir deja la actual (pesos, D10). */
+const CURRENCY_NAME: Record<Currency, string> = { ARS: 'Pesos', USD: 'Dólares' };
+function CurrencyAsk({ open, cur, onPick }: { open: boolean; cur: Currency; onPick: (c: Currency) => void }) {
+  return (
+    <Dialog open={open} onOpenChange={o => { if (!o) onPick(cur); }}>
+      <DialogContent className="rg-dialog rg-curask" onOpenAutoFocus={e => { e.preventDefault(); (e.currentTarget as HTMLElement | null)?.focus(); }}>
+        <div className="rg-curask-head"><DialogTitle>Elegí la moneda</DialogTitle></div>
+        <DialogDescription className="dm-sr">Elegí en qué moneda ver los precios. La podés cambiar después, junto a los filtros.</DialogDescription>
+        <div className="rg-curask-opts" role="radiogroup" aria-label="Moneda">
+          {(['ARS', 'USD'] as Currency[]).map(c => (
+            <button key={c} type="button" role="radio" aria-checked={cur === c} aria-label={CURRENCY_NAME[c]} className={`rg-curask-opt${cur === c ? ' is-on' : ''}`} onClick={() => onPick(c)}>
+              <span className="rg-curask-coin" aria-hidden="true">{CURRENCY_SYMBOL[c]}</span>
+              <span className="rg-curask-code" aria-hidden="true">{c}</span>
+            </button>
+          ))}
+        </div>
+        <p className="rg-curask-now">Moneda actual: <strong>{CURRENCY_NAME[cur]}</strong></p>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -331,6 +352,13 @@ export function GiftsPage() {
   return <MoneyCtx.Provider value={shown.includes(cur) ? cur : shown[0]!}><GiftsList shown={shown} onCurrency={setCur} /></MoneyCtx.Provider>;
 }
 
+/** Lo que eligió el invitado para esta lista, en esta pestaña (para no volver a preguntar al recargar o volver desde la invitación). */
+const curKey = (path: string) => `weda-cur:${path}`;
+function readCur(path: string): Currency | null {
+  try { const v = window.sessionStorage.getItem(curKey(path)); return v === 'ARS' || v === 'USD' ? v : null; } catch { return null; }
+}
+function saveCur(path: string, c: Currency) { try { window.sessionStorage.setItem(curKey(path), c); } catch { /* sin almacenamiento: se vuelve a preguntar */ } }
+
 function GiftsList({ shown, onCurrency }: { shown: Currency[]; onCurrency: (c: Currency) => void }) {
   const { money, cur, price } = useMoney();
   const rsvp = useRsvp();
@@ -354,7 +382,15 @@ function GiftsList({ shown, onCurrency }: { shown: Currency[]; onCurrency: (c: C
   if (range === 'asc') visible.sort((a, b) => price(a) - price(b));
   if (range === 'desc') visible.sort((a, b) => price(b) - price(a));
   // Al cambiar de moneda, el aporte libre que ya estaba en el carrito se quita: su monto lo escribió en la otra moneda.
-  const changeCurrency = (c: Currency) => { if (c === cur) return; setCart(x => x.filter(g => !isFreeGift(g))); onCurrency(c); };
+  const changeCurrency = (c: Currency) => { saveCur(site.giftsPath, c); if (c === cur) return; setCart(x => x.filter(g => !isFreeGift(g))); onCurrency(c); };
+  // Con «Las dos», se pregunta al entrar (2026-11-24). Se lee después de montar: el servidor no conoce lo que eligió el invitado.
+  const two = shown.length > 1;
+  const [ask, setAsk] = useState(false);
+  useEffect(() => {
+    if (!two || gifts.length === 0) return;
+    const saved = readCur(site.giftsPath);
+    if (saved) onCurrency(saved); else setAsk(true);
+  }, [two, gifts.length, site.giftsPath, onCurrency]);
   const options: (Category | 'Todos')[] = ['Todos', ...categories];
   // El aporte libre va primero en la grilla, salvo que la persona esté buscando o filtrando por categoría.
   const showFree = site.freeAmount.enabled && filter === 'Todos' && !query.trim();
@@ -377,12 +413,14 @@ function GiftsList({ shown, onCurrency }: { shown: Currency[]; onCurrency: (c: C
     <SiteCover variant="gifts" next="#regalos" />
 
     <section className="ej-block ej-white rg-list" id="regalos"><div className="section-inner">
-      {shown.length > 1 && <CurrencySwitch cur={cur} onChange={changeCurrency} />}
       <div className="rg-mfilters" role="group" aria-label="Buscar y filtrar regalos">
-        <label className="rg-search">
-          <span className="dm-sr">Buscar un regalo</span>
-          <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar un regalo" autoComplete="off" />
-        </label>
+        <div className="rg-mrow">
+          <label className="rg-search">
+            <span className="dm-sr">Buscar un regalo</span>
+            <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar un regalo" autoComplete="off" />
+          </label>
+          {two && <CurrencyMini cur={cur} onChange={changeCurrency} />}
+        </div>
         <label className="rg-sel">
           <span className="dm-sr">Categoría</span>
           <select value={filter} onChange={e => setFilter(e.target.value as Category | 'Todos')}>
@@ -409,6 +447,7 @@ function GiftsList({ shown, onCurrency }: { shown: Currency[]; onCurrency: (c: C
           <span className="dm-sr">Buscar un regalo</span>
           <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar un regalo" autoComplete="off" />
         </label>
+        {two && <CurrencyMini cur={cur} onChange={changeCurrency} />}
         <label className="rg-range">
           <span className="dm-sr">Ordenar o filtrar por monto</span>
           <select value={range} onChange={e => setRange(e.target.value as typeof range)}>
@@ -452,6 +491,8 @@ function GiftsList({ shown, onCurrency }: { shown: Currency[]; onCurrency: (c: C
       onSent={async (gs, who, extra) => { await recordGift(gs, who, extra); setCart([]); }}
       returnFocus={returnFocus}
     />
+
+    <CurrencyAsk open={ask} cur={cur} onPick={c => { setAsk(false); changeCurrency(c); }} />
 
     <Dialog open={nudge} onOpenChange={setNudge}>
       <DialogContent className="rg-dialog rg-nudge">
