@@ -31,20 +31,9 @@ function useMoney() {
   return { cur, money: (n: number) => formatMoney(n, cur), price: (g: Gift) => (isFreeGift(g) ? g.amount : priceIn(g, cur)) };
 }
 
-/** Moneda de la lista, junto a los filtros (2026-11-24, pedido de la dueña): dos botones chicos «AR$» y «US$», como un filtro más. Solo con «Las dos». */
-function CurrencyMini({ cur, onChange }: { cur: Currency; onChange: (c: Currency) => void }) {
-  return (
-    <div className="rg-curmini" role="radiogroup" aria-label="Moneda de los precios">
-      {(['ARS', 'USD'] as Currency[]).map(c => (
-        <button key={c} type="button" role="radio" aria-checked={cur === c} aria-label={CURRENCY_LABEL[c]} className={cur === c ? 'on' : ''} onClick={() => onChange(c)}>{CURRENCY_SYMBOL[c]}</button>
-      ))}
-    </div>
-  );
-}
-
 /** Al entrar a una lista en pesos y dólares, el invitado elige cómo ver los precios. Diseño de la referencia de la dueña (2026-11-24):
  *  título en mayúsculas con la X a la derecha, una línea, las dos monedas en fila (círculo y sigla; la elegida, oscura) y la moneda actual.
- *  Se pregunta una vez por lista en esta pestaña; después se cambia con `CurrencyMini`. Cerrar sin elegir deja la actual (pesos, D10). */
+ *  Se pregunta una vez por lista en esta pestaña; después se cambia con el desplegable de moneda de la barra. Cerrar sin elegir deja la actual (pesos, D10). */
 const CURRENCY_NAME: Record<Currency, string> = { ARS: 'Pesos', USD: 'Dólares' };
 function CurrencyAsk({ open, cur, onPick }: { open: boolean; cur: Currency; onPick: (c: Currency) => void }) {
   return (
@@ -413,44 +402,22 @@ function GiftsList({ shown, onCurrency }: { shown: Currency[]; onCurrency: (c: C
     <SiteCover variant="gifts" next="#regalos" />
 
     <section className="ej-block ej-white rg-list" id="regalos"><div className="section-inner">
-      <div className="rg-mfilters" role="group" aria-label="Buscar y filtrar regalos">
-        <div className="rg-mrow">
-          <label className="rg-search">
-            <span className="dm-sr">Buscar un regalo</span>
-            <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar un regalo" autoComplete="off" />
-          </label>
-          {two && <CurrencyMini cur={cur} onChange={changeCurrency} />}
-        </div>
-        <label className="rg-sel">
-          <span className="dm-sr">Categoría</span>
-          <select value={filter} onChange={e => setFilter(e.target.value as Category | 'Todos')}>
-            {options.map(o => <option key={o} value={o}>{o === 'Todos' ? 'Categorías' : o}</option>)}
-          </select>
-        </label>
-        <label className="rg-sel">
-          <span className="dm-sr">Ordenar o filtrar por monto</span>
-          <select value={range} onChange={e => setRange(e.target.value as typeof range)}>
-            <option value="all">Cualquier monto</option>
-            <option value="asc">Menor a mayor</option>
-            <option value="desc">Mayor a menor</option>
-            <option value="low">Hasta {money(lo)}</option>
-            <option value="mid">{money(lo)} a {money(hi)}</option>
-            <option value="high">Más de {money(hi)}</option>
-          </select>
-        </label>
-      </div>
-      <div className="rg-filters" role="group" aria-label="Filtrar regalos">
-        {options.map(o => (
-          <button type="button" key={o} className={o === filter ? 'on' : ''} aria-pressed={o === filter} onClick={() => setFilter(o)}>{o}</button>
-        ))}
-        <label className="rg-search rg-search-d">
+      {/* Una sola barra para celular y compu (2026-11-24, pedido de la dueña): buscar un regalo y tres desplegables —categoría, monto y,
+          con «Las dos», la moneda—. En celular: buscador y moneda arriba; categoría y monto abajo. */}
+      <div className={`rg-bar${two ? ' has-cur' : ''}`} role="group" aria-label="Buscar y filtrar regalos">
+        <label className="rg-bar-search">
           <span className="dm-sr">Buscar un regalo</span>
           <input type="search" value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar un regalo" autoComplete="off" />
         </label>
-        {two && <CurrencyMini cur={cur} onChange={changeCurrency} />}
-        <label className="rg-range">
+        <label className="rg-bar-sel is-cat">
+          <span className="dm-sr">Categoría</span>
+          <select aria-label="Categoría" value={filter} onChange={e => setFilter(e.target.value as Category | 'Todos')}>
+            {options.map(o => <option key={o} value={o}>{o === 'Todos' ? 'Categorías' : o}</option>)}
+          </select>
+        </label>
+        <label className="rg-bar-sel is-range">
           <span className="dm-sr">Ordenar o filtrar por monto</span>
-          <select value={range} onChange={e => setRange(e.target.value as typeof range)}>
+          <select aria-label="Ordenar o filtrar por monto" value={range} onChange={e => setRange(e.target.value as typeof range)}>
             <option value="all">Cualquier monto</option>
             <option value="asc">Menor a mayor</option>
             <option value="desc">Mayor a menor</option>
@@ -459,6 +426,15 @@ function GiftsList({ shown, onCurrency }: { shown: Currency[]; onCurrency: (c: C
             <option value="high">Más de {money(hi)}</option>
           </select>
         </label>
+        {two && (
+          <label className="rg-bar-sel is-cur">
+            <span className="dm-sr">Moneda</span>
+            <select aria-label="Moneda" value={cur} onChange={e => changeCurrency(e.target.value as Currency)}>
+              <option value="ARS">Pesos</option>
+              <option value="USD">Dólares</option>
+            </select>
+          </label>
+        )}
       </div>
       {visible.length === 0 && <p className="rg-empty">No encontramos regalos con esos filtros. Probá con otra búsqueda o limpiá los filtros.</p>}
       <h2 className="dm-sr">Regalos</h2>
@@ -466,7 +442,8 @@ function GiftsList({ shown, onCurrency }: { shown: Currency[]; onCurrency: (c: C
         {showFree && <FreeCard key={freeInCart?.amount ?? 0} min={site.freeAmount.min} current={freeInCart?.amount ?? null} onAdd={amount => { returnFocus.current = document.getElementById(FREE_GIFT_ID); setCart(c => [...c.filter(x => !isFreeGift(x)), freeGift(amount)]); setCartOpen(true); }} />}
         {visible.map(g => <GiftCard key={g.id} gift={g} inCart={cart.some(c => c.id === g.id)} onPick={g => { returnFocus.current = document.activeElement as HTMLElement | null; setCart(c => c.some(x => x.id === g.id) ? c : [...c, g]); setCartOpen(true); }} />)}
       </div>
-      <p className="rg-live" aria-live="polite">{visible.length} {visible.length === 1 ? 'regalo' : 'regalos'}{filter === 'Todos' ? '' : ` en ${filter}`}{range === 'all' || range === 'asc' || range === 'desc' ? '' : ' en ese rango de monto'}</p>
+      {/* La cantidad no se muestra (pedido de la dueña, 2026-11-24): solo la anuncian los lectores de pantalla al filtrar. */}
+      <p className="rg-live dm-sr" aria-live="polite">{visible.length} {visible.length === 1 ? 'regalo' : 'regalos'}{filter === 'Todos' ? '' : ` en ${filter}`}{range === 'all' || range === 'asc' || range === 'desc' ? '' : ' en ese rango de monto'}</p>
       <div className="rg-next">
         <p>¿Ya elegiste? Falta un último paso.</p>
         {site.blocks.rsvp && <Button variant="seed" onClick={rsvp.open}>Confirmar asistencia</Button>}
