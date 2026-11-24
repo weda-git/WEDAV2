@@ -15,7 +15,7 @@ Medido por la prueba `e2e/audit.spec.ts` (K-01), que cuenta cada acción:
 | Fecha: dejarla vacía, «Continuar» | 1 toque |
 | Foto: «Omitir por ahora» | 1 toque |
 | Panel → «Publicar» → «Publicar Celebración» → «Publicar» | 3 toques |
-| **Total** | **12 acciones** (4 campos, 8 toques), 5 pantallas + 1 diálogo, 1 decisión obligatoria (qué publicar) |
+| **Total** | **14 acciones** desde el 2026-11-23 (5 campos, 9 toques: se suman el WhatsApp obligatorio y «Todavía no la sabemos», ONB-06); antes, 12. 5 pantallas + 1 diálogo, 1 decisión obligatoria (qué publicar) |
 
 **Antes de la auditoría** (código del commit `bcf7fc4`; contado leyendo el flujo, **no medido** con una prueba): los mismos pasos, con «Pagar ARS…» en lugar de «Publicar» → también 12 acciones, pero sin cuenta terminaba en una publicación **falsa** (solo en ese navegador) y en un «pago» que no existía. La cantidad de acciones no cambió; cambió que ahora el resultado es real.
 

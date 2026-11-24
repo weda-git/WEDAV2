@@ -77,8 +77,9 @@ test.describe('Persona K · publicar cuanto antes: el camino mínimo, contado', 
     await act(() => page.getByRole('button', { name: 'Publicar Celebración', exact: true }).click());
     await act(() => page.getByRole('dialog').getByRole('button', { name: 'Publicar', exact: true }).click());
     await expect(page.getByRole('heading', { name: '¡Tu página está publicada!' })).toBeVisible({ timeout: 15_000 });
-    // Medido el 2026-10-28: 12 acciones (4 campos escritos y 8 toques), 5 pantallas (cuenta, nombres, fecha, foto, panel) + el diálogo. Si cambia, actualizar conversion-and-friction.md.
-    expect(actions).toBe(12);
+    // Medido el 2026-10-28: 12 acciones. Desde el 2026-11-23 (ONB-06): 14, por el WhatsApp obligatorio y «Todavía no la sabemos»
+    // (5 campos escritos y 9 toques), 5 pantallas (cuenta, nombres, fecha, foto, panel) + el diálogo. Si cambia, actualizar conversion-and-friction.md.
+    expect(actions).toBe(14);
     await expect.poll(async () => (await stored(page)).slug).toMatch(/^ana-y-leo/); // el guardado local es diferido
   });
 });
