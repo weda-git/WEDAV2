@@ -305,6 +305,11 @@ export const PG_MIGRATIONS: string[] = [
   `
   ALTER TABLE contributions ADD COLUMN group_names TEXT NOT NULL DEFAULT '';
   `,
+  // 7 · Titular de la cuenta (2026-11-24, aprobado por la dueña): el nombre de quien es titular, opcional, para que el invitado lo vea
+  // junto al alias, el CBU y el banco. Las cuentas cargadas hasta ahora quedan sin titular. Solo agrega una columna.
+  `
+  ALTER TABLE payout_methods ADD COLUMN holder TEXT NOT NULL DEFAULT '';
+  `,
 ];
 
 /** Corre las migraciones pendientes, en orden y una sola vez, con un candado para que dos procesos no las corran a la vez (CA-3). */

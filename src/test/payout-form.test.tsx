@@ -43,7 +43,7 @@ describe('cambiar los datos de cobro', () => {
     expect(change).not.toHaveBeenCalled();
     type('Tu clave actual', 'Clave1234');
     await act(async () => { click('Confirmar cambio'); });
-    expect(change).toHaveBeenCalledWith({ alias: 'nuevo.alias.mp', bank: 'Banco Uno', cbu: '' }, 'Clave1234', 'ARS');
+    expect(change).toHaveBeenCalledWith({ alias: 'nuevo.alias.mp', bank: 'Banco Uno', cbu: '', holder: '' }, 'Clave1234', 'ARS');
     expect(onDone).toHaveBeenCalled();
   });
 
@@ -70,7 +70,7 @@ describe('cambiar los datos de cobro', () => {
     expect(screen.queryByText('Antes')).toBeNull();
     expect(screen.queryByLabelText('Tu clave actual')).toBeNull();
     await act(async () => { click('Confirmar'); });
-    expect(change).toHaveBeenCalledWith({ alias: 'lucia.vio.mp', bank: '', cbu: '' }, '', 'ARS');
+    expect(change).toHaveBeenCalledWith({ alias: 'lucia.vio.mp', bank: '', cbu: '', holder: '' }, '', 'ARS');
     expect(onDone).toHaveBeenCalled();
   });
 });

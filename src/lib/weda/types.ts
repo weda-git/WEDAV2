@@ -19,7 +19,8 @@ export type Couple = { first: string; second: string; firstLast?: string; second
 import type { ListMode } from './money';
 
 /** Una cuenta de cobro: alias, banco y CBU (opcional). Vacía = sin cargar. */
-export type PayoutAccount = { alias: string; bank: string; cbu: string };
+/** `holder`: titular de la cuenta (opcional; las cuentas anteriores no lo tienen). */
+export type PayoutAccount = { alias: string; bank: string; cbu: string; holder?: string | undefined };
 
 export type ListGift = {
   id: string;
@@ -134,7 +135,7 @@ export type AppState = {
   /** `acceptCard`: preferencia de la pareja; en esta etapa no hay cobro real con tarjeta. */
   /** `currency`: cómo se muestra la lista, en pesos, dólares o las dos (GIFT-10 v2). Sin dato = todavía no se eligió (se muestra en pesos).
    *  `alias`/`bank`/`cbu`: la cuenta en pesos; `usd`: la cuenta en dólares (D4). Las dos las pone el servidor desde `payout_methods`. */
-  gifts: { cover: string | null; alias: string; bank: string; cbu: string; usd?: PayoutAccount | undefined; acceptCard: boolean; items: ListGift[]; given: GivenGift[]; freeAmount: FreeAmount; currency?: ListMode | undefined };
+  gifts: { cover: string | null; alias: string; bank: string; cbu: string; holder?: string | undefined; usd?: PayoutAccount | undefined; acceptCard: boolean; items: ListGift[]; given: GivenGift[]; freeAmount: FreeAmount; currency?: ListMode | undefined };
   guests: Guest[];
   groups: Group[];
   site: SiteConfig;

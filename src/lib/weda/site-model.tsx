@@ -55,7 +55,7 @@ export type SiteData = {
   /** Monedas en que se muestra la lista (GIFT-10 v2): pesos, dólares o las dos (el invitado elige, D3). Las páginas publicadas antes no lo tienen: son pesos. */
   currencies?: Currency[] | undefined;
   /** Cuenta en dólares (D4). La de pesos es `alias`/`bank`/`cbu`. */
-  usd?: { alias: string; bank: string; cbu: string } | undefined;
+  usd?: { alias: string; bank: string; cbu: string; holder?: string | undefined } | undefined;
   /** Aporte de importe libre (GIFT-09): si los invitados pueden elegir cuánto regalar, y el mínimo efectivo. */
   freeAmount: { enabled: boolean; min: number };
   giftCategories: Category[];
@@ -63,6 +63,8 @@ export type SiteData = {
   alias: string;
   bank: string;
   cbu: string;
+  /** Titular de la cuenta en pesos (opcional). */
+  holder?: string | undefined;
   acceptCard: boolean;
 };
 
@@ -118,13 +120,15 @@ export const demoSiteData: SiteData = {
   gifts: demoGifts,
   // El ejemplo muestra la lista en pesos y dólares (2026-11-24): así se ve la pregunta al entrar y el desplegable de moneda.
   currencies: ['ARS', 'USD'],
-  usd: { alias: `${demoAlias}.usd`, bank: '', cbu: '' },
+  usd: { alias: `${demoAlias}.usd`, bank: 'Banco de ejemplo', cbu: '0000003100000000000002', holder: 'Vera y Santiago' },
   freeAmount: { enabled: false, min: MIN_AMOUNT }, // /ejemplo no cambia (D7)
   giftCategories: demoCategories,
   giftsCover: null,
   alias: demoAlias,
-  bank: '',
-  cbu: '',
+  // El ejemplo muestra la cuenta completa (2026-11-24): datos ficticios, no son de nadie.
+  bank: 'Banco de ejemplo',
+  cbu: '0000003100000000000001',
+  holder: 'Vera y Santiago',
   acceptCard: true,
 };
 
@@ -195,7 +199,7 @@ export function siteFromState(s: AppState): SiteData {
     message: { title: s.site.message.title.trim() || 'Que vengas ya es un regalo.', text: s.site.message.text.trim() },
     gifts,
     currencies: shownCurrencies(listMode(s.gifts)),
-    usd: s.gifts.usd ? { alias: s.gifts.usd.alias.trim(), bank: s.gifts.usd.bank.trim(), cbu: s.gifts.usd.cbu.trim() } : undefined,
+    usd: s.gifts.usd ? { alias: s.gifts.usd.alias.trim(), bank: s.gifts.usd.bank.trim(), cbu: s.gifts.usd.cbu.trim(), holder: (s.gifts.usd.holder ?? '').trim() } : undefined,
     // Opción dentro de la lista (D5): solo si la lista se publica y tiene al menos un regalo.
     freeAmount: { enabled: publishes(s.planId, 'gifts') && gifts.length > 0 && s.gifts.freeAmount.enabled, min: freeAmountMin(s.gifts.freeAmount.min) },
     giftCategories: present,
@@ -203,6 +207,7 @@ export function siteFromState(s: AppState): SiteData {
     alias: s.gifts.alias.trim(),
     bank: s.gifts.bank.trim(),
     cbu: s.gifts.cbu.trim(),
+    holder: (s.gifts.holder ?? '').trim(),
     acceptCard: s.gifts.acceptCard,
   };
 }

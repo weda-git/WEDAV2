@@ -8,13 +8,13 @@ import { cleanCbu, maskAlias, maskCbu, validateAlias, validateCbu } from '@/lib/
 import { changePayout, errorText, type PayoutData } from '@/lib/weda/remote';
 import type { Currency } from '@/lib/weda/money';
 
-type Errors = Partial<Record<'alias' | 'cbu' | 'bank' | 'password', string>>;
+type Errors = Partial<Record<'alias' | 'cbu' | 'bank' | 'holder' | 'password', string>>;
 
-const normalize = (d: PayoutData): PayoutData => ({ alias: d.alias.trim().toLowerCase(), bank: d.bank.trim(), cbu: cleanCbu(d.cbu.trim()) });
-const same = (a: PayoutData, b: PayoutData) => a.alias === b.alias && a.bank === b.bank && a.cbu === b.cbu;
+const normalize = (d: PayoutData): PayoutData & { holder: string } => ({ alias: d.alias.trim().toLowerCase(), bank: d.bank.trim(), cbu: cleanCbu(d.cbu.trim()), holder: (d.holder ?? '').trim().replace(/\s+/g, ' ') });
+const same = (a: PayoutData, b: PayoutData) => a.alias === b.alias && a.bank === b.bank && a.cbu === b.cbu && (a.holder ?? '') === (b.holder ?? '');
 
 export function PayoutForm({ current, initial, onDone, onCancel, currency = 'ARS' }: { current: PayoutData; initial?: PayoutData | null; onDone: () => void; onCancel: () => void; currency?: Currency }) {
-  const [data, setData] = useState<PayoutData>(initial ?? current);
+  const [data, setData] = useState<PayoutData>({ ...(initial ?? current), holder: (initial ?? current).holder ?? '' });
   const [step, setStep] = useState<'edit' | 'confirm'>('edit');
   const [password, setPassword] = useState('');
   const [show, setShow] = useState(false);
@@ -23,7 +23,7 @@ export function PayoutForm({ current, initial, onDone, onCancel, currency = 'ARS
   const [banner, setBanner] = useState<string | null>(null);
   const passRef = useRef<HTMLInputElement>(null);
   const next = normalize(data);
-  const first = !current.alias && !current.bank && !current.cbu;
+  const first = !current.alias && !current.bank && !current.cbu && !current.holder;
 
   useEffect(() => { if (step === 'confirm' && !first) passRef.current?.focus(); }, [step, first]);
 
@@ -36,6 +36,7 @@ export function PayoutForm({ current, initial, onDone, onCancel, currency = 'ARS
     else { const a = validateAlias(next.alias); if (a) err.alias = a; }
     if (next.cbu) { const c = validateCbu(next.cbu); if (c) err.cbu = c; }
     if (next.bank.length > 60) err.bank = errorText('invalid_bank');
+    if (next.holder.length > 80) err.holder = errorText('invalid_holder');
     setErrors(err);
     if (Object.keys(err).length) return;
     if (same(next, current)) { setBanner(errorText('payout_unchanged')); return; }
@@ -58,6 +59,9 @@ export function PayoutForm({ current, initial, onDone, onCancel, currency = 'ARS
       <Field label="Alias" error={errors.alias}>
         {a => <input id={a.id} type="text" value={data.alias} placeholder="tomas.martina" autoComplete="off" autoCapitalize="none" spellCheck={false} onChange={e => edit('alias', e.target.value)} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
       </Field>
+      <Field label="Titular de la cuenta" optional error={errors.holder}>
+        {a => <input id={a.id} type="text" value={data.holder} placeholder="Nombre y apellido" autoComplete="off" maxLength={80} onChange={e => edit('holder', e.target.value)} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
+      </Field>
       <Field label="Banco" optional error={errors.bank}>
         {a => <input id={a.id} type="text" value={data.bank} placeholder="Nombre del banco" autoComplete="off" maxLength={60} onChange={e => edit('bank', e.target.value)} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
       </Field>
@@ -78,6 +82,7 @@ export function PayoutForm({ current, initial, onDone, onCancel, currency = 'ARS
       <dl className="pn-pay">
         {!first && <div><dt>Antes</dt><dd>{maskAlias(current.alias) || 'Sin alias'}{current.cbu ? ` · CBU ${maskCbu(current.cbu)}` : ''}</dd></div>}
         <div><dt>{first ? 'Alias' : 'Ahora'}</dt><dd><code>{next.alias}</code></dd></div>
+        {next.holder && <div><dt>Titular</dt><dd>{next.holder}</dd></div>}
         {next.bank && <div><dt>Banco</dt><dd>{next.bank}</dd></div>}
         {next.cbu && <div><dt>CBU</dt><dd><code>{next.cbu}</code></dd></div>}
       </dl>

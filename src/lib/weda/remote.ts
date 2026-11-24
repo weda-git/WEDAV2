@@ -40,7 +40,7 @@ export type RemoteState = {
   /** ADM-01: la administradora está «entrando como» esta pareja (franja fija y límites en el servidor). */
   impersonating: { email: string; expiresAt: string } | null;
 };
-export type PayoutData = { alias: string; bank: string; cbu: string };
+export type PayoutData = { alias: string; bank: string; cbu: string; holder?: string | undefined };
 export type Payout = PayoutData & { version: number; changedAt: string | null };
 
 export class ApiFailure extends Error {
@@ -109,14 +109,14 @@ function adoptPublication(s: AppState, server: { status: string; planId: string;
   return server ? { ...s, publication, planId: normalizePlanId(server.planId as PlanId) } : { ...s, publication };
 }
 
-const payoutOf = (s: AppState): PayoutData => ({ alias: s.gifts.alias.trim(), bank: s.gifts.bank.trim(), cbu: s.gifts.cbu.trim() });
-const withPayout = (s: AppState, p: PayoutData): AppState => ({ ...s, gifts: { ...s.gifts, alias: p.alias, bank: p.bank, cbu: p.cbu } });
+const payoutOf = (s: AppState): PayoutData => ({ alias: s.gifts.alias.trim(), bank: s.gifts.bank.trim(), cbu: s.gifts.cbu.trim(), holder: (s.gifts.holder ?? '').trim() });
+const withPayout = (s: AppState, p: PayoutData): AppState => ({ ...s, gifts: { ...s.gifts, alias: p.alias, bank: p.bank, cbu: p.cbu, holder: p.holder ?? '' } });
 /** La cuenta en dólares (GIFT-10 v2, D4) solo existe con cuenta de Weda: la manda siempre el servidor. */
-const withPayoutUsd = (s: AppState, p: Payout | null): AppState => ({ ...s, gifts: { ...s.gifts, usd: p?.version ? { alias: p.alias, bank: p.bank, cbu: p.cbu } : undefined } });
+const withPayoutUsd = (s: AppState, p: Payout | null): AppState => ({ ...s, gifts: { ...s.gifts, usd: p?.version ? { alias: p.alias, bank: p.bank, cbu: p.cbu, holder: p.holder ?? '' } : undefined } });
 
 function adoptPayout(local: AppState, server: Payout, usd: Payout | null): AppState {
   const mine = payoutOf(local);
-  const differs = (mine.alias || mine.bank || mine.cbu) && (mine.alias !== server.alias || mine.bank !== server.bank || mine.cbu !== server.cbu);
+  const differs = (mine.alias || mine.bank || mine.cbu || mine.holder) && (mine.alias !== server.alias || mine.bank !== server.bank || mine.cbu !== server.cbu || mine.holder !== (server.holder ?? ''));
   set({ payout: server, payoutUsd: usd, pendingPayout: differs && server.version === 0 ? mine : null });
   return withPayoutUsd(withPayout(local, server), usd);
 }
@@ -453,6 +453,7 @@ export const ERROR_TEXT: Record<string, string> = {
   invalid_alias: 'El alias tiene entre 6 y 20 caracteres: letras, números, puntos o guiones.',
   invalid_cbu: 'El CBU tiene 22 números.',
   invalid_bank: 'El nombre del banco es demasiado largo.',
+  invalid_holder: 'El nombre del titular es demasiado largo.',
   payout_changed: 'Tus datos de cobro cambiaron desde otro dispositivo. Recargá la página para ver los vigentes.',
   payout_unchanged: 'Son los mismos datos que ya tenías.',
   invalid_currency: 'Esa moneda no está disponible en esta lista.',

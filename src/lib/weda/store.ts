@@ -128,9 +128,9 @@ function build(raw: Record<string, unknown>, from: number): AppState {
     preferredPlan: planOf(raw['preferredPlan'], from),
     planId: planOf(raw['planId'], from),
     gifts: {
-      cover: typeof g['cover'] === 'string' ? g['cover'] : null, alias: str(g['alias']), bank: str(g['bank']), cbu: str(g['cbu']), acceptCard: bool(g['acceptCard'], false),
+      cover: typeof g['cover'] === 'string' ? g['cover'] : null, alias: str(g['alias']), bank: str(g['bank']), cbu: str(g['cbu']), holder: str(g['holder']), acceptCard: bool(g['acceptCard'], false),
       items: arr(g['items']).map(listGift).filter((x): x is ListGift => !!x),
-      usd: isObj(g['usd']) ? { alias: str(g['usd']['alias']), bank: str(g['usd']['bank']), cbu: str(g['usd']['cbu']) } : undefined,
+      usd: isObj(g['usd']) ? { alias: str(g['usd']['alias']), bank: str(g['usd']['bank']), cbu: str(g['usd']['cbu']), holder: str(g['usd']['holder']) } : undefined,
       freeAmount: freeAmount(g['freeAmount']),
       currency: isListMode(g['currency']) ? g['currency'] : undefined,
       given: arr(g['given']).filter(isObj).filter(x => typeof x['id'] === 'string').map(x => ({

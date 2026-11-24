@@ -42,7 +42,7 @@ export const CONTRIBUTION_TRANSITIONS: Record<string, string[]> = {
 };
 
 export type Session = { userId: string; email: string };
-export type Payout = { version: number; alias: string; bank: string; cbu: string; changedAt: string | null };
+export type Payout = { version: number; alias: string; bank: string; cbu: string; holder: string; changedAt: string | null };
 export type GuestInput = { id: string; first: string; last: string; status: Guest['status']; menu: string; groupId: string | null; source: Guest['source'] };
 
 export class Service {
@@ -297,17 +297,17 @@ export class Service {
 
   /** Destino vigente de una moneda: su versión más alta en `payout_methods` (GIFT-10 v2, D4). Versión 0 = todavía no se cargó ninguno. */
   private async activePayout(wid: string, currency: Currency = 'ARS'): Promise<Payout> {
-    const r = (await this.db.get('SELECT version, alias, bank, cbu, created_at FROM payout_methods WHERE wedding_id = ? AND currency = ? ORDER BY version DESC LIMIT 1', wid, currency)) as Row | undefined;
+    const r = (await this.db.get('SELECT version, alias, bank, cbu, holder, created_at FROM payout_methods WHERE wedding_id = ? AND currency = ? ORDER BY version DESC LIMIT 1', wid, currency)) as Row | undefined;
     return r
-      ? { version: r['version'] as number, alias: r['alias'] as string, bank: r['bank'] as string, cbu: r['cbu'] as string, changedAt: r['created_at'] as string }
-      : { version: 0, alias: '', bank: '', cbu: '', changedAt: null };
+      ? { version: r['version'] as number, alias: r['alias'] as string, bank: r['bank'] as string, cbu: r['cbu'] as string, holder: (r['holder'] as string | undefined) ?? '', changedAt: r['created_at'] as string }
+      : { version: 0, alias: '', bank: '', cbu: '', holder: '', changedAt: null };
   }
 
   /** El borrador siempre lleva el destino vigente: así lo leen el panel, la publicación y el snapshot, y ningún guardado lo reescribe. */
   private async withPayout(draft: DraftState, wid: string): Promise<DraftState> {
     const p = (await this.activePayout(wid));
     const u = (await this.activePayout(wid, 'USD'));
-    return { ...draft, gifts: { ...draft.gifts, alias: p.alias, bank: p.bank, cbu: p.cbu, usd: u.version ? { alias: u.alias, bank: u.bank, cbu: u.cbu } : undefined } };
+    return { ...draft, gifts: { ...draft.gifts, alias: p.alias, bank: p.bank, cbu: p.cbu, holder: p.holder, usd: u.version ? { alias: u.alias, bank: u.bank, cbu: u.cbu, holder: u.holder } : undefined } };
   }
 
   /**
@@ -333,12 +333,12 @@ export class Service {
       (await this.assertNotPaused(wid));
       const cur = (await this.activePayout(wid, currency));
       if (cur.version !== baseVersion) throw conflict('payout_changed', String(cur.version));
-      if (cur.alias === next.alias && cur.bank === next.bank && cur.cbu === next.cbu) throw invalid('payout_unchanged');
+      if (cur.alias === next.alias && cur.bank === next.bank && cur.cbu === next.cbu && cur.holder === next.holder) throw invalid('payout_unchanged');
       const since = new Date(Date.now() - PAYOUT_WINDOW_MS).toISOString();
       const recent = (await this.db.get("SELECT COUNT(*) AS n FROM payout_methods WHERE wedding_id = ? AND source = 'owner' AND created_at > ?", wid, since)) as Row;
       if (Number(recent['n']) >= PAYOUT_MAX_CHANGES) throw new ApiError(429, 'too_many_changes');
       const top = (await this.db.get('SELECT MAX(version) AS v FROM payout_methods WHERE wedding_id = ?', wid)) as Row | undefined;
-      (await this.db.run("INSERT INTO payout_methods (id,wedding_id,version,alias,bank,cbu,created_by,created_at,source,currency) VALUES (?,?,?,?,?,?,?,?,'owner',?)", newId('pay'), wid, Number(top?.['v'] ?? 0) + 1, next.alias, next.bank, next.cbu, s.userId, now(), currency));
+      (await this.db.run("INSERT INTO payout_methods (id,wedding_id,version,alias,bank,cbu,holder,created_by,created_at,source,currency) VALUES (?,?,?,?,?,?,?,?,?,'owner',?)", newId('pay'), wid, Number(top?.['v'] ?? 0) + 1, next.alias, next.bank, next.cbu, next.holder, s.userId, now(), currency));
       return cur;
     });
     this.payoutLimiter.reset(s.userId);
@@ -347,9 +347,9 @@ export class Service {
     return { payout: (await this.activePayout(w['id'] as string)), payoutUsd: (await this.activePayout(w['id'] as string, 'USD')), pendingChanges: (await this.pendingChanges(w)) };
   }
 
-  private mailPayoutChanged(to: string, prev: Payout, next: { alias: string; bank: string; cbu: string }, currency: Currency) {
+  private mailPayoutChanged(to: string, prev: Payout, next: { alias: string; bank: string; cbu: string; holder: string }, currency: Currency) {
     const which = currency === 'USD' ? 'tu cuenta en dólares' : 'tu cuenta en pesos';
-    const show = (p: { alias: string; bank: string; cbu: string }) => [`Alias: ${p.alias ? maskAlias(p.alias) : 'sin alias'}`, ...(p.cbu ? [`CBU: ${maskCbu(p.cbu)}`] : []), ...(p.bank ? [`Banco: ${p.bank}`] : [])].join(' · ');
+    const show = (p: { alias: string; bank: string; cbu: string; holder: string }) => [`Alias: ${p.alias ? maskAlias(p.alias) : 'sin alias'}`, ...(p.cbu ? [`CBU: ${maskCbu(p.cbu)}`] : []), ...(p.bank ? [`Banco: ${p.bank}`] : []), ...(p.holder ? [`Titular: ${p.holder}`] : [])].join(' · ');
     const body = layout({
       title: prev.version ? 'Cambiaron tus datos de cobro' : 'Cargaste tus datos de cobro',
       paragraphs: [
@@ -929,7 +929,7 @@ function parseGuestInputs(v: unknown): GuestInput[] {
 }
 
 /** Destino de cobro que manda el panel: alias en minúsculas (6–20 letras, números, puntos o guiones), CBU de 22 números y banco corto. Vacío = sin dato. */
-function parsePayout(v: Row): { alias: string; bank: string; cbu: string } {
+function parsePayout(v: Row): { alias: string; bank: string; cbu: string; holder: string } {
   const text = (x: unknown, code: string) => { if (x === undefined || x === null) return ''; if (typeof x !== 'string') throw invalid(code); return x.trim(); };
   const alias = text(v['alias'], 'invalid_alias').toLowerCase();
   if (alias && validateAlias(alias)) throw invalid('invalid_alias');
@@ -938,7 +938,11 @@ function parsePayout(v: Row): { alias: string; bank: string; cbu: string } {
   const bank = text(v['bank'], 'invalid_bank');
   // eslint-disable-next-line no-control-regex -- se rechazan justamente los caracteres de control
   if (bank.length > 60 || /[\u0000-\u001f\u007f]/.test(bank)) throw invalid('invalid_bank');
-  return { alias, bank, cbu };
+  // Titular de la cuenta (migración 7): opcional, un nombre corto y sin caracteres de control.
+  const holder = text(v['holder'], 'invalid_holder').replace(/\s+/g, ' ');
+  // eslint-disable-next-line no-control-regex -- se rechazan justamente los caracteres de control
+  if (holder.length > 80 || /[\u0000-\u001f\u007f]/.test(holder)) throw invalid('invalid_holder');
+  return { alias, bank, cbu, holder };
 }
 
 /** Vencimiento de una publicación. Las anteriores a la migración 5 no lo tienen guardado: se calcula desde su primera publicación. */

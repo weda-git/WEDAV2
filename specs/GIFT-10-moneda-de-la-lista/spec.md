@@ -73,3 +73,8 @@ Propuestas (a aprobar con esta spec):
 | Criterio | Evidencia |
 |---|---|
 | CA-1 … CA-9 | |
+
+## Cambio del 2026-11-24 · Titular y paso «Transferí» (aprobado por la dueña)
+- **Titular de la cuenta:** campo opcional en Datos de cobro (pesos y dólares), hasta 80 caracteres. **Migración 7:** `payout_methods.holder TEXT NOT NULL DEFAULT ''`. Cambiarlo es un cambio de cuenta (pide la clave, nueva versión, aviso por correo).
+- **Paso «Transferí» del invitado:** un único cuadro «Cuenta en pesos/dólares» con titular, alias, CBU y banco (alias y CBU con «Copiar»). Entra en una pantalla, sin desplazarse, en celular (375 × 667) y en compu (1280 × 720); los botones quedan siempre a la vista.
+- **Solo alias por ahora:** no se ofrece «Tarjeta». Se quitó la casilla de novedades de Weda en el regalo (el envío manda `marketingOptIn: false`).
