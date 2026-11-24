@@ -2265,3 +2265,6 @@ body:has(.pn-app) { background: #f6f6f3; }
 .rg-thank-btn svg { flex: none; }
 .pn-wa-nudge { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 14px 16px; border-radius: 16px; background: #eef4ec; }
 .pn-wa-nudge p { flex: 1 1 220px; margin: 0; font-size: 14.5px; line-height: 1.4; }
+/* Regalo grupal en «Aportes recibidos» (2026-11-24). */
+.rg-rec-group { margin: 2px 0 0; font-size: 14px; color: var(--pn-muted, #6b6b6b); }
+.rg-rec-group strong { font-weight: 500; color: var(--text-main, #3b3c3a); }

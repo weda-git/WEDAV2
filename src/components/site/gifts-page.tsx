@@ -3,7 +3,7 @@ import { FREE_GIFT_ID, freeGift, isEmail, isFreeGift, parseAmount, validateFreeA
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import {
-  ArrowRight, Banknote, BedDouble, BedSingle, Check, ChefHat, Coffee, Compass, Copy, Dog, House, Lamp,
+  ArrowRight, Banknote, User, Users, BedDouble, BedSingle, Check, ChefHat, Coffee, Compass, Copy, Dog, House, Lamp,
   Palette, Plane, Sofa, Sprout, Ticket, Trees, Upload, Utensils, Wine, X, type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -135,9 +135,28 @@ function Thumb({ gift }: { gift: Gift }) {
   return <span className="rg-thumb" aria-hidden="true">{gift.image ? <img src={gift.image} alt="" style={gift.pos ? { objectPosition: gift.pos } : undefined} /> : <Icon size={22} strokeWidth={1.3} />}</span>;
 }
 
-/* Pop-up de varios regalos: tu regalo (lista, quitar, total) → cómo pagar → alias → nombre, apellido y comprobante → Enviar → agradecimiento.
+/* Pop-up del regalo, en pasos con el mismo diseño claro (2026-11-24, pedido de la dueña):
+   tu regalo (lista, quitar, total) → quién regala (solo o grupal, y los datos de contacto) → dedicatoria → pagar (cuenta y comprobante) → gracias.
    «Agregar otro regalo» vuelve a la lista sin perder lo elegido. */
-type DialogView = 'cart' | 'pay';
+type DialogView = 'cart' | 'how' | 'who' | 'note' | 'pay';
+/* Camino del regalo (2026-11-24, referencia de la dueña): cuatro pasos numerados unidos por una línea; el actual resaltado y los hechos con tilde. */
+const STEPS: { view: Exclude<DialogView, 'cart'>; label: string }[] = [
+  { view: 'how', label: 'Cómo regalás' }, { view: 'who', label: 'Tus datos' }, { view: 'note', label: 'Dedicatoria' }, { view: 'pay', label: 'Transferí' },
+];
+function Stepper({ view }: { view: Exclude<DialogView, 'cart'> }) {
+  const at = STEPS.findIndex(x => x.view === view);
+  return (
+    <ol className="rg-stepper" aria-label="Pasos del regalo">
+      {STEPS.map((x, i) => (
+        <li key={x.view} className={i < at ? 'is-done' : i === at ? 'is-on' : ''} aria-current={i === at ? 'step' : undefined}>
+          <span className="rg-stepper-label">{x.label}</span>
+          <span className="rg-stepper-dot" aria-hidden="true">{i < at ? <Check size={14} strokeWidth={2.2} /> : i + 1}</span>
+          {i < at && <span className="dm-sr"> (listo)</span>}
+        </li>
+      ))}
+    </ol>
+  );
+}
 function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChangeFree, onSent, returnFocus }: { open: boolean; gifts: Gift[]; onClose: () => void; onFinished: () => void; onRemove: (g: Gift) => void; onChangeFree: () => void; onSent: (gs: Gift[], giver: Giver, extra: GiftSubmission) => void | Promise<void>; returnFocus: { current: HTMLElement | null } }) {
   const { money, cur, price } = useMoney();
   const [view, setView] = useState<DialogView>('cart');
@@ -148,6 +167,11 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
   const [phone, setPhone] = useState({ country: DEFAULT_COUNTRY, number: '' });
   const phoneFull = normalizePhone(phone.country, phone.number);
   const [message, setMessage] = useState('');
+  // Regalo grupal: quien completa es quien transfiere; además, de parte de quiénes es el regalo.
+  const [grupal, setGrupal] = useState(false);
+  const [group, setGroup] = useState('');
+  // Paso 1: ninguna tarjeta aparece elegida hasta que la persona elige (al volver, queda marcada la que eligió).
+  const [picked, setPicked] = useState(false);
   const [optIn, setOptIn] = useState(false);
   const { remote } = useSiteActions();
   const [proof, setProof] = useState<File | null>(null);
@@ -159,18 +183,20 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
   // Lo enviado se guarda aparte: al enviar, el carrito se vacía pero el agradecimiento sigue mostrando esos regalos.
   const [sent, setSent] = useState<{ first: string; gifts: Gift[]; total: number } | null>(null);
   const total = items.reduce((n, g) => n + price(g), 0);
-  const reset = () => { attempt.current = null; setSendError(null); setView('cart'); setName(''); setSurname(''); setEmail(''); setPhone({ country: DEFAULT_COUNTRY, number: '' }); setMessage(''); setOptIn(false); setProof(null); setHow('alias'); setSent(null); };
+  const reset = () => { attempt.current = null; setSendError(null); setView('cart'); setName(''); setSurname(''); setEmail(''); setPhone({ country: DEFAULT_COUNTRY, number: '' }); setMessage(''); setGrupal(false); setGroup(''); setPicked(false); setOptIn(false); setProof(null); setHow('alias'); setSent(null); };
   // Para poder enviar: nombre, apellido, correo (obligatorio: constancia del regalo y contacto de la pareja) y, si transfiere por alias, el comprobante.
   const cardSelected = site.acceptCard && how === 'tarjeta';
   const noAlias = !cardSelected && !alias;
   const blocked = cardSelected || noAlias;
-  const missing = blocked ? [] : [
+  // Lo que falta en «¿Quién regala?» (paso 1) y en el pago (paso 3).
+  const whoMissing = [
+    grupal && group.trim().length < 2 && 'de parte de quiénes',
     name.trim().length < 2 && 'nombre',
     surname.trim().length < 2 && 'apellido',
     !isEmail(email) && 'tu correo',
     !phoneFull && 'tu WhatsApp',
-    how === 'alias' && !proof && 'comprobante',
   ].filter(Boolean) as string[];
+  const missing = blocked ? [] : [...whoMissing, how === 'alias' && !proof && 'comprobante'].filter(Boolean) as string[];
   // Al cerrar el agradecimiento, la página puede invitar a confirmar la asistencia (ver GiftsPage).
   const close = () => { const finished = !!sent; onClose(); window.setTimeout(() => { reset(); if (finished) onFinished(); }, 200); };
   const keepShopping = () => { onClose(); window.setTimeout(() => setView('cart'), 200); };
@@ -184,7 +210,7 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
     attempt.current ??= { key: crypto.randomUUID(), token: `${crypto.randomUUID()}${crypto.randomUUID()}` };
     setSending(true); setSendError(null);
     try {
-      await onSent(items, { name: `${name.trim()} ${surname.trim()}`, message: message.trim(), how, email: email.trim().toLowerCase(), phone: phoneFull ?? '', marketingOptIn: optIn }, { proof, attempt: attempt.current, currency: cur });
+      await onSent(items, { name: `${name.trim()} ${surname.trim()}`, message: message.trim(), how, email: email.trim().toLowerCase(), phone: phoneFull ?? '', group: grupal ? group.trim() : '', marketingOptIn: optIn }, { proof, attempt: attempt.current, currency: cur });
     } catch (err) {
       setSending(false);
       setSendError(err instanceof Error && err.message ? err.message : 'No pudimos enviar tu regalo. Revisá tu conexión y probá de nuevo.');
@@ -197,7 +223,7 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
   const remove = (g: Gift) => { onRemove(g); if (items.length <= 1) { onClose(); window.setTimeout(() => setView('cart'), 200); } };
   return (
     <Dialog open={open} onOpenChange={o => { if (!o) close(); }}>
-      <DialogContent className={`rg-dialog${!sent && view === 'pay' ? ' is-wide' : ''}`} onOpenAutoFocus={e => { e.preventDefault(); (e.currentTarget as HTMLElement).focus(); }} onCloseAutoFocus={e => { e.preventDefault(); returnFocus.current?.focus(); }}>
+      <DialogContent className={`rg-dialog${!sent ? ' is-cart' : ''}`} onOpenAutoFocus={e => { e.preventDefault(); (e.currentTarget as HTMLElement).focus(); }} onCloseAutoFocus={e => { e.preventDefault(); returnFocus.current?.focus(); }}>
         {sent ? (
           <div className="rg-thanks">
             <span className="rg-check" aria-hidden="true"><Check size={22} strokeWidth={1.8} /></span>
@@ -207,81 +233,69 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
             <button type="button" className="dm-solid" onClick={close}>Listo</button>
           </div>
         ) : view === 'cart' ? (
-          <div className="rg-form rg-cart">
-            <header className="rg-head">
-              <div>
-                <p className="rg-kicker">Regalo para {site.names}</p>
-                <DialogTitle>Tu regalo</DialogTitle>
+          // Resumen del regalo (2026-11-24, referencia de la dueña): título en mayúsculas, columnas Cantidad / Precio / Subtotal, total en una
+          // banda oscura y «Agregar otro regalo» / «Continuar». La cantidad es siempre 1 (decisión de la dueña). En celular, cada fila se compacta.
+          <div className="rg-cart">
+            <header className="rg-cart-head"><DialogTitle>Regalo para {site.names}</DialogTitle></header>
+            <div className="rg-cart-table" role="table" aria-label="Tu regalo">
+              <div className="rg-cart-cols" role="row">
+                <span role="columnheader" className="is-name"><span className="dm-sr">Regalo</span></span>
+                <span role="columnheader" className="is-qty">Cantidad</span>
+                <span role="columnheader" className="is-price">Precio</span>
+                <span role="columnheader" className="is-sub">Subtotal</span>
+                <span role="columnheader" className="is-rm"><span className="dm-sr">Quitar</span></span>
               </div>
-            </header>
-            <ul className="rg-cart-list">
               {items.map(g => (
-                <li key={g.id} className="rg-cart-item">
-                  <Thumb gift={g} />
-                  <div className="rg-cart-info">
-                    <strong>{g.name}</strong>
-                    <span>{money(price(g))}</span>
+                <div key={g.id} role="row" className="rg-cart-row">
+                  <div role="cell" className="is-name">
+                    <Thumb gift={g} />
+                    <span className="rg-cart-name">
+                      <strong>{g.name}</strong>
+                      {isFreeGift(g) && <button type="button" className="rg-cart-change" onClick={onChangeFree} aria-label="Cambiar el monto del aporte libre">Cambiar monto</button>}
+                      <span className="rg-cart-mini" aria-hidden="true">1 × {money(price(g))}</span>
+                    </span>
                   </div>
-                  {isFreeGift(g) && <button type="button" className="rg-remove" onClick={onChangeFree} aria-label="Cambiar el monto del aporte libre">Cambiar</button>}
-                  <button type="button" className="rg-remove" onClick={() => remove(g)} aria-label={`Quitar ${g.name}`}><X size={14} aria-hidden="true" />Quitar</button>
-                </li>
+                  <div role="cell" className="is-qty">1</div>
+                  <div role="cell" className="is-price">{money(price(g))}</div>
+                  <div role="cell" className="is-sub">{money(price(g))}</div>
+                  <div role="cell" className="is-rm"><button type="button" className="rg-cart-x" onClick={() => remove(g)} aria-label={`Quitar ${g.name}`}><X size={16} aria-hidden="true" /></button></div>
+                </div>
               ))}
-            </ul>
-            <p className="rg-total"><span>Total</span><strong>{money(total)}</strong></p>
-            <div className="rg-actions">
-              <button type="button" className="dm-solid" onClick={() => setView('pay')} disabled={items.length === 0}>Continuar</button>
+            </div>
+            <p className="rg-cart-total"><span>Total</span><strong>{money(total)}</strong></p>
+            <div className="rg-cart-actions">
               <button type="button" className="dm-ghost" onClick={keepShopping}>Agregar otro regalo</button>
+              <button type="button" className="dm-solid" onClick={() => setView('how')} disabled={items.length === 0}>Continuar</button>
             </div>
           </div>
         ) : (
-          <form onSubmit={e => { void submit(e); }} noValidate className="rg-form rg-pay">
-            <header className="rg-head">
-              <div>
-                <p className="rg-kicker">Regalo para {site.names}</p>
-                <DialogTitle>Tu regalo</DialogTitle>
+          <form onSubmit={e => { e.preventDefault(); if (view === 'who') { if (!whoMissing.length) setView('note'); } else if (view === 'note') setView('pay'); else if (view === 'pay') void submit(e); }} noValidate className="rg-cart rg-steps">
+            <header className="rg-cart-head"><DialogTitle>Regalo para {site.names}</DialogTitle></header>
+            <Stepper view={view} />
+
+            {view === 'how' && (
+              <div className="rg-step-body">
+                <p className="dm-sr" id="rg-how-q">¿Regalás solo o es un regalo grupal?</p>
+                <div className="rg-tiles" role="group" aria-labelledby="rg-how-q">
+                  <button type="button" className={`rg-tile${picked && !grupal ? ' is-on' : ''}`} onClick={() => { setGrupal(false); setPicked(true); setView('who'); }}>
+                    <User size={34} strokeWidth={1.2} aria-hidden="true" /><strong>Regalo solo</strong><small>Lo hago yo</small>
+                  </button>
+                  <button type="button" className={`rg-tile${picked && grupal ? ' is-on' : ''}`} onClick={() => { setGrupal(true); setPicked(true); setView('who'); }}>
+                    <Users size={34} strokeWidth={1.2} aria-hidden="true" /><strong>Regalo grupal</strong><small>Somos varios</small>
+                  </button>
+                </div>
               </div>
-            </header>
+            )}
 
-            {site.acceptCard && <fieldset className="rg-field">
-              <legend>¿Cómo querés pagar?</legend>
-              <div className="rg-chips">
-                {(['alias', 'tarjeta'] as const).map(v => (
-                  <label key={v} className={`rg-chip${how === v ? ' on' : ''}`}>
-                    <input type="radio" name="rg-how" value={v} checked={how === v} onChange={() => setHow(v)} />
-                    <span>{v === 'alias' ? 'Alias' : 'Tarjeta'}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>}
-
-            <div className="rg-pay-grid">
-              {/* Lo importante primero: cuánto y adónde transferir, con alias y CBU para copiar. */}
-              <section className="rg-transfer" aria-label="Datos para transferir">
-                <p className="rg-amount"><span>Transferí</span><strong>{money(total)}</strong></p>
-                {how === 'alias' || !site.acceptCard ? (
-                  alias ? (
-                    <dl className="rg-bankcard">
-                      <CopyRow label="Alias" value={alias} />
-                      {account.cbu && <CopyRow label="CBU" value={account.cbu} />}
-                      {account.bank && <div className="rg-copy"><dt>Banco</dt><dd>{account.bank}</dd></div>}
-                    </dl>
-                  ) : <p className="rg-note">Los novios todavía no cargaron su alias. Cuando lo hagan, vas a verlo acá.</p>
-                ) : <p className="rg-note">El pago con tarjeta todavía no está disponible. Elegí «Alias» para continuar.</p>}
-                <DialogDescription className="rg-help">{alias ? 'Hacé la transferencia desde tu banco y subí el comprobante.' : ''}</DialogDescription>
-              </section>
-
-              <div className="rg-fields">
-                {!blocked && (
-                  <div className="rg-up">
-                    <input id="rg-proof" className="dm-sr" type="file" accept="image/*,application/pdf" onChange={e => setProof(e.target.files?.[0] ?? null)} />
-                    <label htmlFor="rg-proof" className={`rg-file${proof ? ' has' : ''}`}>
-                      {proof ? <Check size={16} aria-hidden="true" /> : <Upload size={16} aria-hidden="true" />}
-                      <span>{proof ? proof.name : 'Subir comprobante (captura o PDF)'}</span>
-                      {proof && <em>Cambiar</em>}
-                    </label>
+            {view === 'who' && (
+              <div className="rg-step-body">
+                {grupal && (
+                  <div className="rg-field">
+                    <label htmlFor="rg-group">¿De parte de quiénes?</label>
+                    <input id="rg-group" type="text" maxLength={120} placeholder="Los primos Díaz" value={group} onChange={e => setGroup(e.target.value)} />
                   </div>
                 )}
-
+                <p className="rg-step-sub">{grupal ? 'Tus datos (quien hace la transferencia)' : 'Tus datos'}</p>
                 <div className="rg-two">
                   <div className="rg-field">
                     <label htmlFor="rg-name">Nombre</label>
@@ -292,40 +306,86 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
                     <input id="rg-surname" type="text" autoComplete="family-name" value={surname} onChange={e => setSurname(e.target.value)} />
                   </div>
                 </div>
-
-                <div className="rg-field">
-                  <label htmlFor="rg-email">Correo electrónico</label>
-                  <input id="rg-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} aria-describedby="rg-email-help" />
-                  <p className="rg-hint" id="rg-email-help">Para mandarte la constancia. Los novios también lo ven.</p>
-                </div>
-
-                <div className="rg-field">
-                  <label htmlFor="rg-phone">WhatsApp</label>
-                  <div className="rg-phone">
-                    <select aria-label="Código de país" value={phone.country} onChange={e => setPhone(p => ({ ...p, country: e.target.value }))}>
-                      {COUNTRIES.map(c => <option key={c.code} value={c.code} aria-label={c.label}>+{c.code}</option>)}
-                    </select>
-                    <input id="rg-phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder={phone.country === '54' ? '11 5555 4444' : 'Número'} value={phone.number} onChange={e => setPhone(p => ({ ...p, number: e.target.value }))} aria-describedby="rg-phone-help" />
+                <div className="rg-two">
+                  <div className="rg-field">
+                    <label htmlFor="rg-email">Correo electrónico</label>
+                    <input id="rg-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} aria-describedby="rg-email-help" />
+                    <p className="rg-hint" id="rg-email-help">Para mandarte la constancia.</p>
                   </div>
-                  <p className="rg-hint" id="rg-phone-help">{phone.number.trim() && !phoneFull ? PHONE_ERROR : 'Para que los novios te agradezcan. Solo lo ven ellos.'}</p>
+                  <div className="rg-field">
+                    <label htmlFor="rg-phone">WhatsApp</label>
+                    <div className="rg-phone">
+                      <select aria-label="Código de país" value={phone.country} onChange={e => setPhone(p => ({ ...p, country: e.target.value }))}>
+                        {COUNTRIES.map(c => <option key={c.code} value={c.code} aria-label={c.label}>+{c.code}</option>)}
+                      </select>
+                      <input id="rg-phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder={phone.country === '54' ? '11 5555 4444' : 'Número'} value={phone.number} onChange={e => setPhone(p => ({ ...p, number: e.target.value }))} aria-describedby="rg-phone-help" />
+                    </div>
+                    <p className="rg-hint" id="rg-phone-help">{phone.number.trim() && !phoneFull ? PHONE_ERROR : 'Para que los novios te agradezcan.'}</p>
+                  </div>
                 </div>
-
-                <div className="rg-field">
-                  <label htmlFor="rg-message">Mensaje (opcional)</label>
-                  <textarea id="rg-message" rows={2} value={message} onChange={e => setMessage(e.target.value)} />
-                </div>
-
-                {/* Novedades de Weda: casilla aparte y destildada (consentimiento expreso; no es necesaria para regalar). */}
-                <label className="rg-optin"><input type="checkbox" checked={optIn} onChange={e => setOptIn(e.target.checked)} /><span>{MARKETING_CONSENT_TEXT} <a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a></span></label>
-
-                {sendError && <p className="dm-error" role="alert">{sendError}</p>}
-                <div className="rg-pay-actions">
-                  <button type="button" className="dm-ghost" onClick={() => setView('cart')}>Volver</button>
-                  <button type="submit" className="dm-solid rg-send" disabled={blocked || missing.length > 0 || sending} aria-busy={sending}>{sending ? 'Enviando…' : sendError ? 'Reintentar' : 'Enviar'}</button>
-                </div>
-                {noAlias && <p className="rg-missing" aria-live="polite">Todavía no se puede enviar: los novios no cargaron su alias.</p>}
-                {missing.length > 0 && <p className="rg-missing" aria-live="polite">Para enviar falta: {missing.join(', ')}.</p>}
               </div>
+            )}
+
+            {view === 'note' && (
+              <div className="rg-step-body">
+                <div className="rg-field">
+                  <label htmlFor="rg-message">Escribiles unas palabras <span className="rg-opt">· opcional</span></label>
+                  <textarea id="rg-message" rows={5} maxLength={500} placeholder="¡Que sean muy felices!" value={message} onChange={e => setMessage(e.target.value)} />
+                </div>
+                <p className="rg-hint">La leen {site.names.replace(/\s*&\s*/, ' y ')} junto con tu regalo{grupal && group.trim() ? `, de parte de ${group.trim()}` : ''}.</p>
+              </div>
+            )}
+
+            {view === 'pay' && (
+              <>
+                <p className="rg-cart-total"><span>Transferí</span><strong>{money(total)}</strong></p>
+                <div className="rg-step-body">
+                  {site.acceptCard && <fieldset className="rg-field">
+                    <legend>¿Cómo querés pagar?</legend>
+                    <div className="rg-chips">
+                      {(['alias', 'tarjeta'] as const).map(v => (
+                        <label key={v} className={`rg-chip${how === v ? ' on' : ''}`}>
+                          <input type="radio" name="rg-how" value={v} checked={how === v} onChange={() => setHow(v)} />
+                          <span>{v === 'alias' ? 'Alias' : 'Tarjeta'}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>}
+                  {how === 'alias' || !site.acceptCard ? (
+                    alias ? (
+                      <dl className="rg-bankcard">
+                        <CopyRow label="Alias" value={alias} />
+                        {account.cbu && <CopyRow label="CBU" value={account.cbu} />}
+                        {account.bank && <div className="rg-copy"><dt>Banco</dt><dd>{account.bank}</dd></div>}
+                      </dl>
+                    ) : <p className="rg-note">Los novios todavía no cargaron su alias. Cuando lo hagan, vas a verlo acá.</p>
+                  ) : <p className="rg-note">El pago con tarjeta todavía no está disponible. Elegí «Alias» para continuar.</p>}
+                  <DialogDescription className="rg-help">{alias ? 'Hacé la transferencia desde tu banco y subí el comprobante para confirmar tu regalo.' : ''}</DialogDescription>
+                  {!blocked && (
+                    <div className="rg-up">
+                      <input id="rg-proof" className="dm-sr" type="file" accept="image/*,application/pdf" onChange={e => setProof(e.target.files?.[0] ?? null)} />
+                      <label htmlFor="rg-proof" className={`rg-file${proof ? ' has' : ''}`}>
+                        {proof ? <Check size={16} aria-hidden="true" /> : <Upload size={16} aria-hidden="true" />}
+                        <span>{proof ? proof.name : 'Subir comprobante (captura o PDF)'}</span>
+                        {proof && <em>Cambiar</em>}
+                      </label>
+                    </div>
+                  )}
+                  {/* Novedades de Weda: casilla aparte y destildada (consentimiento expreso; no es necesaria para regalar). */}
+                  <label className="rg-optin"><input type="checkbox" checked={optIn} onChange={e => setOptIn(e.target.checked)} /><span>{MARKETING_CONSENT_TEXT} <a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a></span></label>
+                  {sendError && <p className="dm-error" role="alert">{sendError}</p>}
+                  {noAlias && <p className="rg-missing" aria-live="polite">Todavía no se puede enviar: los novios no cargaron su alias.</p>}
+                  {missing.length > 0 && <p className="rg-missing" aria-live="polite">Para confirmar falta: {missing.join(', ')}.</p>}
+                </div>
+              </>
+            )}
+            {view === 'who' && whoMissing.length > 0 && <p className="rg-missing rg-step-missing" aria-live="polite">Para seguir falta: {whoMissing.join(', ')}.</p>}
+
+            <div className="rg-cart-actions">
+              <button type="button" className="dm-ghost" onClick={() => setView(view === 'pay' ? 'note' : view === 'note' ? 'who' : view === 'who' ? 'how' : 'cart')}>Volver</button>
+              {view === 'how' ? null : view === 'pay'
+                ? <button type="submit" className="dm-solid rg-send" disabled={blocked || missing.length > 0 || sending} aria-busy={sending}>{sending ? 'Enviando…' : sendError ? 'Reintentar' : 'Confirmar regalo'}</button>
+                : <button type="submit" className="dm-solid" disabled={view === 'who' && whoMissing.length > 0}>Continuar</button>}
             </div>
           </form>
         )}

@@ -688,3 +688,124 @@
   .rg-bar input, .rg-bar select { padding-left: 16px; }
   .rg-bar select { padding-right: 32px; background-position: calc(100% - 18px) 52%, calc(100% - 13px) 52%; }
 }
+
+/* ===== Resumen del regalo (2026-11-24, referencia de la dueña) =====
+   Compu: título en mayúsculas con la X en un círculo, columnas Cantidad / Precio / Subtotal, filas sobre un fondo suave, total en una banda
+   oscura y los dos botones a la derecha. Celular: sin encabezados de columna; cada regalo en una fila (foto, nombre, «1 × precio», subtotal y X). */
+.rg-dialog.is-cart { max-width: 760px !important; padding: 0 !important; overflow: hidden; }
+.rg-cart { display: grid; }
+.rg-cart-head { display: flex; align-items: center; min-height: 84px; padding: 0 84px 0 32px; }
+.rg-dialog.is-cart h2 { font-size: 15px !important; font-weight: 400 !important; line-height: 1.3 !important; letter-spacing: .16em !important; text-transform: uppercase; color: #3b3c3a; }
+.rg-dialog.is-cart > button:last-child { top: 22px !important; right: 24px !important; display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid rgb(59 60 58 / .45) !important; border-radius: 50% !important; opacity: 1 !important; background: #fff !important; color: #3b3c3a !important; }
+.rg-cart-table { display: grid; }
+.rg-cart-cols, .rg-cart-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 130px 130px 44px; align-items: center; column-gap: 12px; padding: 0 20px 0 32px; }
+.rg-cart-cols { min-height: 40px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #6b6b6b; }
+.rg-cart-cols .is-qty, .rg-cart-row .is-qty { text-align: center; }
+.rg-cart-cols .is-price, .rg-cart-cols .is-sub, .rg-cart-row .is-price, .rg-cart-row .is-sub { text-align: right; font-variant-numeric: tabular-nums; }
+.rg-cart-row { min-height: 96px; padding-top: 14px; padding-bottom: 14px; background: #f4f2ed; border-top: 1px solid #fff; font-size: 15px; color: #3b3c3a; }
+.rg-cart-row .is-name { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.rg-cart-row .rg-thumb { width: 64px; height: 64px; border-radius: 50%; }
+.rg-cart-name { display: grid; gap: 4px; min-width: 0; }
+.rg-cart-name strong { font-weight: 400; line-height: 1.3; overflow-wrap: anywhere; }
+.rg-cart-mini { display: none; font-size: 13.5px; color: #6b6b6b; font-variant-numeric: tabular-nums; }
+.rg-cart-change { justify-self: start; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; color: #6b6b6b; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.rg-cart-x { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: #6b6b6b; cursor: pointer; }
+.rg-cart-x:hover { background: rgb(59 60 58 / .07); color: #3b3c3a; }
+.rg-cart-total { display: flex; justify-content: flex-end; align-items: baseline; gap: 28px; margin: 0; padding: 26px 76px 26px 32px; background: #2f3337; color: #fff; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
+.rg-cart-total strong { font-size: 20px; font-weight: 400; letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums; }
+.rg-cart-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 24px 32px 28px; }
+.rg-cart-actions .dm-ghost, .rg-cart-actions .dm-solid { justify-content: center; min-width: 200px; }
+.rg-cart-x:focus-visible, .rg-cart-change:focus-visible { outline: 2px solid var(--ej-slate); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .rg-cart-head { min-height: 72px; padding: 0 72px 0 22px; }
+  .rg-dialog.is-cart h2 { font-size: 13.5px !important; letter-spacing: .12em !important; }
+  .rg-dialog.is-cart > button:last-child { top: 16px !important; right: 16px !important; }
+  .rg-cart-cols { display: none; }
+  .rg-cart-row { grid-template-columns: minmax(0, 1fr) auto 44px; column-gap: 8px; min-height: 84px; padding: 12px 8px 12px 22px; }
+  .rg-cart-row .is-qty, .rg-cart-row .is-price { display: none; }
+  .rg-cart-row .rg-thumb { width: 52px; height: 52px; }
+  .rg-cart-row .is-name { gap: 12px; }
+  .rg-cart-mini { display: block; }
+  .rg-cart-total { justify-content: space-between; padding: 20px 60px 20px 22px; }
+  .rg-cart-actions { flex-direction: column-reverse; padding: 18px 22px 22px; }
+  .rg-cart-actions .dm-ghost, .rg-cart-actions .dm-solid { width: 100%; min-width: 0; }
+}
+/* Resumen del regalo en una gama clara (2026-11-24, pedido de la dueña): nada de negro ni de verde. Filas blancas con líneas suaves,
+   total sobre arena muy clara y «Continuar» en arena, con más peso que «Agregar otro regalo» (borde fino). */
+.rg-cart-row { background: #fff; border-top: 1px solid #ece9e3; }
+.rg-cart-row:last-child { border-bottom: 1px solid #ece9e3; }
+.rg-cart-total { background: #f6f4f0; color: #6b6b6b; }
+.rg-cart-total strong { color: #3b3c3a; }
+.rg-dialog.is-cart .rg-cart-actions .dm-solid, .dm-root .rg-dialog.is-cart .rg-cart-actions .dm-solid { background: #e6e1d7; color: #3b3c3a; font-weight: 500; border: 0; box-shadow: none; }
+.rg-dialog.is-cart .rg-cart-actions .dm-solid:hover:not(:disabled), .dm-root .rg-dialog.is-cart .rg-cart-actions .dm-solid:hover:not(:disabled) { background: #dbd5c9; }
+.rg-dialog.is-cart .rg-cart-actions .dm-ghost, .dm-root .rg-dialog.is-cart .rg-cart-actions .dm-ghost { background: #fff; color: #3b3c3a; box-shadow: inset 0 0 0 1px #dcd8cf; border: 0; }
+.rg-dialog.is-cart .rg-cart-actions .dm-ghost:hover, .dm-root .rg-dialog.is-cart .rg-cart-actions .dm-ghost:hover { background: #faf9f6; }
+
+/* ===== Pasos del regalo (2026-11-24): quién regala → dedicatoria → transferí y confirmá. Mismo marco claro que el resumen. ===== */
+.rg-step-of { margin: 0 0 8px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #8b8c88; }
+.rg-step-body { display: grid; gap: 16px; padding: 18px 32px 8px; }
+.rg-step-field { border: 0; margin: 0; padding: 0; min-width: 0; }
+.rg-step-field legend { padding: 0; margin: 0 0 10px; font-size: 15px; color: #3b3c3a; }
+.rg-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.rg-choice-opt { position: relative; display: grid; gap: 2px; padding: 14px 16px; border-radius: 16px; background: #fff; box-shadow: inset 0 0 0 1px #dcd8cf; cursor: pointer; transition: background-color .15s, box-shadow .15s; }
+.rg-choice-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.rg-choice-opt strong { font-size: 15px; font-weight: 500; color: #3b3c3a; }
+.rg-choice-opt small { font-size: 13px; color: #8b8c88; }
+.rg-choice-opt.on { background: #f6f4f0; box-shadow: inset 0 0 0 1.5px #bdb6a6; }
+.rg-choice-opt:has(input:focus-visible) { outline: 2px solid var(--ej-slate); outline-offset: 2px; }
+.rg-step-sub { margin: 6px 0 -4px; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #8b8c88; }
+.rg-opt { color: #8b8c88; }
+.rg-step-body textarea { width: 100%; box-sizing: border-box; min-height: 140px; padding: 14px 16px; border: 0; border-radius: 16px; background: #fff; box-shadow: inset 0 0 0 1px rgb(59 60 58 / .25); font: inherit; font-size: 16px; line-height: 1.45; color: var(--foreground); resize: vertical; outline: none; }
+.rg-step-body textarea:focus-visible { box-shadow: inset 0 0 0 1px var(--ej-slate), 0 0 0 3px rgb(149 149 113 / .35); }
+.rg-steps .rg-cart-total { margin-top: 10px; }
+.rg-steps .rg-bankcard { margin: 0; }
+.rg-step-missing { margin: 4px 32px 0; }
+.rg-steps .rg-cart-actions { padding-top: 18px; }
+@media (max-width: 640px) {
+  .rg-step-body { padding: 14px 22px 6px; gap: 14px; }
+  .rg-step-body .rg-two { grid-template-columns: 1fr; }
+  .rg-step-missing { margin: 4px 22px 0; }
+}
+
+/* Camino del regalo: pasos numerados unidos por una línea (2026-11-24). Gama clara: el actual con borde gris oscuro, los hechos en arena con tilde. */
+.rg-stepper { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); margin: 4px 0 0; padding: 0 16px; list-style: none; }
+.rg-stepper::before { content: ''; position: absolute; left: 0; right: 0; bottom: 19px; height: 1px; background: #e3dfd6; }
+.rg-stepper li { position: relative; display: grid; justify-items: center; gap: 10px; text-align: center; }
+.rg-stepper-label { min-height: 2.6em; display: flex; align-items: flex-end; font-size: 13px; line-height: 1.3; color: #8b8c88; }
+.rg-stepper-dot { position: relative; z-index: 1; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 1px #d9d5cc; font-size: 14px; color: #8b8c88; font-variant-numeric: tabular-nums; }
+.rg-stepper li.is-on .rg-stepper-label { color: #3b3c3a; }
+.rg-stepper li.is-on .rg-stepper-dot { box-shadow: inset 0 0 0 1.5px #3b3c3a; color: #3b3c3a; }
+.rg-stepper li.is-done .rg-stepper-dot { background: #e6e1d7; box-shadow: none; color: #3b3c3a; }
+.rg-stepper li.is-done .rg-stepper-label { color: #6b6b6b; }
+
+/* Paso 1: dos tarjetas grandes con ícono; tocar una pasa al paso siguiente. */
+.rg-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding-top: 10px; }
+.rg-tile { display: grid; justify-items: center; align-content: center; gap: 8px; min-height: 170px; padding: 20px 12px; border: 0; border-radius: 20px; background: #f6f4f0; color: #3b3c3a; font: inherit; cursor: pointer; box-shadow: inset 0 0 0 1px transparent; transition: background-color .15s, box-shadow .15s; }
+.rg-tile svg { margin-bottom: 6px; color: #6b6b6b; }
+.rg-tile strong { font-size: 13.5px; font-weight: 400; letter-spacing: .14em; text-transform: uppercase; }
+.rg-tile small { font-size: 13px; color: #8b8c88; }
+.rg-tile:hover { background: #efece5; box-shadow: inset 0 0 0 1px #d9d5cc; }
+.rg-tile.is-on { box-shadow: inset 0 0 0 1.5px #bdb6a6; }
+.rg-tile:focus-visible { outline: 2px solid var(--ej-slate); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .rg-stepper { padding: 0 6px; }
+  .rg-stepper::before { bottom: 16px; }
+  .rg-stepper-label { font-size: 11.5px; }
+  .rg-stepper-dot { width: 32px; height: 32px; font-size: 13px; }
+  .rg-tiles { gap: 10px; }
+  .rg-tile { min-height: 140px; border-radius: 18px; }
+  .rg-tile strong { font-size: 12px; letter-spacing: .1em; }
+}
+/* Pasos del regalo en gama clara: sin verde (2026-11-24). El botón de copiar va en arena y el foco de los campos, en gris cálido. */
+.rg-steps .rg-copy button, .dm-root .rg-steps .rg-copy button { background: #e6e1d7; color: #3b3c3a; }
+.rg-steps .rg-copy button:hover, .dm-root .rg-steps .rg-copy button:hover { background: #dbd5c9; }
+.rg-steps .rg-copy { box-shadow: inset 0 0 0 1px #ece9e3; }
+.rg-steps input:focus-visible, .rg-steps select:focus-visible, .rg-steps textarea:focus-visible,
+.dm-root .rg-steps input:focus-visible, .dm-root .rg-steps select:focus-visible, .dm-root .rg-steps textarea:focus-visible { outline: none; border-color: #bdb6a6 !important; box-shadow: 0 0 0 3px rgb(189 182 166 / .35) !important; }
+.rg-steps .rg-copy button:focus-visible, .rg-tile:focus-visible, .rg-cart-x:focus-visible { outline-color: #8b8c88; }
+.rg-steps .rg-chip.on span, .dm-root .rg-steps .rg-chip.on span { background: #e6e1d7 !important; color: #3b3c3a !important; border-color: #e6e1d7 !important; box-shadow: none !important; }
+.rg-steps .rg-hint, .rg-steps .rg-optin, .rg-steps .rg-optin a, .rg-steps .rg-copy dt, .dm-root .rg-steps .rg-hint, .dm-root .rg-steps .rg-optin, .dm-root .rg-steps .rg-copy dt { color: #8b8c88; }
+.rg-steps .rg-optin input { accent-color: #8b8c88; }
+.rg-steps .rg-cart-actions .rg-send, .dm-root .rg-steps .rg-cart-actions .rg-send { flex: none; width: auto; min-width: 200px; }
+@media (max-width: 640px) { .rg-steps .rg-cart-actions .rg-send, .dm-root .rg-steps .rg-cart-actions .rg-send { width: 100%; } }
+.rg-steps .rg-missing, .dm-root .rg-steps .rg-missing { color: #8b8c88; }

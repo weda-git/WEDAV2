@@ -561,6 +561,9 @@ export class Service {
     // GIFT-15 (D3, D6): WhatsApp obligatorio, ya en formato internacional (solo números), para que la pareja le agradezca.
     const giverPhone = b['giverPhone'];
     if (!isStoredPhone(giverPhone)) throw invalid('invalid_giver_phone');
+    // Regalo grupal: de parte de quiénes (opcional; hasta 120 caracteres). Vacío = regala solo.
+    const groupNames = typeof b['groupNames'] === 'string' ? b['groupNames'].trim().replace(/\s+/g, ' ') : '';
+    if (groupNames.length > 120) throw invalid('invalid_group_names');
     // El comprobante viaja en el mismo envío (decisión de la dueña, 2026-10-28): no existe un regalo sin comprobante.
     const receipt = decodeReceipt(b['receipt']);
     const message = typeof b['message'] === 'string' ? b['message'].trim().slice(0, 500) : '';
@@ -603,7 +606,7 @@ export class Service {
       const id = newId('apo');
       const t = now();
       const total = lines.reduce((n, l) => n + l.amount, 0);
-      (await this.db.run("INSERT INTO contributions (id,wedding_id,giver_name,giver_email,message,how,status,total,idempotency_key,manage_token_hash,created_at,updated_at,currency,giver_phone) VALUES (?,?,?,?,?,?,'pending_review',?,?,?,?,?,?,?)", id, p.wid, giver, giverEmail, message, 'alias', total, key, hash, t, t, cur, giverPhone));
+      (await this.db.run("INSERT INTO contributions (id,wedding_id,giver_name,giver_email,message,how,status,total,idempotency_key,manage_token_hash,created_at,updated_at,currency,giver_phone,group_names) VALUES (?,?,?,?,?,?,'pending_review',?,?,?,?,?,?,?,?)", id, p.wid, giver, giverEmail, message, 'alias', total, key, hash, t, t, cur, giverPhone, groupNames));
       if (b['marketingOptIn'] === true) (await this.grantConsent(giverEmail, 'gift', p.wid));
       for (const l of lines) (await this.db.run('INSERT INTO contribution_items (contribution_id,kind,gift_id,gift_name,suggested_amount,amount) VALUES (?,?,?,?,?,?)', id, l.kind, l.giftId, l.name, l.suggested, l.amount));
       (await this.db.run("INSERT INTO contribution_events (contribution_id,kind,actor,from_status,to_status,note,at) VALUES (?,'created','guest',NULL,'pending_review','',?)", id, t));
@@ -730,7 +733,7 @@ export class Service {
     if (!w) return [];
     const rows = (await this.db.all('SELECT * FROM contributions WHERE wedding_id = ? ORDER BY created_at DESC, id', w['id'] as string)) as Row[];
     return Promise.all(rows.map(async c => ({
-      id: c['id'] as string, currency: ((c['currency'] as Currency | undefined) ?? 'ARS'), giverName: c['giver_name'] as string, giverEmail: (c['giver_email'] as string | undefined) ?? '', giverPhone: (c['giver_phone'] as string | undefined) ?? '', thankedAt: (c['thanked_at'] as string | null | undefined) ?? null, message: c['message'] as string, how: c['how'] as string, status: c['status'] as string, total: c['total'] as number, createdAt: c['created_at'] as string,
+      id: c['id'] as string, currency: ((c['currency'] as Currency | undefined) ?? 'ARS'), giverName: c['giver_name'] as string, giverEmail: (c['giver_email'] as string | undefined) ?? '', giverPhone: (c['giver_phone'] as string | undefined) ?? '', groupNames: (c['group_names'] as string | undefined) ?? '', thankedAt: (c['thanked_at'] as string | null | undefined) ?? null, message: c['message'] as string, how: c['how'] as string, status: c['status'] as string, total: c['total'] as number, createdAt: c['created_at'] as string,
       items: ((await this.db.all('SELECT kind, gift_id, gift_name, amount FROM contribution_items WHERE contribution_id = ? ORDER BY id', c['id'] as string)) as Row[]).map(i => ({ kind: i['kind'] as 'gift' | 'free', giftId: (i['gift_id'] as string | null) ?? '', giftName: (i['gift_name'] as string | null) ?? '', amount: i['amount'] as number })),
       hasReceipt: !!(await this.db.get('SELECT 1 FROM receipts WHERE contribution_id = ?', c['id'] as string)),
       history: ((await this.db.all('SELECT kind, actor, from_status, to_status, note, at FROM contribution_events WHERE contribution_id = ? ORDER BY id', c['id'] as string)) as Row[]).map(e => ({ kind: e['kind'] as string, actor: e['actor'] as string, from: (e['from_status'] as string | null) ?? null, to: (e['to_status'] as string | null) ?? null, note: e['note'] as string, at: e['at'] as string })),

@@ -31,6 +31,8 @@ describe('GIFT-15 · WhatsApp', () => {
     const url = new URL(waLink('5491155554444', text));
     expect(url.origin + url.pathname).toBe('https://wa.me/5491155554444');
     expect(url.searchParams.get('text')).toBe(text);
+    // Regalo grupal: se agradece también al grupo.
+    expect(thankMessage('Nora', ['Cena'], 'Ana y Leo', 'Los primos Díaz')).toBe('¡Hola, Nora! Muchas gracias a vos y a Los primos Díaz por regalarnos Cena. Nos hizo muy felices. Ana y Leo');
   });
 
   it('D8: el WhatsApp de la pareja se guarda en el borrador y nunca llega a la página', () => {

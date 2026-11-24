@@ -67,8 +67,10 @@ export const waLink = (phone: string, text: string): string => `https://wa.me/${
 /** Lista natural: «A», «A y B», «A, B y C». */
 const listOf = (xs: string[]) => (xs.length <= 1 ? (xs[0] ?? '') : `${xs.slice(0, -1).join(', ')} y ${xs[xs.length - 1]}`);
 /** Mensaje de agradecimiento (D5): «¡Hola, Nora! Muchas gracias por regalarnos Excursión en barco. Nos hizo muy felices. Ana y Leo». */
-export function thankMessage(giver: string, gifts: string[], couple: string): string {
+export function thankMessage(giver: string, gifts: string[], couple: string, group = ''): string {
   const first = giver.trim().split(/\s+/)[0] || '';
-  const what = gifts.length ? `por regalarnos ${listOf(gifts)}` : 'por tu regalo';
-  return `¡Hola${first ? `, ${first}` : ''}! Muchas gracias ${what}. Nos hizo muy felices. ${couple}`.trim();
+  const what = gifts.length ? `por regalarnos ${listOf(gifts)}` : 'por el regalo';
+  // Regalo grupal: se agradece al grupo («Muchas gracias a vos y a Los primos Díaz por…»).
+  const to = group.trim() ? `a vos y a ${group.trim()} ` : '';
+  return `¡Hola${first ? `, ${first}` : ''}! Muchas gracias ${to}${what}. Nos hizo muy felices. ${couple}`.trim();
 }

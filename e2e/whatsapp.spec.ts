@@ -55,15 +55,27 @@ test('WhatsApp: el alta lo pide (y la fecha), quien regala lo deja y la pareja l
   await guest.getByRole('button', { name: 'Regalar' }).first().click();
   const dlg = guest.getByRole('dialog');
   await dlg.getByRole('button', { name: 'Continuar' }).click();
+  // Paso 1 · Cómo regalás: regalo grupal (2026-11-24). Paso 2 · Tus datos: de parte de quiénes y los datos de quien transfiere.
+  await shot(guest, '3a-como');
+  await dlg.getByRole('button', { name: /Regalo grupal/ }).click();
+  await dlg.locator('#rg-group').fill('Los primos Díaz');
   await dlg.locator('#rg-name').fill('Nora');
   await dlg.locator('#rg-surname').fill('Díaz');
   await dlg.locator('#rg-email').fill('nora@example.com');
-  await dlg.locator('#rg-proof').setInputFiles({ name: 'comprobante.png', mimeType: 'image/png', buffer: PNG });
   await expect(dlg).toContainText('tu WhatsApp');
+  await expect(dlg.getByRole('button', { name: 'Continuar' })).toBeDisabled();
   await dlg.locator('#rg-phone').fill('11 6666 7777');
-  await dlg.locator('#rg-phone').scrollIntoViewIfNeeded();
   await shot(guest, '3-regalar');
-  await dlg.getByRole('button', { name: 'Enviar', exact: true }).click();
+  await dlg.getByRole('button', { name: 'Continuar' }).click();
+  // Paso 3 · Dedicatoria.
+  await dlg.locator('#rg-message').fill('¡Que sean muy felices!');
+  await shot(guest, '3b-dedicatoria');
+  await dlg.getByRole('button', { name: 'Continuar' }).click();
+  // Paso 4 · Transferí y confirmá.
+  await expect(dlg).toContainText('ana.leo.mp');
+  await dlg.locator('#rg-proof').setInputFiles({ name: 'comprobante.png', mimeType: 'image/png', buffer: PNG });
+  await shot(guest, '3c-pagar');
+  await dlg.getByRole('button', { name: 'Confirmar regalo', exact: true }).click();
   await expect(dlg.getByRole('heading', { name: /¡Gracias, Nora!/ })).toBeVisible();
 
   // CA-4: la pareja le agradece por WhatsApp con el mensaje listo; queda «Agradecido».
@@ -73,7 +85,9 @@ test('WhatsApp: el alta lo pide (y la fecha), quien regala lo deja y la pareja l
   await expect(thank).toBeVisible();
   const href = new URL((await thank.getAttribute('href'))!);
   expect(href.pathname).toBe('/5491166667777');
-  expect(href.searchParams.get('text')).toBe('¡Hola, Nora! Muchas gracias por regalarnos Excursión en barco. Nos hizo muy felices. Ana y Leo');
+  expect(href.searchParams.get('text')).toBe('¡Hola, Nora! Muchas gracias a vos y a Los primos Díaz por regalarnos Excursión en barco. Nos hizo muy felices. Ana y Leo');
+  await expect(page.getByText('Regalo grupal · de parte de')).toBeVisible();
+  expect((await (await page.request.get('/api/contributions')).json()).contributions[0]).toMatchObject({ groupNames: 'Los primos Díaz', message: '¡Que sean muy felices!' });
   await shot(page, '4-agradecer');
   await context.route('https://wa.me/**', r => r.fulfill({ status: 200, body: 'wa' }));
   const [popup] = await Promise.all([page.waitForEvent('popup'), thank.click()]);
