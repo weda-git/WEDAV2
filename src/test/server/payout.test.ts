@@ -55,6 +55,17 @@ describe('cambiar el destino de cobro', () => {
     expect((await payoutOf(c)).version).toBe(0);
   });
 
+  it('titular de la cuenta (migración 7): opcional, se guarda, cuenta como cambio y llega a la página publicada', async () => {
+    const c = await couple();
+    expect((await setPayout(c, { alias: 'ana.leo.mp', holder: 'x'.repeat(81) })).body.error).toBe('invalid_holder');
+    expect((await setPayout(c, { alias: 'ana.leo.mp' })).body.payout).toMatchObject({ version: 1, holder: '' });
+    const r = await setPayout(c, { alias: 'ana.leo.mp', holder: '  Ana   Pérez ' });
+    expect(r.body.payout).toMatchObject({ version: 2, alias: 'ana.leo.mp', holder: 'Ana Pérez' });
+    expect((await c.get('/api/wedding')).body.draft.gifts.holder).toBe('Ana Pérez');
+    await c.post('/api/wedding/publish');
+    expect((await env.client().get('/api/public/ana-y-leo')).body.site.holder).toBe('Ana Pérez');
+  });
+
   it('cada cambio agrega una versión (la anterior se conserva) y los invitados lo ven recién al publicar', async () => {
     const c = await couple();
     expect((await setPayout(c, { alias: 'ana.leo.mp', bank: 'Banco Uno', cbu: '0170-0992 2000 0067 7973 70' })).status).toBe(200);

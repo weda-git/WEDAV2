@@ -809,3 +809,49 @@
 .rg-steps .rg-cart-actions .rg-send, .dm-root .rg-steps .rg-cart-actions .rg-send { flex: none; width: auto; min-width: 200px; }
 @media (max-width: 640px) { .rg-steps .rg-cart-actions .rg-send, .dm-root .rg-steps .rg-cart-actions .rg-send { width: 100%; } }
 .rg-steps .rg-missing, .dm-root .rg-steps .rg-missing { color: #8b8c88; }
+
+/* ===== Paso «Transferí» (2026-11-24, pedido de la dueña) =====
+   El regalo se desplaza por dentro y los botones quedan siempre a la vista abajo; datos de la cuenta completos; prefijo con su flechita adentro. */
+.rg-dialog.is-cart { overflow-y: auto !important; overscroll-behavior: contain; }
+.rg-dialog.is-cart .rg-cart-actions { position: sticky; bottom: 0; z-index: 2; background: #fff; box-shadow: 0 -1px 0 #ece9e3; }
+.rg-acct { border: 1px solid #ece9e3; border-radius: 16px; background: #fff; overflow: hidden; }
+.rg-acct-head { margin: 0; padding: 12px 18px; background: #f6f4f0; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: #6b6b6b; }
+.rg-acct dl { margin: 0; }
+.rg-acct-row { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; align-items: center; column-gap: 12px; min-height: 52px; padding: 6px 10px 6px 18px; border-top: 1px solid #ece9e3; }
+.rg-acct-row:first-child { border-top: 0; }
+.rg-acct-row dt { margin: 0; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: #8b8c88; }
+.rg-acct-row dd { margin: 0; min-width: 0; font-size: 15px; color: #3b3c3a; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.rg-acct-row dd code { font: inherit; letter-spacing: .01em; }
+.rg-acct-row button { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 12px; border: 0; border-radius: 999px; background: #f1eee8; color: #3b3c3a; font: inherit; font-size: 13px; cursor: pointer; touch-action: manipulation; }
+.rg-acct-row button:hover { background: #e6e1d7; }
+.rg-acct-row button:focus-visible { outline: 2px solid var(--ej-slate); outline-offset: 2px; }
+.rg-dialog.is-cart .rg-help { margin: 0; font-size: 14px; line-height: 1.45; }
+@media (max-width: 640px) {
+  .rg-acct-head { padding: 10px 16px; }
+  .rg-acct-row { grid-template-columns: 56px minmax(0, 1fr) auto; column-gap: 8px; min-height: 46px; padding: 3px 6px 3px 14px; }
+  .rg-acct-row dd code { font-size: 13.5px; letter-spacing: 0; white-space: nowrap; }
+  .rg-acct-row dt { font-size: 11px; letter-spacing: .08em; }
+  .rg-acct-row dd { font-size: 14px; }
+  .rg-acct-row button { width: 40px; height: 40px; min-height: 0; padding: 0; justify-content: center; }
+  .rg-acct-row button span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+.rg-phone select {
+  appearance: none; -webkit-appearance: none; padding: 0 30px 0 14px; cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 18px) 52%, calc(100% - 13px) 52%; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+@media (max-width: 640px) {
+  /* Que el paso «Transferí» entre en una pantalla de celular: total más bajo y los dos botones lado a lado. */
+  .rg-dialog.is-cart .rg-cart-total { padding-top: 14px; padding-bottom: 14px; }
+  .rg-dialog.is-cart .rg-cart-actions { flex-direction: row-reverse; padding: 12px 18px 16px; }
+  .rg-dialog.is-cart .rg-cart-actions .dm-ghost { flex: 0 0 34%; }
+  .rg-dialog.is-cart .rg-cart-actions .dm-solid { flex: 1; }
+}
+@media (min-width: 641px) and (max-height: 860px) {
+  /* Compu con pantalla baja: el paso «Transferí» entra entero sin desplazarse. */
+  .rg-dialog.is-cart .rg-cart-head { min-height: 68px; }
+  .rg-dialog.is-cart .rg-cart-total { padding-top: 16px; padding-bottom: 16px; }
+  .rg-dialog.is-cart .rg-cart-actions { padding-top: 14px; padding-bottom: 18px; }
+  .rg-acct-row { min-height: 46px; }
+  .rg-acct-head { padding: 10px 18px; }
+}

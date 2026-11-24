@@ -263,8 +263,9 @@ function useContributions(s: ReturnType<typeof useAppState>): { list: Contributi
 const fmtDate = (t: number) => new Date(t).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 /* Transferencia bancaria: banco, CBU y alias. Cada dato se guarda solo apenas es válido; el error aparece al salir del campo. Los tres son opcionales (el alias alcanza para cobrar); si se cargan, los invitados los ven al transferir. */
-function BankFields({ bank, cbu, alias, currency = 'ARS' }: PayoutAccount & { currency?: Currency }) {
+function BankFields({ bank, cbu, alias, holder = '', currency = 'ARS' }: PayoutAccount & { currency?: Currency }) {
   const [b, setB] = useState(bank);
+  const [h, setH] = useState(holder);
   const [c, setC] = useState(cbu);
   const [al, setAl] = useState(alias);
   const [touched, setTouched] = useState<{ cbu?: boolean; alias?: boolean }>({});
@@ -276,6 +277,9 @@ function BankFields({ bank, cbu, alias, currency = 'ARS' }: PayoutAccount & { cu
     : { ...x, gifts: { ...x.gifts, ...patch } }));
   return (
     <div className="pn-form">
+      <Field label="Titular de la cuenta" optional>
+        {a => <input id={a.id} type="text" value={h} placeholder="Nombre y apellido" autoComplete="off" maxLength={80} onChange={e => { setH(e.target.value); save({ holder: e.target.value.trim() }); }} />}
+      </Field>
       <Field label="Banco" optional>
         {a => <input id={a.id} type="text" value={b} placeholder="Nombre del banco" autoComplete="off" onChange={e => { setB(e.target.value); save({ bank: e.target.value.trim() }); }} />}
       </Field>
@@ -780,6 +784,7 @@ function GiftsModule() {
                 {a ? (
                   <dl className="pn-cfg-sum">
                     <div><dt>Alias</dt><dd>{a}</dd></div>
+                    {acc.holder?.trim() && <div><dt>Titular</dt><dd>{acc.holder.trim()}</dd></div>}
                     {acc.bank.trim() && <div><dt>Banco</dt><dd>{acc.bank.trim()}</dd></div>}
                     {acc.cbu.trim() && <div><dt>CBU</dt><dd>{acc.cbu.trim()}</dd></div>}
                   </dl>
@@ -814,14 +819,14 @@ function GiftsModule() {
             <DialogTitle>Cuenta en {CURRENCY_LABEL[payCur].toLowerCase()}</DialogTitle>
             {server ? (
               <>
-                <DialogDescription>{payCur === 'USD' ? 'Tiene que ser una cuenta que reciba dólares. ' : ''}El alias alcanza para cobrar; el banco y el CBU son opcionales.{server.alias || server.bank || server.cbu ? ' Para cambiarlos te pedimos tu clave.' : ''}</DialogDescription>
+                <DialogDescription>{payCur === 'USD' ? 'Tiene que ser una cuenta que reciba dólares. ' : ''}El alias alcanza para cobrar; el titular, el banco y el CBU son opcionales.{server.alias || server.bank || server.cbu || server.holder ? ' Para cambiarlos te pedimos tu clave.' : ''}</DialogDescription>
                 <PayoutForm currency={payCur} current={server} initial={payCur === 'ARS' ? remote.pendingPayout : null} onCancel={() => setCfg(null)}
                   onDone={() => { setCfg(null); toast('Listo: guardamos tu cuenta. Tus invitados la ven cuando actualices tu página.'); }} />
               </>
             ) : (
               <>
-                <DialogDescription>Se guarda sola mientras escribís. {payCur === 'USD' ? 'Tiene que ser una cuenta que reciba dólares. ' : ''}El alias alcanza para cobrar; el banco y el CBU son opcionales.{remote.user ? '' : ' Al crear tu cuenta, vas a confirmarlos con tu clave.'}</DialogDescription>
-                <BankFields key={payCur} currency={payCur} bank={acc.bank} cbu={acc.cbu} alias={acc.alias} />
+                <DialogDescription>Se guarda sola mientras escribís. {payCur === 'USD' ? 'Tiene que ser una cuenta que reciba dólares. ' : ''}El alias alcanza para cobrar; el titular, el banco y el CBU son opcionales.{remote.user ? '' : ' Al crear tu cuenta, vas a confirmarlos con tu clave.'}</DialogDescription>
+                <BankFields key={payCur} currency={payCur} bank={acc.bank} cbu={acc.cbu} alias={acc.alias} holder={acc.holder ?? ''} />
                 <div className="pn-actions is-end"><button type="button" className="pn-btn" onClick={() => setCfg(null)}>Listo</button></div>
               </>
             )}

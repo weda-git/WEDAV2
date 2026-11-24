@@ -13,7 +13,6 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import type { Category, Gift, IconKey } from '@/lib/demo-wedding';
 import { CURRENCY_LABEL, CURRENCY_SYMBOL, formatMoney, priceIn, type Currency } from '@/lib/weda/money';
 import { useSite, useSiteActions, type GiftSubmission, type Giver } from '@/lib/weda/site-model';
-import { MARKETING_CONSENT_TEXT } from '@/lib/weda/consent';
 import { COUNTRIES, DEFAULT_COUNTRY, normalizePhone, PHONE_ERROR } from '@/lib/weda/phone';
 import '@/gift-card.css';
 
@@ -111,20 +110,23 @@ function FreeCard({ min, current, onAdd }: { min: number; current: number | null
   );
 }
 
-/** Un dato para transferir (alias o CBU), destacado y con su botón de copiar. */
-function CopyRow({ label, value }: { label: string; value: string }) {
+/** Una fila de la cuenta (titular, alias, CBU o banco). Alias y CBU llevan su botón de copiar. */
+function AcctRow({ label, value, copy }: { label: string; value: string; copy?: boolean }) {
   const [copied, setCopied] = useState(false);
-  const copy = async () => {
+  const doCopy = async () => {
     try { await navigator.clipboard.writeText(value); } catch { /* sin portapapeles: el dato igual queda a la vista */ }
     setCopied(true); window.setTimeout(() => setCopied(false), 2200);
   };
   return (
-    <div className="rg-copy">
+    <div className="rg-acct-row">
       <dt>{label}</dt>
-      <dd><code>{value}</code></dd>
-      <button type="button" onClick={() => void copy()} aria-label={copied ? `${label} copiado` : `Copiar ${label.toLowerCase() === 'cbu' ? 'el CBU' : 'el alias'}`}>
-        {copied ? <><Check size={14} aria-hidden="true" /><span>Copiado</span></> : <><Copy size={14} aria-hidden="true" /><span>Copiar</span></>}
-      </button>
+      <dd>{copy ? <code>{value}</code> : value}</dd>
+      {copy && (
+        <button type="button" onClick={() => void doCopy()} aria-label={copied ? `${label} copiado` : `Copiar ${label === 'CBU' ? 'el CBU' : 'el alias'}`}>
+          {copied ? <Check size={15} aria-hidden="true" /> : <Copy size={15} aria-hidden="true" />}
+          <span>{copied ? 'Copiado' : 'Copiar'}</span>
+        </button>
+      )}
     </div>
   );
 }
@@ -172,22 +174,21 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
   const [group, setGroup] = useState('');
   // Paso 1: ninguna tarjeta aparece elegida hasta que la persona elige (al volver, queda marcada la que eligió).
   const [picked, setPicked] = useState(false);
-  const [optIn, setOptIn] = useState(false);
   const { remote } = useSiteActions();
   const [proof, setProof] = useState<File | null>(null);
-  const [how, setHow] = useState<'alias' | 'tarjeta'>('alias');
+  const how = 'alias' as const;
   const site = useSite();
   // La cuenta de la moneda que eligió el invitado (GIFT-10 v2, D4).
-  const account = cur === 'USD' ? (site.usd ?? { alias: '', bank: '', cbu: '' }) : { alias: site.alias, bank: site.bank, cbu: site.cbu };
+  const account = cur === 'USD' ? (site.usd ?? { alias: '', bank: '', cbu: '', holder: '' }) : { alias: site.alias, bank: site.bank, cbu: site.cbu, holder: site.holder };
   const alias = account.alias;
   // Lo enviado se guarda aparte: al enviar, el carrito se vacía pero el agradecimiento sigue mostrando esos regalos.
   const [sent, setSent] = useState<{ first: string; gifts: Gift[]; total: number } | null>(null);
   const total = items.reduce((n, g) => n + price(g), 0);
-  const reset = () => { attempt.current = null; setSendError(null); setView('cart'); setName(''); setSurname(''); setEmail(''); setPhone({ country: DEFAULT_COUNTRY, number: '' }); setMessage(''); setGrupal(false); setGroup(''); setPicked(false); setOptIn(false); setProof(null); setHow('alias'); setSent(null); };
+  const reset = () => { attempt.current = null; setSendError(null); setView('cart'); setName(''); setSurname(''); setEmail(''); setPhone({ country: DEFAULT_COUNTRY, number: '' }); setMessage(''); setGrupal(false); setGroup(''); setPicked(false); setProof(null); setSent(null); };
   // Para poder enviar: nombre, apellido, correo (obligatorio: constancia del regalo y contacto de la pareja) y, si transfiere por alias, el comprobante.
-  const cardSelected = site.acceptCard && how === 'tarjeta';
-  const noAlias = !cardSelected && !alias;
-  const blocked = cardSelected || noAlias;
+  // De momento solo se regala por alias (pedido de la dueña, 2026-11-24): la tarjeta no se ofrece.
+  const noAlias = !alias;
+  const blocked = noAlias;
   // Lo que falta en «¿Quién regala?» (paso 1) y en el pago (paso 3).
   const whoMissing = [
     grupal && group.trim().length < 2 && 'de parte de quiénes',
@@ -210,7 +211,7 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
     attempt.current ??= { key: crypto.randomUUID(), token: `${crypto.randomUUID()}${crypto.randomUUID()}` };
     setSending(true); setSendError(null);
     try {
-      await onSent(items, { name: `${name.trim()} ${surname.trim()}`, message: message.trim(), how, email: email.trim().toLowerCase(), phone: phoneFull ?? '', group: grupal ? group.trim() : '', marketingOptIn: optIn }, { proof, attempt: attempt.current, currency: cur });
+      await onSent(items, { name: `${name.trim()} ${surname.trim()}`, message: message.trim(), how, email: email.trim().toLowerCase(), phone: phoneFull ?? '', group: grupal ? group.trim() : '', marketingOptIn: false }, { proof, attempt: attempt.current, currency: cur });
     } catch (err) {
       setSending(false);
       setSendError(err instanceof Error && err.message ? err.message : 'No pudimos enviar tu regalo. Revisá tu conexión y probá de nuevo.');
@@ -309,8 +310,7 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
                 <div className="rg-two">
                   <div className="rg-field">
                     <label htmlFor="rg-email">Correo electrónico</label>
-                    <input id="rg-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} aria-describedby="rg-email-help" />
-                    <p className="rg-hint" id="rg-email-help">Para mandarte la constancia.</p>
+                    <input id="rg-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} />
                   </div>
                   <div className="rg-field">
                     <label htmlFor="rg-phone">WhatsApp</label>
@@ -318,9 +318,9 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
                       <select aria-label="Código de país" value={phone.country} onChange={e => setPhone(p => ({ ...p, country: e.target.value }))}>
                         {COUNTRIES.map(c => <option key={c.code} value={c.code} aria-label={c.label}>+{c.code}</option>)}
                       </select>
-                      <input id="rg-phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder={phone.country === '54' ? '11 5555 4444' : 'Número'} value={phone.number} onChange={e => setPhone(p => ({ ...p, number: e.target.value }))} aria-describedby="rg-phone-help" />
+                      <input id="rg-phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder={phone.country === '54' ? '11 5555 4444' : 'Número'} value={phone.number} onChange={e => setPhone(p => ({ ...p, number: e.target.value }))} aria-describedby={phone.number.trim() && !phoneFull ? 'rg-phone-help' : undefined} />
                     </div>
-                    <p className="rg-hint" id="rg-phone-help">{phone.number.trim() && !phoneFull ? PHONE_ERROR : 'Para que los novios te agradezcan.'}</p>
+                    {phone.number.trim() && !phoneFull && <p className="rg-hint" id="rg-phone-help">{PHONE_ERROR}</p>}
                   </div>
                 </div>
               </div>
@@ -340,39 +340,29 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
               <>
                 <p className="rg-cart-total"><span>Transferí</span><strong>{money(total)}</strong></p>
                 <div className="rg-step-body">
-                  {site.acceptCard && <fieldset className="rg-field">
-                    <legend>¿Cómo querés pagar?</legend>
-                    <div className="rg-chips">
-                      {(['alias', 'tarjeta'] as const).map(v => (
-                        <label key={v} className={`rg-chip${how === v ? ' on' : ''}`}>
-                          <input type="radio" name="rg-how" value={v} checked={how === v} onChange={() => setHow(v)} />
-                          <span>{v === 'alias' ? 'Alias' : 'Tarjeta'}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </fieldset>}
-                  {how === 'alias' || !site.acceptCard ? (
-                    alias ? (
-                      <dl className="rg-bankcard">
-                        <CopyRow label="Alias" value={alias} />
-                        {account.cbu && <CopyRow label="CBU" value={account.cbu} />}
-                        {account.bank && <div className="rg-copy"><dt>Banco</dt><dd>{account.bank}</dd></div>}
+                  {alias ? (
+                    // Cuadro único con todos los datos de la cuenta (2026-11-24, pedido de la dueña): titular, alias, CBU y banco.
+                    <div className="rg-acct">
+                      <p className="rg-acct-head">Cuenta en {cur === 'USD' ? 'dólares' : 'pesos'}</p>
+                      <dl>
+                        {account.holder && <AcctRow label="Titular" value={account.holder} />}
+                        <AcctRow label="Alias" value={alias} copy />
+                        {account.cbu && <AcctRow label="CBU" value={account.cbu} copy />}
+                        {account.bank && <AcctRow label="Banco" value={account.bank} />}
                       </dl>
-                    ) : <p className="rg-note">Los novios todavía no cargaron su alias. Cuando lo hagan, vas a verlo acá.</p>
-                  ) : <p className="rg-note">El pago con tarjeta todavía no está disponible. Elegí «Alias» para continuar.</p>}
-                  <DialogDescription className="rg-help">{alias ? 'Hacé la transferencia desde tu banco y subí el comprobante para confirmar tu regalo.' : ''}</DialogDescription>
+                    </div>
+                  ) : <p className="rg-note">Los novios todavía no cargaron su alias. Cuando lo hagan, vas a verlo acá.</p>}
+                  <DialogDescription className="dm-sr">{alias ? 'Transferí desde tu banco y subí el comprobante para confirmar tu regalo.' : ''}</DialogDescription>
                   {!blocked && (
                     <div className="rg-up">
                       <input id="rg-proof" className="dm-sr" type="file" accept="image/*,application/pdf" onChange={e => setProof(e.target.files?.[0] ?? null)} />
                       <label htmlFor="rg-proof" className={`rg-file${proof ? ' has' : ''}`}>
                         {proof ? <Check size={16} aria-hidden="true" /> : <Upload size={16} aria-hidden="true" />}
-                        <span>{proof ? proof.name : 'Subir comprobante (captura o PDF)'}</span>
+                        <span>{proof ? proof.name : 'Subí el comprobante (captura o PDF)'}</span>
                         {proof && <em>Cambiar</em>}
                       </label>
                     </div>
                   )}
-                  {/* Novedades de Weda: casilla aparte y destildada (consentimiento expreso; no es necesaria para regalar). */}
-                  <label className="rg-optin"><input type="checkbox" checked={optIn} onChange={e => setOptIn(e.target.checked)} /><span>{MARKETING_CONSENT_TEXT} <a href="/privacidad" target="_blank" rel="noopener noreferrer">Política de privacidad</a></span></label>
                   {sendError && <p className="dm-error" role="alert">{sendError}</p>}
                   {noAlias && <p className="rg-missing" aria-live="polite">Todavía no se puede enviar: los novios no cargaron su alias.</p>}
                   {missing.length > 0 && <p className="rg-missing" aria-live="polite">Para confirmar falta: {missing.join(', ')}.</p>}
