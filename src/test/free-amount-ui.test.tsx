@@ -4,7 +4,9 @@ import type { ReactNode } from 'react';
 
 import { GiftsPage } from '@/components/site/gifts-page';
 import { contributionsFromServer, emptyState, FREE_GIFT_ID, freeAmountMin, validateFreeAmount } from '@/lib/weda/logic';
+// El ejemplo está en pesos y dólares (pregunta la moneda al entrar); estas pruebas miden otra cosa: lista solo en pesos.
 import { demoSiteData, siteFromState, SiteProvider, type SiteActions } from '@/lib/weda/site-model';
+const pesos = { ...demoSiteData, currencies: ['ARS' as const] };
 import { sanitize } from '@/lib/weda/store';
 
 // GIFT-09 · Aporte de importe libre: la tarjeta de la página pública, su renglón en el carrito y el saneamiento del borrador.
@@ -12,7 +14,7 @@ vi.mock('@tanstack/react-router', () => ({ Link: ({ children, to }: { children: 
 vi.mock('@/components/rsvp-dialog', () => ({ useRsvp: () => ({ open: () => {} }) }));
 
 const actions: SiteActions = { given: [], recordGift: () => {}, recordRsvp: () => {} };
-const page = (enabled: boolean, min = 1000) => render(<SiteProvider data={{ ...demoSiteData, kind: 'app', freeAmount: { enabled, min } }} actions={actions}><GiftsPage /></SiteProvider>);
+const page = (enabled: boolean, min = 1000) => render(<SiteProvider data={{ ...pesos, kind: 'app', freeAmount: { enabled, min } }} actions={actions}><GiftsPage /></SiteProvider>);
 const freeCard = () => screen.getByRole('heading', { name: 'Aporte libre' }).closest('article')!;
 
 afterEach(cleanup);
@@ -22,7 +24,7 @@ describe('aporte libre en la página pública', () => {
     page(false);
     expect(screen.queryByRole('heading', { name: 'Aporte libre' })).toBeNull();
     cleanup();
-    render(<SiteProvider data={demoSiteData} actions={actions}><GiftsPage /></SiteProvider>);
+    render(<SiteProvider data={pesos} actions={actions}><GiftsPage /></SiteProvider>);
     expect(screen.queryByRole('heading', { name: 'Aporte libre' })).toBeNull();
   });
 

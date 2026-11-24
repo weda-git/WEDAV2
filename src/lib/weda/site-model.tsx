@@ -116,7 +116,9 @@ export const demoSiteData: SiteData = {
   playlist: demoPlaylist,
   message: { title: 'Que vengas ya es un regalo.', text: '' },
   gifts: demoGifts,
-  currencies: ['ARS'],
+  // El ejemplo muestra la lista en pesos y dólares (2026-11-24): así se ve la pregunta al entrar y el desplegable de moneda.
+  currencies: ['ARS', 'USD'],
+  usd: { alias: `${demoAlias}.usd`, bank: '', cbu: '' },
   freeAmount: { enabled: false, min: MIN_AMOUNT }, // /ejemplo no cambia (D7)
   giftCategories: demoCategories,
   giftsCover: null,

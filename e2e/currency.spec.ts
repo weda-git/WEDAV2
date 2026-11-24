@@ -71,8 +71,7 @@ test('pesos y dólares: elegir al empezar, los dos precios, una cuenta por moned
   await expect(guestAsk).toHaveCount(0);
   const gift = guest.locator('article').filter({ hasText: 'Excursión en barco' });
   await expect(gift).toContainText('$ 250.000');
-  const pick = guest.getByRole('radiogroup', { name: 'Moneda de los precios' }).filter({ visible: true });
-  await pick.getByRole('radio', { name: 'Dólares' }).click();
+  await guest.getByLabel('Moneda', { exact: true }).selectOption('USD');
   await expect(gift).toContainText('US$ 170');
   await guest.waitForTimeout(300);
   await shot(guest, '6-invitado');
@@ -89,4 +88,22 @@ test('pesos y dólares: elegir al empezar, los dos precios, una cuenta por moned
   await expect(dlg).toContainText('ana.leo.usd');
   await expect(dlg).not.toContainText('ana.leo.pesos');
   await shot(guest, '7-regalar');
+});
+
+test('el ejemplo (Vera y Santiago) está en pesos y dólares: pregunta al entrar y deja la moneda como desplegable', async ({ page }) => {
+  await page.goto('/ejemplo/regalos', { waitUntil: 'networkidle' });
+  const ask = page.getByRole('dialog', { name: 'Elegí la moneda' });
+  await expect(ask).toBeVisible();
+  await page.waitForTimeout(400);
+  await shot(page, 'ej-1-pregunta');
+  await ask.getByRole('radio', { name: 'Dólares' }).click();
+  await expect(ask).toHaveCount(0);
+  await expect(page.getByLabel('Moneda', { exact: true })).toHaveValue('USD');
+  await expect(page.getByLabel('Categoría', { exact: true })).toBeVisible();
+  await expect(page.getByLabel('Ordenar o filtrar por monto')).toBeVisible();
+  await expect(page.getByPlaceholder('Buscar un regalo')).toBeVisible();
+  await expect(page.locator('article').first()).toContainText('US$');
+  await page.locator('.rg-bar').scrollIntoViewIfNeeded();
+  await shot(page, 'ej-2-barra');
+  if (process.env['SHOTS']) { await page.setViewportSize({ width: 1280, height: 800 }); await page.locator('.rg-bar').scrollIntoViewIfNeeded(); await page.waitForTimeout(300); await shot(page, 'ej-3-compu'); }
 });
