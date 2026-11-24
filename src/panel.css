@@ -2205,17 +2205,35 @@ body:has(.pn-app) { background: #f6f6f3; }
 .cur-coins.is-small .cur-coin { width: 28px; height: 28px; font-size: 10px; box-shadow: 0 0 0 2px #fff; }
 .cur-coins.is-small .cur-coin + .cur-coin { margin-left: -2px; }
 
-.cur-options { display: grid; gap: 10px; margin-top: 4px; }
-.cur-option { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 76px; padding: 14px 16px; border: 1px solid var(--pn-line-s, #e3e1d8); border-radius: 16px; background: #fff; text-align: left; cursor: pointer; transition: border-color .15s, box-shadow .15s, background-color .15s; }
+.cur-options { display: grid; gap: 12px; margin-top: 20px; }
+/* Tres filas iguales (2026-11-24, pedido de la dueña): una columna fija para los círculos, el texto siempre en la misma línea vertical,
+   el mismo alto y el tilde en una tercera columna reservada (no corre el texto al elegir). */
+.cur-option { display: grid; grid-template-columns: 56px minmax(0, 1fr) 20px; align-items: center; column-gap: 16px; width: 100%; min-height: 84px; padding: 16px 18px; border: 1px solid var(--pn-line-s, #e3e1d8); border-radius: 18px; background: #fff; text-align: left; cursor: pointer; transition: border-color .15s, box-shadow .15s, background-color .15s; }
 .cur-option:hover { border-color: #b9b793; }
 .cur-option.is-on { border-color: #747453; box-shadow: 0 0 0 1px #747453; background: #fafaf5; }
-.cur-option .cur-coins { min-width: 84px; justify-content: center; }
-.cur-option-copy { display: grid; gap: 2px; flex: 1; }
-.cur-option-copy strong { font-size: 16px; font-weight: 600; color: var(--text-main, #3b3c3a); }
-.cur-option-copy small { font-size: 13.5px; line-height: 1.35; color: var(--pn-muted, #6b6b6b); }
-.cur-option-check { color: #747453; flex: none; }
-.cur-current { margin: 14px 0 0; text-align: center; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--pn-muted, #6b6b6b); }
+.cur-option .cur-coins { justify-content: center; }
+.cur-option .cur-coin { width: 48px; height: 48px; font-size: 13.5px; }
+/* «Las dos»: los dos círculos superpuestos en diagonal, en el mismo lugar que ocupa uno solo (así el texto arranca igual en las tres filas). */
+.cur-option .cur-coins.is-both { position: relative; width: 56px; height: 56px; }
+.cur-option .cur-coins.is-both .cur-coin { position: absolute; width: 36px; height: 36px; font-size: 10.5px; margin: 0; box-shadow: 0 0 0 2px #fff; }
+.cur-option .cur-coins.is-both .cur-coin:first-child { top: 0; left: 0; }
+.cur-option .cur-coins.is-both .cur-coin:last-child { right: 0; bottom: 0; }
+.cur-option-copy { display: grid; gap: 4px; min-width: 0; }
+.cur-option-copy strong { font-size: 16px; line-height: 1.25; font-weight: 600; color: var(--text-main, #3b3c3a); }
+.cur-option-copy small { font-size: 14px; line-height: 1.4; color: var(--pn-muted, #6b6b6b); }
+.cur-option-check { color: #747453; justify-self: end; }
+.pn-dialog.cur-dialog h2 { font-size: clamp(22px, 3vw, 26px) !important; line-height: 1.2 !important; }
+.pn-dialog.cur-dialog [data-slot='dialog-description'], .pn-dialog.cur-dialog p:first-of-type { margin-top: 6px; }
+.cur-current { margin: 18px 0 0; text-align: center; font-size: 12.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--pn-muted, #6b6b6b); }
 .cur-current strong { color: var(--text-main, #3b3c3a); }
+@media (max-width: 480px) {
+  .cur-options { gap: 10px; margin-top: 16px; }
+  .cur-option { grid-template-columns: 52px minmax(0, 1fr) 18px; column-gap: 14px; min-height: 76px; padding: 14px 16px; }
+  .cur-option .cur-coin { width: 44px; height: 44px; font-size: 12.5px; }
+  .cur-option .cur-coins.is-both { width: 52px; height: 52px; }
+  .cur-option .cur-coins.is-both .cur-coin { width: 34px; height: 34px; font-size: 10px; }
+  .cur-option-copy small { font-size: 13.5px; }
+}
 
 .cur-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 6px; border: 1px solid var(--pn-line-s, #e3e1d8); border-radius: 999px; background: rgb(255 255 255 / .8); font-size: 14px; color: var(--text-main, #3b3c3a); cursor: pointer; }
 .cur-chip:hover { background: #fff; }

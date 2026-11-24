@@ -133,13 +133,13 @@ function PriceTag({ g, mode }: { g: { amount: number; amountUsd?: number | undef
 
 /** Los círculos de moneda (referencia de la dueña: «AR$» y «US$»). */
 function Coins({ mode, small }: { mode: ListMode; small?: boolean }) {
-  return <span className={`cur-coins${small ? ' is-small' : ''}`} aria-hidden="true">{shownCurrencies(mode).map(c => <span key={c} className={`cur-coin is-${c.toLowerCase()}`}>{CURRENCY_SYMBOL[c]}</span>)}</span>;
+  return <span className={`cur-coins${small ? ' is-small' : ''}${mode === 'both' ? ' is-both' : ''}`} aria-hidden="true">{shownCurrencies(mode).map(c => <span key={c} className={`cur-coin is-${c.toLowerCase()}`}>{CURRENCY_SYMBOL[c]}</span>)}</span>;
 }
 
 const CURRENCY_OPTIONS: { id: ListMode; title: string; text: string }[] = [
-  { id: 'ARS', title: 'Pesos', text: 'Tus invitados ven los precios en pesos y te transfieren a tu cuenta en pesos.' },
-  { id: 'USD', title: 'Dólares', text: 'Tus invitados ven los precios en dólares y te transfieren a tu cuenta en dólares.' },
-  { id: 'both', title: 'Las dos', text: 'Cada invitado elige si regala en pesos o en dólares. Cargás una cuenta para cada moneda.' },
+  { id: 'ARS', title: 'Pesos', text: 'Precios y cuenta en pesos.' },
+  { id: 'USD', title: 'Dólares', text: 'Precios y cuenta en dólares.' },
+  { id: 'both', title: 'Las dos', text: 'Cada invitado elige la suya.' },
 ];
 /** Elegir la moneda (GIFT-10 v2, D1 y D2): al agregar el primer regalo y desde «Cambiar». Cambiar no borra montos: cada regalo tiene los dos. */
 function CurrencyDialog({ mode, first, onPick, onClose }: { mode: ListMode; first: boolean; onPick: (m: ListMode) => void; onClose: () => void }) {
@@ -147,7 +147,7 @@ function CurrencyDialog({ mode, first, onPick, onClose }: { mode: ListMode; firs
     <Dialog open onOpenChange={o => { if (!o) onClose(); }}>
       <DialogContent className="pn-dialog cur-dialog">
         <DialogTitle>{first ? '¿En qué moneda armás tu lista?' : 'Moneda de tu lista'}</DialogTitle>
-        <DialogDescription>{first ? 'Es como tus invitados ven los precios. Lo podés cambiar cuando quieras.' : 'Cada regalo tiene su precio en pesos y en dólares: cambiar no borra nada.'}</DialogDescription>
+        <DialogDescription>{first ? 'Así ven los precios tus invitados. Lo podés cambiar cuando quieras.' : 'Cada regalo tiene precio en pesos y en dólares: cambiar no borra nada.'}</DialogDescription>
         <div className="cur-options" role="radiogroup" aria-label="Moneda de tu lista">
           {CURRENCY_OPTIONS.map(o => {
             const on = !first && mode === o.id;
