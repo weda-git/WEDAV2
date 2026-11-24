@@ -712,6 +712,7 @@ function GiftsModule() {
                     <li key={r.id} className="rg-rec">
                       <div className="rg-rec-main">
                         <p className="rg-rec-name">{r.giver}{r.how && <span className="pn-chip">{HOW_LABEL[r.how]}</span>}{r.status === 'pending_review' && <span className="pn-chip is-todo">A revisar</span>}{r.status === 'confirmed' && <span className="pn-chip is-ok">Confirmado</span>}{r.status === 'rejected' && <span className="pn-chip is-off">Rechazado</span>}</p>
+                        {r.group && <p className="rg-rec-group">Regalo grupal · de parte de <strong>{r.group}</strong></p>}
                         {r.email && <p className="rg-rec-mail"><a className="pn-link" href={`mailto:${r.email}`}>{r.email}</a>{r.phone && <> · {formatPhone(r.phone)}</>}</p>}
                         <ul className="rg-rec-gifts" aria-label={`Regalos de ${r.giver}`}>
                           {r.gifts.map((g, i) => <li key={`${g.name}-${i}`}><span>{g.name}</span><span>{formatMoney(g.amount, r.currency ?? 'ARS')}</span></li>)}
@@ -728,7 +729,7 @@ function GiftsModule() {
                         {/* GIFT-15 (D5): abre WhatsApp con quien regaló y un mensaje listo; lo manda la pareja. Queda «Agradecido». */}
                         {r.phone && (
                           <div className="rg-thank">
-                            <a className={`pn-btn is-small rg-thank-btn${thanked(r) ? ' is-ghost' : ''}`} href={waLink(r.phone, thankMessage(r.giver, r.gifts.map(g => g.name), `${s.couple.first} y ${s.couple.second}`))}
+                            <a className={`pn-btn is-small rg-thank-btn${thanked(r) ? ' is-ghost' : ''}`} href={waLink(r.phone, thankMessage(r.giver, r.gifts.map(g => g.name), `${s.couple.first} y ${s.couple.second}`, r.group))}
                               target="_blank" rel="noopener noreferrer" onClick={() => markThanked(r)}>
                               <WhatsAppIcon />{thanked(r) ? 'Volver a escribirle' : 'Agradecer por WhatsApp'}<span className="pn-sr"> (se abre WhatsApp)</span>
                             </a>

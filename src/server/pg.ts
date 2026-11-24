@@ -300,6 +300,11 @@ export const PG_MIGRATIONS: string[] = [
   ALTER TABLE contributions ADD COLUMN giver_phone TEXT NOT NULL DEFAULT '';
   ALTER TABLE contributions ADD COLUMN thanked_at TEXT;
   `,
+  // 6 · Regalo grupal (2026-11-24, aprobado por la dueña): de parte de quiénes es el regalo («Los primos Díaz»). Vacío = regala solo.
+  // Quien completa sigue siendo giver_name / giver_email / giver_phone (quien transfiere). Solo agrega una columna.
+  `
+  ALTER TABLE contributions ADD COLUMN group_names TEXT NOT NULL DEFAULT '';
+  `,
 ];
 
 /** Corre las migraciones pendientes, en orden y una sola vez, con un candado para que dos procesos no las corran a la vez (CA-3). */

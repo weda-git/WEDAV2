@@ -534,6 +534,8 @@ export type Contribution = {
   currency?: Currency | undefined;
   /** WhatsApp de quien regaló (GIFT-15) y cuándo la pareja tocó «Agradecer por WhatsApp». Los aportes anteriores no tienen número. */
   phone?: string | undefined; thankedAt?: string | null | undefined;
+  /** Regalo grupal: de parte de quiénes (vacío = regaló solo). */
+  group?: string | undefined;
   how: 'alias' | 'tarjeta' | null; receipt: string | 'missing' | null; status: 'pending_review' | 'confirmed' | 'rejected' | null;
 };
 
@@ -562,7 +564,7 @@ export function contributionsFromServer(list: unknown): Contribution[] {
     const status = c['status'] === 'confirmed' || c['status'] === 'pending_review' || c['status'] === 'rejected' ? c['status'] : null;
     return {
       id, currency: c['currency'] === 'USD' ? 'USD' : 'ARS', giver: String(c['giverName'] ?? '').trim() || 'Un invitado', email: String(c['giverEmail'] ?? ''), message: String(c['message'] ?? ''),
-      phone: typeof c['giverPhone'] === 'string' ? c['giverPhone'] : '', thankedAt: typeof c['thankedAt'] === 'string' ? c['thankedAt'] : null,
+      phone: typeof c['giverPhone'] === 'string' ? c['giverPhone'] : '', group: typeof c['groupNames'] === 'string' ? c['groupNames'] : '', thankedAt: typeof c['thankedAt'] === 'string' ? c['thankedAt'] : null,
       gifts: items.map(i => ({ name: i['kind'] === 'free' ? FREE_AMOUNT_LABEL : String(i['giftName'] ?? 'Regalo'), amount: Number(i['amount']) || 0 })),
       total: Number(c['total']) || 0, at: Number.isFinite(at) ? at : null, how: c['how'] === 'alias' ? 'alias' : null,
       receipt: c['hasReceipt'] ? `/api/contributions/${encodeURIComponent(id)}/receipt` : 'missing', status,

@@ -22,6 +22,17 @@ describe('GIFT-15 · WhatsApp en el servidor', () => {
     expect(list[0]).toMatchObject({ giverPhone: '5491155554444', thankedAt: null });
   });
 
+  it('regalo grupal: guarda de parte de quiénes (hasta 120 caracteres); sin grupo queda vacío', async () => {
+    const c = env.client(); await signUp(c, 'grupal@correo.com');
+    const { slug } = await publishWith(c, draftFor('Gala', 'Pablo'));
+    expect((await env.client().post(`/api/public/${slug}/contributions`, gift('grupo-largo', { groupNames: 'x'.repeat(121) }))).body.error).toBe('invalid_group_names');
+    expect((await env.client().post(`/api/public/${slug}/contributions`, gift('grupo', { groupNames: '  Los   primos Díaz ' }))).status).toBe(201);
+    expect((await env.client().post(`/api/public/${slug}/contributions`, gift('solo'))).status).toBe(201);
+    const list = (await c.get('/api/contributions')).body.contributions as { groupNames: string }[];
+    expect(list.map(x => x.groupNames).sort()).toEqual(['', 'Los primos Díaz']);
+    expect(JSON.stringify((await env.client().get(`/api/public/${slug}`)).body)).not.toContain('primos');
+  });
+
   it('CA-4: «Agradecer» marca el aporte una sola vez y solo para su dueña', async () => {
     const c = env.client(); await signUp(c, 'gracias@correo.com');
     const { slug } = await publishWith(c, draftFor('Fina', 'Juan'));

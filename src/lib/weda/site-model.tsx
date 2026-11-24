@@ -71,7 +71,7 @@ export type RsvpEntry = { first: string; last: string; attending: boolean; menu:
 export type GuestContact = { email: string; marketingOptIn: boolean };
 /** Quien regala: nombre, mensaje, cómo paga, su correo (obligatorio) y si aceptó novedades de Weda. */
 /** `phone`: WhatsApp de quien regala (GIFT-15), en formato internacional, para que la pareja le agradezca. */
-export type Giver = { name: string; message: string; how: 'alias' | 'tarjeta'; phone: string } & GuestContact;
+export type Giver = { name: string; message: string; how: 'alias' | 'tarjeta'; phone: string; /** Regalo grupal: de parte de quiénes. Vacío = regala solo. */ group?: string | undefined } & GuestContact;
 /** Lo necesario para enviar un aporte de verdad: el comprobante y una clave de reintento (la misma en cada reintento: evita duplicados). */
 /** `currency`: la moneda que eligió el invitado (GIFT-10 v2, D3); el servidor saca los montos de lo publicado en esa moneda. */
 export type GiftSubmission = { proof: File | null; attempt: { key: string; token: string }; currency?: Currency | undefined };

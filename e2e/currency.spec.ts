@@ -84,6 +84,13 @@ test('pesos y dólares: elegir al empezar, los dos precios, una cuenta por moned
   const dlg = guest.getByRole('dialog');
   await expect(dlg).toContainText('US$ 170');
   await dlg.getByRole('button', { name: 'Continuar' }).click();
+  await dlg.getByRole('button', { name: /Regalo solo/ }).click();
+  await dlg.locator('#rg-name').fill('Nora');
+  await dlg.locator('#rg-surname').fill('Díaz');
+  await dlg.locator('#rg-email').fill('nora@example.com');
+  await dlg.locator('#rg-phone').fill('11 5555 4444');
+  await dlg.getByRole('button', { name: 'Continuar' }).click();
+  await dlg.getByRole('button', { name: 'Continuar' }).click();
   // D4: transfiere a la cuenta de la moneda que eligió.
   await expect(dlg).toContainText('ana.leo.usd');
   await expect(dlg).not.toContainText('ana.leo.pesos');

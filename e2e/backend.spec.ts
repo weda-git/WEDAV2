@@ -186,14 +186,17 @@ test.describe('sitio publicado, confirmaciones y regalos', () => {
     await page.getByRole('button', { name: 'Regalar' }).first().click();
     const dlg = page.getByRole('dialog');
     await dlg.getByRole('button', { name: 'Continuar' }).click();
+    await dlg.getByRole('button', { name: /Regalo solo/ }).click();         // paso 1: cómo regalás
     await dlg.locator('#rg-name').fill('Nora');
     await dlg.locator('#rg-surname').fill('Díaz');
     await dlg.locator('#rg-email').fill('nora@example.com');
     await dlg.locator('#rg-phone').fill('11 5555 4444');
+    await dlg.getByRole('button', { name: 'Continuar' }).click();          // → dedicatoria
+    await dlg.getByRole('button', { name: 'Continuar' }).click();          // → transferí y confirmá
     await dlg.locator('#rg-proof').setInputFiles({ name: 'comprobante.png', mimeType: 'image/png', buffer: PNG });
     // Falla el envío (red caída): el regalo y su comprobante viajan juntos, así que no queda un regalo sin comprobante. Reintentar no duplica.
     await page.route('**/api/public/*/contributions', r => r.abort('failed'));
-    await dlg.getByRole('button', { name: 'Enviar', exact: true }).click();
+    await dlg.getByRole('button', { name: 'Confirmar regalo', exact: true }).click();
     await expect(dlg.getByRole('alert')).toContainText('No hay conexión');
     await page.unroute('**/api/public/*/contributions');
     await dlg.getByRole('button', { name: 'Reintentar' }).click();
