@@ -14,6 +14,7 @@ import type { Category, Gift, IconKey } from '@/lib/demo-wedding';
 import { CURRENCY_LABEL, CURRENCY_SYMBOL, formatMoney, priceIn, type Currency } from '@/lib/weda/money';
 import { useSite, useSiteActions, type GiftSubmission, type Giver } from '@/lib/weda/site-model';
 import { MARKETING_CONSENT_TEXT } from '@/lib/weda/consent';
+import { COUNTRIES, DEFAULT_COUNTRY, normalizePhone, PHONE_ERROR } from '@/lib/weda/phone';
 import '@/gift-card.css';
 
 /** Cortes del filtro por monto según la moneda (GIFT-10): en pesos 200.000 y 500.000; en dólares 150 y 350. */
@@ -133,6 +134,9 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
   const [name, setName] = useState('');
   const [surname, setSurname] = useState('');
   const [email, setEmail] = useState('');
+  // GIFT-15 (D3): WhatsApp obligatorio, con el país adelante (+54 por defecto).
+  const [phone, setPhone] = useState({ country: DEFAULT_COUNTRY, number: '' });
+  const phoneFull = normalizePhone(phone.country, phone.number);
   const [message, setMessage] = useState('');
   const [optIn, setOptIn] = useState(false);
   const { remote } = useSiteActions();
@@ -145,7 +149,7 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
   // Lo enviado se guarda aparte: al enviar, el carrito se vacía pero el agradecimiento sigue mostrando esos regalos.
   const [sent, setSent] = useState<{ first: string; gifts: Gift[]; total: number } | null>(null);
   const total = items.reduce((n, g) => n + price(g), 0);
-  const reset = () => { attempt.current = null; setSendError(null); setView('cart'); setName(''); setSurname(''); setEmail(''); setMessage(''); setOptIn(false); setProof(null); setHow('alias'); setSent(null); };
+  const reset = () => { attempt.current = null; setSendError(null); setView('cart'); setName(''); setSurname(''); setEmail(''); setPhone({ country: DEFAULT_COUNTRY, number: '' }); setMessage(''); setOptIn(false); setProof(null); setHow('alias'); setSent(null); };
   // Para poder enviar: nombre, apellido, correo (obligatorio: constancia del regalo y contacto de la pareja) y, si transfiere por alias, el comprobante.
   const cardSelected = site.acceptCard && how === 'tarjeta';
   const noAlias = !cardSelected && !alias;
@@ -154,6 +158,7 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
     name.trim().length < 2 && 'nombre',
     surname.trim().length < 2 && 'apellido',
     !isEmail(email) && 'tu correo',
+    !phoneFull && 'tu WhatsApp',
     how === 'alias' && !proof && 'comprobante',
   ].filter(Boolean) as string[];
   // Al cerrar el agradecimiento, la página puede invitar a confirmar la asistencia (ver GiftsPage).
@@ -169,7 +174,7 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
     attempt.current ??= { key: crypto.randomUUID(), token: `${crypto.randomUUID()}${crypto.randomUUID()}` };
     setSending(true); setSendError(null);
     try {
-      await onSent(items, { name: `${name.trim()} ${surname.trim()}`, message: message.trim(), how, email: email.trim().toLowerCase(), marketingOptIn: optIn }, { proof, attempt: attempt.current, currency: cur });
+      await onSent(items, { name: `${name.trim()} ${surname.trim()}`, message: message.trim(), how, email: email.trim().toLowerCase(), phone: phoneFull ?? '', marketingOptIn: optIn }, { proof, attempt: attempt.current, currency: cur });
     } catch (err) {
       setSending(false);
       setSendError(err instanceof Error && err.message ? err.message : 'No pudimos enviar tu regalo. Revisá tu conexión y probá de nuevo.');
@@ -282,6 +287,17 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
                   <label htmlFor="rg-email">Correo electrónico</label>
                   <input id="rg-email" type="email" inputMode="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} aria-describedby="rg-email-help" />
                   <p className="rg-hint" id="rg-email-help">Para mandarte la constancia. Los novios también lo ven.</p>
+                </div>
+
+                <div className="rg-field">
+                  <label htmlFor="rg-phone">WhatsApp</label>
+                  <div className="rg-phone">
+                    <select aria-label="Código de país" value={phone.country} onChange={e => setPhone(p => ({ ...p, country: e.target.value }))}>
+                      {COUNTRIES.map(c => <option key={c.code} value={c.code} aria-label={c.label}>+{c.code}</option>)}
+                    </select>
+                    <input id="rg-phone" type="tel" inputMode="tel" autoComplete="tel-national" placeholder={phone.country === '54' ? '11 5555 4444' : 'Número'} value={phone.number} onChange={e => setPhone(p => ({ ...p, number: e.target.value }))} aria-describedby="rg-phone-help" />
+                  </div>
+                  <p className="rg-hint" id="rg-phone-help">{phone.number.trim() && !phoneFull ? PHONE_ERROR : 'Para que los novios te agradezcan. Solo lo ven ellos.'}</p>
                 </div>
 
                 <div className="rg-field">

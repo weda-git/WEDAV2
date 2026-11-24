@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiFailure, errorText } from '@/lib/weda/remote';
 import { priceIn } from '@/lib/weda/money';
+import { formatPhone } from '@/lib/weda/phone';
 import { ACTION_LABEL, accountState, dateTime, money, planName, shortDate } from '@/components/admin/format';
 
 export const Route = createFileRoute('/admin/$userId')({ component: AccountPage });
@@ -11,7 +12,7 @@ export const Route = createFileRoute('/admin/$userId')({ component: AccountPage 
 type Detail = {
   account: { id: string; email: string; createdAt: string; lastSignInAt: string | null; suspendedAt: string | null; suspensionNote: string; names: string };
   wedding: null | {
-    slug: string | null; planId: string; date: string; currency: 'ARS' | 'USD' | 'both';
+    slug: string | null; planId: string; date: string; currency: 'ARS' | 'USD' | 'both'; whatsapp: string;
     publication: { status: string; planId: string; publishedAt: string } | null;
     guests: { id: string; first: string; last: string; status: string; menu: string }[];
     gifts: { id: string; name: string; amount: number; amountUsd?: number; category: string }[];
@@ -80,6 +81,7 @@ function AccountPage() {
           <div><dt>Plan</dt><dd>{planName(w?.publication?.planId ?? w?.planId)}</dd></div>
           <div><dt>Sitio</dt><dd>{w?.slug ? <a href={`/sitio/${w.slug}`} target="_blank" rel="noreferrer">/sitio/{w.slug}</a> : 'Sin publicar'}</dd></div>
           <div><dt>Fecha del casamiento</dt><dd>{w?.date ? shortDate(`${w.date}T12:00:00`) : '—'}</dd></div>
+          <div><dt>WhatsApp</dt><dd>{w?.whatsapp ? <a href={`https://wa.me/${w.whatsapp}`} target="_blank" rel="noreferrer">{formatPhone(w.whatsapp)}</a> : 'Sin cargar'}</dd></div>
           <div><dt>Alias de cobro</dt><dd>{w?.payout?.alias || 'Sin cargar'}</dd></div>
           {a.suspendedAt && <div><dt>Suspendida desde</dt><dd>{dateTime(a.suspendedAt)}{a.suspensionNote && ` · ${a.suspensionNote}`}</dd></div>}
         </dl>

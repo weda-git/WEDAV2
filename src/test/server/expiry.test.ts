@@ -12,7 +12,7 @@ afterEach(() => { vi.useRealTimers(); });
 const T0 = Date.parse('2026-11-04T12:00:00.000Z');
 const months = (n: number) => new Date(T0 + n * 30.5 * 86_400_000);
 const guest = (id: string) => ({ id, first: 'Rosa', last: 'Gómez', status: 'pending', menu: '', groupId: null, source: 'manual' });
-const gift = (key: string) => ({ idempotencyKey: `key-${key}-0001`, manageToken: `token-del-invitado-${key}`, giverName: 'Tía Nora', giverEmail: 'nora@correo.com', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') } });
+const gift = (key: string) => ({ idempotencyKey: `key-${key}-0001`, manageToken: `token-del-invitado-${key}`, giverName: 'Tía Nora', giverEmail: 'nora@correo.com', giverPhone: '5491155554444', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from(PNG).toString('base64') } });
 const login = async (c: Client, email: string) => expect((await c.post('/api/auth/login', { email, password: PASSWORD })).status).toBe(200);
 
 describe('permanencia de lo publicado (sin vencimiento)', () => {

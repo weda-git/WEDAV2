@@ -55,11 +55,13 @@ export async function onboard(page: Page, first = 'Lucía', second = 'Violeta') 
 export async function fillNamesAndContinue(page: Page, first = 'Lucía', second = 'Violeta') {
   await page.fill('#on-first', first);
   await page.fill('#on-second', second);
+  await page.fill('#on-phone', '11 5555 4444');                         // ONB-06: WhatsApp obligatorio
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.waitForURL(/\/crear\/fecha/);
 }
-/** Paso 2 (fecha y lugar): ambos son opcionales; se dejan vacíos y se continúa. Deja la página en /crear/foto. */
+/** Paso 2 (fecha y lugar): la fecha es obligatoria salvo «Todavía no la sabemos» (ONB-06); se tilda y se continúa. Deja la página en /crear/foto. */
 export async function skipDateAndPlace(page: Page) {
+  await page.getByLabel('Todavía no la sabemos').check();
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.waitForURL(/\/crear\/foto/);
 }

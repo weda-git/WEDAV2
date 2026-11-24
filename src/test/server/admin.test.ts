@@ -52,6 +52,13 @@ describe('ADM-01 · administración de cuentas', () => {
     expect(d.wedding.guests.map((g: { first: string }) => g.first)).toContain('Ana');
     expect(d.wedding.gifts.length).toBeGreaterThan(0);
     expect(Array.isArray(d.contributions)).toBe(true);
+    // GIFT-15 (CA-7): el WhatsApp de la pareja se ve entero (soporte) y el de quien regala, enmascarado.
+    const w = (await p.c.get('/api/wedding')).body;
+    expect((await p.c.put('/api/wedding', { baseRevision: w.revision, draft: { ...w.draft, couple: { ...w.draft.couple, whatsapp: '5491166667777' } } })).status).toBe(200);
+    expect((await env.client().post(`/api/public/${p.slug}/contributions`, { idempotencyKey: 'key-adm-wa-0001', manageToken: 'token-del-invitado-adm-wa', giverName: 'Tía', giverEmail: 't@correo.com', giverPhone: '5491155554444', message: '', how: 'alias', giftIds: ['g1'], receipt: { data: Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]).toString('base64') } })).status).toBe(201);
+    const d2 = (await boss.get(`/api/admin/accounts/${p.id}`)).body;
+    expect(d2.wedding.whatsapp).toBe('5491166667777');
+    expect(d2.contributions[0].giverPhone).toBe('+549 •••• 4444');
     // Una cuenta sin casamiento no lo crea al mirarla.
     const empty = env.client(); await signUp(empty, 'vacia@correo.com');
     const before = (await counts())['weddings'];

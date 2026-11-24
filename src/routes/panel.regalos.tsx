@@ -18,6 +18,7 @@ import { operates } from '@/lib/weda/plans';
 import { openPreview } from '@/lib/weda/preview-event';
 import { update, useAppState } from '@/lib/weda/store';
 import { hasPayout } from '@/lib/weda/publish';
+import { formatPhone, thankMessage, waLink } from '@/lib/weda/phone';
 import { api, useRemote } from '@/lib/weda/remote';
 import type { Category } from '@/lib/demo-wedding';
 import type { ListGift, PayoutAccount } from '@/lib/weda/types';
@@ -170,6 +171,15 @@ function CurrencyChip({ mode, onOpen }: { mode: ListMode; onOpen: () => void }) 
     <button type="button" className="cur-chip" onClick={onOpen} aria-label={`Moneda de tu lista: ${LIST_MODE_LABEL[mode]}. Cambiar`}>
       <Coins mode={mode} small /><span>{LIST_MODE_LABEL[mode]}</span><span className="cur-chip-change">Cambiar</span>
     </button>
+  );
+}
+
+/** Logo de WhatsApp (trazo simple, en el color del botón). */
+function WhatsAppIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
+      <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 12 20.2Zm4.5-6.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.7 6.7 0 0 1-3.3-2.9c-.3-.4.2-.4.6-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.7 11.8 11.8 0 0 0 4.5 4c1.7.7 2.3.8 3.2.6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.5-.3Z" />
+    </svg>
   );
 }
 
@@ -496,6 +506,13 @@ function GiftsModule() {
   };
   const items = s.gifts.items;
   const received = contrib.list;
+  // GIFT-15 (D5): «Agradecido» se marca al tocar el botón (en el servidor, para que se vea en cualquier dispositivo).
+  const [thankedNow, setThankedNow] = useState<Set<string>>(() => new Set());
+  const thanked = (r: Contribution) => !!r.thankedAt || thankedNow.has(r.id);
+  const markThanked = (r: Contribution) => {
+    setThankedNow(x => new Set(x).add(r.id));
+    if (remote.user && !r.thankedAt) void api('POST', `/api/contributions/${encodeURIComponent(r.id)}/thanked`).catch(() => undefined);
+  };
   // Los rechazados se siguen viendo (se pueden volver a revisar) pero no suman.
   const counted = received.filter(countsAsGift);
   const giftCount = counted.reduce((n, c) => n + c.gifts.length, 0);
@@ -695,7 +712,7 @@ function GiftsModule() {
                     <li key={r.id} className="rg-rec">
                       <div className="rg-rec-main">
                         <p className="rg-rec-name">{r.giver}{r.how && <span className="pn-chip">{HOW_LABEL[r.how]}</span>}{r.status === 'pending_review' && <span className="pn-chip is-todo">A revisar</span>}{r.status === 'confirmed' && <span className="pn-chip is-ok">Confirmado</span>}{r.status === 'rejected' && <span className="pn-chip is-off">Rechazado</span>}</p>
-                        {r.email && <p className="rg-rec-mail"><a className="pn-link" href={`mailto:${r.email}`}>{r.email}</a></p>}
+                        {r.email && <p className="rg-rec-mail"><a className="pn-link" href={`mailto:${r.email}`}>{r.email}</a>{r.phone && <> · {formatPhone(r.phone)}</>}</p>}
                         <ul className="rg-rec-gifts" aria-label={`Regalos de ${r.giver}`}>
                           {r.gifts.map((g, i) => <li key={`${g.name}-${i}`}><span>{g.name}</span><span>{formatMoney(g.amount, r.currency ?? 'ARS')}</span></li>)}
                         </ul>
@@ -708,6 +725,16 @@ function GiftsModule() {
                           </div>
                         )}
                         {r.receipt && r.receipt !== 'missing' && <a className="pn-btn is-ghost is-small rg-rec-proof" href={r.receipt} target="_blank" rel="noopener noreferrer"><Eye size={15} aria-hidden="true" />Ver comprobante<span className="pn-sr"> (se abre en una pestaña nueva)</span></a>}
+                        {/* GIFT-15 (D5): abre WhatsApp con quien regaló y un mensaje listo; lo manda la pareja. Queda «Agradecido». */}
+                        {r.phone && (
+                          <div className="rg-thank">
+                            <a className={`pn-btn is-small rg-thank-btn${thanked(r) ? ' is-ghost' : ''}`} href={waLink(r.phone, thankMessage(r.giver, r.gifts.map(g => g.name), `${s.couple.first} y ${s.couple.second}`))}
+                              target="_blank" rel="noopener noreferrer" onClick={() => markThanked(r)}>
+                              <WhatsAppIcon />{thanked(r) ? 'Volver a escribirle' : 'Agradecer por WhatsApp'}<span className="pn-sr"> (se abre WhatsApp)</span>
+                            </a>
+                            {thanked(r) && <span className="pn-chip is-ok"><Check size={13} strokeWidth={2.5} aria-hidden="true" />Agradecido</span>}
+                          </div>
+                        )}
                         <ContributionReview r={r} onChange={st => contrib.setStatus(r.id, st)} />
                       </div>
                       <strong className="rg-rec-amount">{formatMoney(r.total, r.currency ?? 'ARS')}</strong>

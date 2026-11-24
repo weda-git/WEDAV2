@@ -3,6 +3,7 @@
 // - Se sincroniza entre pestañas y iframes (evento "storage"): así la vista previa del editor se actualiza sola.
 // - Tolera datos ausentes, corruptos o de una versión anterior: en ese caso arranca vacío, sin errores.
 import { isListMode, LIMITS } from './money';
+import { isStoredPhone } from './phone';
 import { useRef, useSyncExternalStore } from 'react';
 import { defaultColors, defaultGroup, EVENT_ICON_IDS, defaultSite, emptyState, isHexColor, MAX_AMOUNT, MIN_AMOUNT, normalizeOrder } from './logic';
 import { isPlanId, normalizePlanId } from './plans';
@@ -121,7 +122,7 @@ function build(raw: Record<string, unknown>, from: number): AppState {
   const c = isObj(raw['couple']) ? raw['couple'] : {}, g = isObj(raw['gifts']) ? raw['gifts'] : {};
   return {
     version: 2, onboarded: bool(raw['onboarded'], false), email: str(raw['email']),
-    couple: { first: str(c['first']), second: str(c['second']), ...(str(c['firstLast']) ? { firstLast: str(c['firstLast']) } : {}), ...(str(c['secondLast']) ? { secondLast: str(c['secondLast']) } : {}) },
+    couple: { first: str(c['first']), second: str(c['second']), ...(str(c['firstLast']) ? { firstLast: str(c['firstLast']) } : {}), ...(str(c['secondLast']) ? { secondLast: str(c['secondLast']) } : {}), ...(isStoredPhone(c['whatsapp']) ? { whatsapp: c['whatsapp'] } : {}) },
     date: typeof raw['date'] === 'string' ? raw['date'] : null,
     photo: photo(raw['photo']),
     preferredPlan: planOf(raw['preferredPlan'], from),

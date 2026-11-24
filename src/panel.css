@@ -2236,3 +2236,14 @@ body:has(.pn-app) { background: #f6f6f3; }
 .cur-input-sym { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: 600; color: var(--pn-muted, #6b6b6b); pointer-events: none; }
 .pn-form .cur-input input { padding-left: 52px; }
 .cur-hint { margin-top: -6px; }
+
+/* ===== GIFT-15 / ONB-06 · WhatsApp (2026-11-23) ===== */
+.pn-phone { display: grid; grid-template-columns: 96px 1fr; gap: 8px; }
+.ob-nodate { margin-top: -4px; }
+.rg-thank .pn-chip { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.rg-thank { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 10px 0 2px; }
+.pn-app .pn-btn.rg-thank-btn:not(.is-ghost) { background: #1f7a4a; color: #fff; border-color: transparent; }
+.pn-app .pn-btn.rg-thank-btn:not(.is-ghost):hover { background: #19663d; }
+.rg-thank-btn svg { flex: none; }
+.pn-wa-nudge { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 14px 16px; border-radius: 16px; background: #eef4ec; }
+.pn-wa-nudge p { flex: 1 1 220px; margin: 0; font-size: 14.5px; line-height: 1.4; }

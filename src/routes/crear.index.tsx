@@ -2,6 +2,8 @@ import { track } from '@/lib/analytics';
 import { useEffect, useRef, useState } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { Field } from '@/components/panel/ui';
+import { PhoneField } from '@/components/panel/phone-field';
+import { normalizePhone, splitPhone, validatePhone } from '@/lib/weda/phone';
 import { OnboardingPhoto, OnboardingShell } from '@/components/panel/onboarding';
 import { validateOnboarding } from '@/lib/weda/logic';
 import { update, useAppState, useHydrated } from '@/lib/weda/store';
@@ -21,7 +23,8 @@ function Names() {
   const [firstLast, setFirstLast] = useState('');
   const [second, setSecond] = useState('');
   const [secondLast, setSecondLast] = useState('');
-  const [errors, setErrors] = useState<ReturnType<typeof validateOnboarding>>({});
+  const [phone, setPhone] = useState({ country: '54', number: '' });
+  const [errors, setErrors] = useState<ReturnType<typeof validateOnboarding> & { phone?: string | undefined }>({});
 
   // Si ya había datos guardados (por ejemplo, la pareja volvió desde la pantalla siguiente), se recuperan: no se pierde nada.
   useEffect(() => {
@@ -29,14 +32,16 @@ function Names() {
     filled.current = true;
     setFirst(state.couple.first); setSecond(state.couple.second);
     setFirstLast(state.couple.firstLast ?? ''); setSecondLast(state.couple.secondLast ?? '');
+    if (state.couple.whatsapp) setPhone(splitPhone(state.couple.whatsapp));
   }, [hydrated, state]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const found = validateOnboarding({ first, second, date: '', noDate: true });
+    // ONB-06 (D1): el WhatsApp de la pareja es obligatorio.
+    const found = { ...validateOnboarding({ first, second, date: '', noDate: true }), phone: validatePhone(phone.country, phone.number) ?? undefined };
     setErrors(found);
-    if (found.first || found.second) { document.getElementById(found.first ? 'on-first' : 'on-second')?.focus(); return; }
-    const couple = { first: first.trim(), second: second.trim(), ...(firstLast.trim() ? { firstLast: firstLast.trim() } : {}), ...(secondLast.trim() ? { secondLast: secondLast.trim() } : {}) };
+    if (found.first || found.second || found.phone) { document.getElementById(found.first ? 'on-first' : found.second ? 'on-second' : 'on-phone')?.focus(); return; }
+    const couple = { first: first.trim(), second: second.trim(), ...(firstLast.trim() ? { firstLast: firstLast.trim() } : {}), ...(secondLast.trim() ? { secondLast: secondLast.trim() } : {}), whatsapp: normalizePhone(phone.country, phone.number)! };
     update(s => ({ ...s, onboarded: true, couple }));
     track('event_created');
     void navigate({ to: '/crear/fecha' });
@@ -63,6 +68,8 @@ function Names() {
             {a => <input id="on-second-last" type="text" autoComplete="off" value={secondLast} onChange={text(setSecondLast)} aria-describedby={a.describedBy} />}
           </Field>
         </div>
+        <PhoneField id="on-phone" label="Tu WhatsApp" hint="Para escribirte si necesitás ayuda con tu cuenta. No lo publicamos." country={phone.country} number={phone.number} error={errors.phone}
+          onChange={v => { setPhone(v); setErrors(x => ({ ...x, phone: undefined })); }} />
       </form>
     </OnboardingShell>
   );

@@ -64,9 +64,11 @@ test.describe('Persona K · publicar cuanto antes: el camino mínimo, contado', 
     await page.waitForURL(/\/crear$/);
     await act(() => page.fill('#on-first', 'Ana'));
     await act(() => page.fill('#on-second', 'Leo'));
+    await act(() => page.fill('#on-phone', '11 5555 4444'));
     await act(() => page.getByRole('button', { name: 'Continuar' }).click());
     await page.waitForURL(/\/crear\/fecha/);
-    // La fecha se puede dejar vacía: no hace falta tildar nada.
+    // ONB-06: la fecha es obligatoria salvo «Todavía no la sabemos».
+    await act(() => page.getByLabel('Todavía no la sabemos').check());
     await act(() => page.getByRole('button', { name: 'Continuar' }).click());
     await page.waitForURL(/\/crear\/foto/);
     await act(() => page.getByRole('button', { name: 'Omitir por ahora' }).click());

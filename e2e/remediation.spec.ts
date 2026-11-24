@@ -88,6 +88,7 @@ test.describe('Envío antes de hidratar', () => {
     release();                                                                          // el JavaScript llega: la página se activa
     await expect(page.locator('html')).toHaveAttribute('data-hydrated', '');
     await expect(next).toBeEnabled();
+    await page.getByLabel('Todavía no la sabemos').check();                           // ONB-06: la fecha es obligatoria salvo esta opción
     await next.click();
     await page.waitForURL(/\/crear\/foto/);
   });

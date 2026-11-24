@@ -7,6 +7,7 @@ import { layout, sendMail } from './mail';
 import { newId, newToken, sha256 } from './security';
 import type { Service, Session } from './service';
 import { isEmail } from '@/lib/weda/logic';
+import { maskPhone } from '@/lib/weda/phone';
 
 type Row = Record<string, unknown>;
 const now = () => new Date().toISOString();
@@ -110,12 +111,13 @@ export class Admin {
       },
       wedding: wedding && {
         slug: wedding.slug, planId: wedding.draft.planId, currency: wedding.draft.gifts.currency ?? 'ARS', publication: wedding.publication, access: wedding.access,
-        couple: wedding.draft.couple, date: wedding.draft.date,
+        couple: wedding.draft.couple, date: wedding.draft.date, whatsapp: wedding.draft.couple.whatsapp ?? '',
         guests: wedding.guests, gifts: wedding.draft.gifts.items,
         // Del cobro solo se muestra que existe y enmascarado: la administración no lo cambia (IC-04).
         payout: wedding.payout ? { alias: wedding.payout.alias ? `${wedding.payout.alias.slice(0, 3)}…` : '', changedAt: wedding.payout.changedAt } : null,
       },
-      contributions,
+      // GIFT-15 (D8): el WhatsApp de quien regala se ve enmascarado en la administración.
+      contributions: contributions.map(c => ({ ...c, giverPhone: maskPhone(c.giverPhone) })),
       actions,
     };
   }
