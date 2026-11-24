@@ -466,7 +466,8 @@ function GiftsList({ shown, onCurrency }: { shown: Currency[]; onCurrency: (c: C
         {showFree && <FreeCard key={freeInCart?.amount ?? 0} min={site.freeAmount.min} current={freeInCart?.amount ?? null} onAdd={amount => { returnFocus.current = document.getElementById(FREE_GIFT_ID); setCart(c => [...c.filter(x => !isFreeGift(x)), freeGift(amount)]); setCartOpen(true); }} />}
         {visible.map(g => <GiftCard key={g.id} gift={g} inCart={cart.some(c => c.id === g.id)} onPick={g => { returnFocus.current = document.activeElement as HTMLElement | null; setCart(c => c.some(x => x.id === g.id) ? c : [...c, g]); setCartOpen(true); }} />)}
       </div>
-      <p className="rg-live" aria-live="polite">{visible.length} {visible.length === 1 ? 'regalo' : 'regalos'}{filter === 'Todos' ? '' : ` en ${filter}`}{range === 'all' || range === 'asc' || range === 'desc' ? '' : ' en ese rango de monto'}</p>
+      {/* La cantidad no se muestra (pedido de la dueña, 2026-11-24): solo la anuncian los lectores de pantalla al filtrar. */}
+      <p className="rg-live dm-sr" aria-live="polite">{visible.length} {visible.length === 1 ? 'regalo' : 'regalos'}{filter === 'Todos' ? '' : ` en ${filter}`}{range === 'all' || range === 'asc' || range === 'desc' ? '' : ' en ese rango de monto'}</p>
       <div className="rg-next">
         <p>¿Ya elegiste? Falta un último paso.</p>
         {site.blocks.rsvp && <Button variant="seed" onClick={rsvp.open}>Confirmar asistencia</Button>}
