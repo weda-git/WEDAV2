@@ -61,14 +61,25 @@ test('pesos y dólares: elegir al empezar, los dos precios, una cuenta por moned
   expect((await page.request.post('/api/wedding/publish')).status()).toBe(200);
   const guest = await context.newPage();
   await guest.goto(`/sitio/${slug}/regalos`, { waitUntil: 'networkidle' });
-  const pick = guest.getByRole('radiogroup', { name: 'Ver los precios en' });
-  await expect(pick).toBeVisible();
+  // Al entrar, se pregunta la moneda (2026-11-24); después queda como filtro (AR$ / US$).
+  const guestAsk = guest.getByRole('dialog', { name: '¿En qué moneda querés ver los precios?' });
+  await expect(guestAsk).toBeVisible();
+  await guest.waitForTimeout(400);
+  await shot(guest, '6a-preguntar');
+  await guestAsk.getByRole('button', { name: /Pesos/ }).click();
+  await expect(guestAsk).toHaveCount(0);
   const gift = guest.locator('article').filter({ hasText: 'Excursión en barco' });
   await expect(gift).toContainText('$ 250.000');
-  await pick.getByRole('radio', { name: /Dólares/ }).click();
+  const pick = guest.getByRole('radiogroup', { name: 'Moneda de los precios' }).filter({ visible: true });
+  await pick.getByRole('radio', { name: 'Dólares' }).click();
   await expect(gift).toContainText('US$ 170');
   await guest.waitForTimeout(300);
   await shot(guest, '6-invitado');
+  if (process.env['SHOTS']) { await guest.setViewportSize({ width: 1280, height: 800 }); await guest.locator('#regalos').scrollIntoViewIfNeeded(); await guest.waitForTimeout(400); await shot(guest, '6-compu'); await guest.setViewportSize({ width: 390, height: 844 }); }
+  // Recargar no vuelve a preguntar: recuerda lo elegido en esta pestaña.
+  await guest.reload({ waitUntil: 'networkidle' });
+  await expect(gift).toContainText('US$ 170');
+  await expect(guestAsk).toHaveCount(0);
   await gift.getByRole('button', { name: 'Regalar' }).click();
   const dlg = guest.getByRole('dialog');
   await expect(dlg).toContainText('US$ 170');
