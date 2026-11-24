@@ -347,5 +347,5 @@ Capa «Vidrio» al final de `src/panel.css`, sobre el rediseño. Referencia: un 
 - **Precio en el globito:** con una moneda, como siempre; con «Las dos», pesos arriba y dólares abajo, más chico.
 - **Regalo propio con «Las dos»:** dos campos con su símbolo; al escribir uno se completa el otro, redondeado, hasta que se escriba el otro a mano.
 - **Datos de cobro:** una pestaña por moneda («Cuenta en pesos», «Cuenta en dólares»), con tilde si está cargada y punto si la lista la necesita.
-- **Invitación con «Las dos»** (2026-11-24): al entrar, «¿En qué moneda querés ver los precios?» con los dos círculos (cerrar sin elegir deja pesos; se recuerda en la pestaña). Después queda como un filtro más: dos botones chicos «AR$ · US$» junto al buscador (celular) o al monto (compu); el elegido, oscuro.
+- **Invitación con «Las dos»** (2026-11-24): al entrar, «ELEGÍ LA MONEDA» (como la referencia de la dueña: título en mayúsculas con la X a la derecha, una línea, las dos monedas en fila con círculo y sigla —la elegida, oscura— y «Moneda actual») (cerrar sin elegir deja pesos; se recuerda en la pestaña). Después queda como un filtro más: dos botones chicos «AR$ · US$» junto al buscador (celular) o al monto (compu); el elegido, oscuro.
 - **Filtro por monto de la invitación:** en pesos, cortes en 200.000 y 500.000; en dólares, en 150 y 350.

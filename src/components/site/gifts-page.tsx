@@ -42,22 +42,25 @@ function CurrencyMini({ cur, onChange }: { cur: Currency; onChange: (c: Currency
   );
 }
 
-/** Al entrar a una lista en pesos y dólares, el invitado elige cómo ver los precios (referencia de la dueña: círculos «AR$» y «US$»).
- *  Se pregunta una vez por lista en esta pestaña del navegador; después se cambia con `CurrencyMini`. Cerrar sin elegir deja pesos (D10). */
-function CurrencyAsk({ open, onPick }: { open: boolean; onPick: (c: Currency) => void }) {
+/** Al entrar a una lista en pesos y dólares, el invitado elige cómo ver los precios. Diseño de la referencia de la dueña (2026-11-24):
+ *  título en mayúsculas con la X a la derecha, una línea, las dos monedas en fila (círculo y sigla; la elegida, oscura) y la moneda actual.
+ *  Se pregunta una vez por lista en esta pestaña; después se cambia con `CurrencyMini`. Cerrar sin elegir deja la actual (pesos, D10). */
+const CURRENCY_NAME: Record<Currency, string> = { ARS: 'Pesos', USD: 'Dólares' };
+function CurrencyAsk({ open, cur, onPick }: { open: boolean; cur: Currency; onPick: (c: Currency) => void }) {
   return (
-    <Dialog open={open} onOpenChange={o => { if (!o) onPick('ARS'); }}>
+    <Dialog open={open} onOpenChange={o => { if (!o) onPick(cur); }}>
       <DialogContent className="rg-dialog rg-curask" onOpenAutoFocus={e => { e.preventDefault(); (e.currentTarget as HTMLElement | null)?.focus(); }}>
-        <DialogTitle>¿En qué moneda querés ver los precios?</DialogTitle>
-        <DialogDescription>La podés cambiar después, junto a los filtros.</DialogDescription>
-        <div className="rg-curask-opts">
+        <div className="rg-curask-head"><DialogTitle>Elegí la moneda</DialogTitle></div>
+        <DialogDescription className="dm-sr">Elegí en qué moneda ver los precios. La podés cambiar después, junto a los filtros.</DialogDescription>
+        <div className="rg-curask-opts" role="radiogroup" aria-label="Moneda">
           {(['ARS', 'USD'] as Currency[]).map(c => (
-            <button key={c} type="button" className="rg-curask-opt" onClick={() => onPick(c)}>
-              <span className={`rg-curask-coin is-${c.toLowerCase()}`} aria-hidden="true">{CURRENCY_SYMBOL[c]}</span>
-              <span>{CURRENCY_LABEL[c]}</span>
+            <button key={c} type="button" role="radio" aria-checked={cur === c} aria-label={CURRENCY_NAME[c]} className={`rg-curask-opt${cur === c ? ' is-on' : ''}`} onClick={() => onPick(c)}>
+              <span className="rg-curask-coin" aria-hidden="true">{CURRENCY_SYMBOL[c]}</span>
+              <span className="rg-curask-code" aria-hidden="true">{c}</span>
             </button>
           ))}
         </div>
+        <p className="rg-curask-now">Moneda actual: <strong>{CURRENCY_NAME[cur]}</strong></p>
       </DialogContent>
     </Dialog>
   );
@@ -489,7 +492,7 @@ function GiftsList({ shown, onCurrency }: { shown: Currency[]; onCurrency: (c: C
       returnFocus={returnFocus}
     />
 
-    <CurrencyAsk open={ask} onPick={c => { setAsk(false); changeCurrency(c); }} />
+    <CurrencyAsk open={ask} cur={cur} onPick={c => { setAsk(false); changeCurrency(c); }} />
 
     <Dialog open={nudge} onOpenChange={setNudge}>
       <DialogContent className="rg-dialog rg-nudge">

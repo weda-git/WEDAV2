@@ -62,11 +62,12 @@ test('pesos y dólares: elegir al empezar, los dos precios, una cuenta por moned
   const guest = await context.newPage();
   await guest.goto(`/sitio/${slug}/regalos`, { waitUntil: 'networkidle' });
   // Al entrar, se pregunta la moneda (2026-11-24); después queda como filtro (AR$ / US$).
-  const guestAsk = guest.getByRole('dialog', { name: '¿En qué moneda querés ver los precios?' });
+  const guestAsk = guest.getByRole('dialog', { name: 'Elegí la moneda' });
   await expect(guestAsk).toBeVisible();
   await guest.waitForTimeout(400);
   await shot(guest, '6a-preguntar');
-  await guestAsk.getByRole('button', { name: /Pesos/ }).click();
+  if (process.env['SHOTS']) { await guest.setViewportSize({ width: 1280, height: 800 }); await guest.waitForTimeout(300); await shot(guest, '6a-compu'); await guest.setViewportSize({ width: 320, height: 700 }); await guest.waitForTimeout(300); await shot(guest, '6a-320'); await guest.setViewportSize({ width: 390, height: 844 }); }
+  await guestAsk.getByRole('radio', { name: 'Pesos' }).click();
   await expect(guestAsk).toHaveCount(0);
   const gift = guest.locator('article').filter({ hasText: 'Excursión en barco' });
   await expect(gift).toContainText('$ 250.000');

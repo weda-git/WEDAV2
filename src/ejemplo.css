@@ -646,14 +646,28 @@
 .rg-mrow { grid-column: 1 / -1; display: flex; align-items: center; gap: 8px; min-width: 0; }
 .rg-mrow .rg-search { flex: 1; min-width: 0; }
 .rg-list .rg-mrow .rg-curmini button { min-height: 40px; min-width: 46px; padding: 0 10px; }
-.rg-curask { text-align: center; }
+.rg-dialog.rg-curask { max-width: 520px !important; padding: 0 !important; text-align: center; overflow: hidden; }
 .rg-curask:focus { outline: none; }
-.rg-curask-opts { display: flex; justify-content: center; gap: clamp(20px, 6vw, 48px); margin-top: 22px; }
-.rg-curask-opt { display: grid; justify-items: center; gap: 10px; padding: 6px; border: 0; background: transparent; font: inherit; font-size: 15px; color: var(--foreground); cursor: pointer; border-radius: 16px; }
-.rg-curask-coin { display: grid; place-items: center; width: 72px; height: 72px; border-radius: 50%; background: #2f3337; color: #fff; font-size: 17px; letter-spacing: -.01em; transition: transform .15s; }
-.rg-curask-coin.is-ars { background: #747453; }
-.rg-curask-opt:hover .rg-curask-coin { transform: scale(1.05); }
+.rg-curask-head { display: flex; align-items: center; min-height: 84px; padding: 0 84px 0 32px; border-bottom: 1px solid #2f3337; text-align: left; }
+.rg-dialog.rg-curask h2 { font-size: 15px !important; line-height: 1.2 !important; font-weight: 400 !important; letter-spacing: .16em !important; text-transform: uppercase; color: #3b3c3a; white-space: nowrap; }
+.rg-dialog.rg-curask > button:last-child { top: 22px !important; right: 24px !important; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgb(59 60 58 / .45) !important; border-radius: 50% !important; opacity: 1 !important; background: #fff !important; color: #3b3c3a !important; }
+.rg-curask-opts { display: flex; justify-content: center; gap: clamp(28px, 9vw, 72px); padding: 32px 24px 0; }
+.rg-curask-opt { display: inline-flex; align-items: center; gap: 14px; padding: 4px; border: 0; border-radius: 999px; background: transparent; font: inherit; font-size: 17px; color: #8b8c88; cursor: pointer; }
+.rg-curask-coin { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 50%; background: #a3a5a8; color: #fff; font-size: 14.5px; letter-spacing: -.01em; transition: background-color .15s; }
+.rg-curask-opt.is-on { color: #1f201e; }
+.rg-curask-opt.is-on .rg-curask-coin { background: #2f3337; }
+.rg-curask-opt:hover .rg-curask-coin { background: #6f7175; }
+.rg-curask-opt.is-on:hover .rg-curask-coin { background: #2f3337; }
 .rg-curask-opt:focus-visible { outline: 2px solid var(--ej-slate); outline-offset: 2px; }
+.rg-curask-now { margin: 26px 0 0; padding: 0 24px 30px; font-size: 14px; letter-spacing: .04em; text-transform: uppercase; color: #3b3c3a; }
+.rg-curask-now strong { font-weight: 700; }
+@media (max-width: 480px) {
+  .rg-curask-head { min-height: 72px; padding: 0 72px 0 24px; }
+  .rg-dialog.rg-curask > button:last-child { top: 16px !important; right: 18px !important; }
+  .rg-curask-opts { gap: 28px; padding-top: 26px; }
+  .rg-curask-coin { width: 50px; height: 50px; font-size: 13.5px; }
+  .rg-curask-opt { gap: 10px; font-size: 16px; }
+}
 /* GIFT-15: WhatsApp de quien regala (país + número). */
 .rg-phone { display: grid; grid-template-columns: 92px 1fr; gap: 8px; }
 .rg-phone select { min-height: 50px; padding: 0 10px; border-radius: 14px; border: 1px solid rgb(59 60 58 / .25); background: #fff; font: inherit; font-size: 16px; color: var(--foreground); }
