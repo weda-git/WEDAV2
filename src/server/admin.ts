@@ -109,7 +109,7 @@ export class Admin {
         names: wedding ? [wedding.draft.couple.first, wedding.draft.couple.second].filter(x => x.trim()).join(' & ') : '',
       },
       wedding: wedding && {
-        slug: wedding.slug, planId: wedding.draft.planId, publication: wedding.publication, access: wedding.access,
+        slug: wedding.slug, planId: wedding.draft.planId, currency: wedding.draft.gifts.currency ?? 'ARS', publication: wedding.publication, access: wedding.access,
         couple: wedding.draft.couple, date: wedding.draft.date,
         guests: wedding.guests, gifts: wedding.draft.gifts.items,
         // Del cobro solo se muestra que existe y enmascarado: la administración no lo cambia (IC-04).

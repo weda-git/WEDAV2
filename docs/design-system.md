@@ -339,3 +339,13 @@ Capa «Vidrio» al final de `src/panel.css`, sobre el rediseño. Referencia: un 
 - **Aportes recibidos:** sin el total en dólares hasta que la pareja pueda elegir la moneda de la lista (pendiente, lleva spec).
 - **Alias:** si falta y la lista ya tiene 3 regalos o más, aparece un banner en «Mis regalos»: ícono, «Ya elegiste N regalos», una línea y «Cargar alias». En el catálogo no aparece.
 - **Pestañas en el celular:** cuatro parejas en una fila (Mis regalos · Catálogo · Aportes · Cobro).
+
+### Montos y moneda (GIFT-10 v2, 2026-11-23)
+- Un solo formato para los montos de la lista (`formatMoney` en `src/lib/weda/money.ts`): «$ 250.000» en pesos (igual que antes) y «US$ 250» en dólares, siempre enteros, redondos y con espacio que no se corta.
+- **Círculos de moneda** (referencia de la dueña): «AR$» (verde Weda) y «US$» (gris oscuro); con «Las dos», superpuestos. Se usan en el diálogo para elegir, en el chip «Cambiar» de «Mis regalos» y el catálogo, y en las pestañas de «Datos de cobro».
+- **Elegir la moneda:** se pregunta al agregar el primer regalo («¿En qué moneda armás tu lista?», tres opciones: Pesos, Dólares, Las dos). Después, el chip con la moneda y «Cambiar» abre el mismo diálogo, con «Moneda actual».
+- **Precio en el globito:** con una moneda, como siempre; con «Las dos», pesos arriba y dólares abajo, más chico.
+- **Regalo propio con «Las dos»:** dos campos con su símbolo; al escribir uno se completa el otro, redondeado, hasta que se escriba el otro a mano.
+- **Datos de cobro:** una pestaña por moneda («Cuenta en pesos», «Cuenta en dólares»), con tilde si está cargada y punto si la lista la necesita.
+- **Invitación con «Las dos»:** arriba de la lista, «Ver precios en» con los dos círculos; el elegido, oscuro. Empieza en pesos.
+- **Filtro por monto de la invitación:** en pesos, cortes en 200.000 y 500.000; en dólares, en 150 y 350.

@@ -2194,3 +2194,45 @@ body:has(.pn-app) { background: #f6f6f3; }
 /* «Actualizar mi página» con cambios pendientes: es lo que hay que hacer, en el verde de la marca (como «Publicar»). */
 .pn-dialog .pn-btn.pn-update-btn { background: #747453; color: #fff; border-color: transparent; font-weight: 600; }
 .pn-dialog .pn-btn.pn-update-btn:hover:not(:disabled) { background: #646446; }
+
+/* ===== GIFT-10 v2 · Moneda de la lista (2026-11-23) =====
+   Referencia de la dueña: círculos con «AR$» y «US$», el elegido oscuro. Se usan en el diálogo para elegir, en el chip de «Mis regalos»
+   y en las pestañas de «Datos de cobro». */
+.cur-coins { display: inline-flex; flex: none; }
+.cur-coin { display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: #3b3c3a; color: #fff; font-size: 13px; font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; box-shadow: 0 0 0 3px #fff; }
+.cur-coin.is-ars { background: #747453; }
+.cur-coins .cur-coin + .cur-coin { margin-left: -4px; }
+.cur-coins.is-small .cur-coin { width: 28px; height: 28px; font-size: 10px; box-shadow: 0 0 0 2px #fff; }
+.cur-coins.is-small .cur-coin + .cur-coin { margin-left: -2px; }
+
+.cur-options { display: grid; gap: 10px; margin-top: 4px; }
+.cur-option { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 76px; padding: 14px 16px; border: 1px solid var(--pn-line-s, #e3e1d8); border-radius: 16px; background: #fff; text-align: left; cursor: pointer; transition: border-color .15s, box-shadow .15s, background-color .15s; }
+.cur-option:hover { border-color: #b9b793; }
+.cur-option.is-on { border-color: #747453; box-shadow: 0 0 0 1px #747453; background: #fafaf5; }
+.cur-option .cur-coins { min-width: 84px; justify-content: center; }
+.cur-option-copy { display: grid; gap: 2px; flex: 1; }
+.cur-option-copy strong { font-size: 16px; font-weight: 600; color: var(--text-main, #3b3c3a); }
+.cur-option-copy small { font-size: 13.5px; line-height: 1.35; color: var(--pn-muted, #6b6b6b); }
+.cur-option-check { color: #747453; flex: none; }
+.cur-current { margin: 14px 0 0; text-align: center; font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: var(--pn-muted, #6b6b6b); }
+.cur-current strong { color: var(--text-main, #3b3c3a); }
+
+.cur-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px 0 6px; border: 1px solid var(--pn-line-s, #e3e1d8); border-radius: 999px; background: rgb(255 255 255 / .8); font-size: 14px; color: var(--text-main, #3b3c3a); cursor: pointer; }
+.cur-chip:hover { background: #fff; }
+.cur-chip-change { color: #747453; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+.cur-tabs { display: flex; gap: 8px; margin: 0 0 16px; flex-wrap: wrap; }
+.cur-tab { position: relative; display: inline-flex; align-items: center; gap: 10px; min-height: 52px; padding: 6px 16px 6px 6px; border: 1px solid var(--pn-line-s, #e3e1d8); border-radius: 999px; background: rgb(255 255 255 / .7); font-size: 15px; color: var(--pn-muted, #6b6b6b); cursor: pointer; }
+.cur-tab .cur-coin { width: 38px; height: 38px; font-size: 11.5px; box-shadow: none; background: #b8b7ae; }
+.cur-tab.is-on { color: var(--text-main, #3b3c3a); background: #fff; border-color: #747453; box-shadow: 0 0 0 1px #747453; }
+.cur-tab.is-on .cur-coin { background: #3b3c3a; }
+.cur-tab.is-on .cur-coin.is-ars { background: #747453; }
+.cur-tab-ok { color: #747453; }
+.cur-tab .pn-dot-todo { position: static; }
+
+.cur-amounts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 420px) { .cur-amounts { grid-template-columns: 1fr; } }
+.cur-input { position: relative; }
+.cur-input-sym { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 14px; font-weight: 600; color: var(--pn-muted, #6b6b6b); pointer-events: none; }
+.pn-form .cur-input input { padding-left: 52px; }
+.cur-hint { margin-top: -6px; }

@@ -52,7 +52,7 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
     // Falta el alias, pero no bloquea: el aviso lo explica y se puede seguir.
     await expect(page.getByRole('region', { name: /Ya elegiste \d+ regalos/ })).toBeVisible();   // banner del alias, con 3 regalos o más (2026-11-23)
     await page.getByRole('tab', { name: /Cobro/ }).click();
-    await expect(page.getByRole('region', { name: 'Transferencia bancaria' }).getByText('Sin configurar')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Transferencia en pesos' }).getByText('Sin configurar')).toBeVisible();
 
     // Se puede seguir sin completar el cobro.
     await nav(page, 'Tu página').click();
@@ -61,12 +61,12 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
 
     // El alias se guarda mientras se escribe (sin botón «Guardar»).
     await page.getByRole('tab', { name: /Cobro/ }).click();
-    await page.getByRole('region', { name: 'Transferencia bancaria' }).getByRole('button', { name: 'Configurar' }).click();
+    await page.getByRole('region', { name: 'Transferencia en pesos' }).getByRole('button', { name: 'Configurar' }).click();
     await page.getByRole('dialog').getByLabel('Alias').fill('lucia.violeta');
     // Desde el 2026-11-07 se revisa y se confirma (la primera vez no pide la clave).
     await page.getByRole('dialog').getByRole('button', { name: 'Revisar' }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Confirmar', exact: true }).click();
-    await expect(page.getByRole('region', { name: 'Transferencia bancaria' }).getByText('Configurado')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Transferencia en pesos' }).getByText('Configurada')).toBeVisible();
     await page.getByRole('tab', { name: /Mis regalos/ }).click();
     await expect(page.getByRole('list', { name: /Regalos de tu lista/ }).getByRole('listitem')).toHaveCount(8);
     await expect(page.getByRole('region', { name: /Ya elegiste \d+ regalos/ })).toHaveCount(0);

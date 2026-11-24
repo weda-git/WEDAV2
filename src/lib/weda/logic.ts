@@ -1,7 +1,8 @@
 // Lógica de negocio del frontend de Weda: funciones puras (sin React ni almacenamiento) para poder probarlas
 // y para que, cuando exista una API, se puedan reemplazar por llamadas al servidor sin tocar los componentes.
-import { dressCode as demoDress, formatARS, menus, type Category, type Gift } from '@/lib/demo-wedding';
+import { dressCode as demoDress, menus, type Category, type Gift } from '@/lib/demo-wedding';
 import { catalogGift, setGifts, type GiftSet } from './catalog';
+import { CURRENCY_IN, formatMoney, LIMITS, usdFrom, type Currency, type ListMode } from './money';
 import { publishes, planFor, type Feature } from './plans';
 import type {
   AppState, BlockId, EventIconId, Group, Guest, GuestStatus, ListGift, PhotoChoice, PlanId, SiteConfig, SiteEvent, Swatch,
@@ -102,15 +103,16 @@ export function parseAmount(v: string): number {
 export const MIN_AMOUNT = 1000;
 export const MAX_AMOUNT = 100_000_000;
 
-export function validateGift(i: { name: string; amount: string; text: string }): FieldErrors<'name' | 'amount' | 'text'> {
+export function validateGift(i: { name: string; amount: string; text: string }, currency: Currency = 'ARS'): FieldErrors<'name' | 'amount' | 'text'> {
   const e: FieldErrors<'name' | 'amount' | 'text'> = {};
   const n = i.name.trim();
   if (n.length < 2) e.name = 'Poné un nombre para el regalo.';
   else if (n.length > 60) e.name = 'El nombre es demasiado largo: 60 letras como máximo.';
   const a = parseAmount(i.amount);
-  if (Number.isNaN(a)) e.amount = 'Escribí el monto en pesos, solo con números.';
-  else if (a < MIN_AMOUNT) e.amount = 'El monto mínimo es $ 1.000.';
-  else if (a > MAX_AMOUNT) e.amount = 'El monto es demasiado alto: el máximo es $ 100.000.000.';
+  const { min, max } = LIMITS[currency];
+  if (Number.isNaN(a)) e.amount = `Escribí el monto ${CURRENCY_IN[currency]}, solo con números.`;
+  else if (a < min) e.amount = `El monto mínimo es ${formatMoney(min, currency)}.`;
+  else if (a > max) e.amount = `El monto es demasiado alto: el máximo es ${formatMoney(max, currency)}.`;
   if (i.text.trim().length > 140) e.text = 'La descripción es demasiado larga: 140 letras como máximo.';
   return e;
 }
@@ -122,13 +124,16 @@ export const FREE_GIFT_ID = 'aporte-libre';
 export const isFreeGift = (g: Pick<Gift, 'id'>) => g.id === FREE_GIFT_ID;
 export const freeGift = (amount: number): Gift => ({ id: FREE_GIFT_ID, name: FREE_AMOUNT_LABEL, text: '', amount, category: 'Proyectos futuros', icon: 'home' });
 /** Mínimo efectivo del aporte libre: el que fijó la pareja, nunca menos que el mínimo general. */
-export const freeAmountMin = (min: number | null | undefined) => Math.max(min ?? MIN_AMOUNT, MIN_AMOUNT);
+export const freeAmountMin = (min: number | null | undefined, currency: Currency = 'ARS') => Math.max(min ?? LIMITS[currency].min, LIMITS[currency].min);
 /** Monto que escribe un invitado en el aporte libre (o la pareja como mínimo): pesos enteros entre `min` y el máximo. */
-export function validateFreeAmount(raw: string, min = MIN_AMOUNT): string | null {
+export function validateFreeAmount(raw: string, min?: number, currency: Currency = 'ARS'): string | null {
   const a = parseAmount(raw);
-  if (Number.isNaN(a)) return 'Escribí el monto en pesos, solo con números.';
-  if (a < min) return `El monto mínimo es ${formatARS(min)}.`;
-  if (a > MAX_AMOUNT) return 'El monto es demasiado alto: el máximo es $ 100.000.000.';
+  const lim = LIMITS[currency];
+  // Sin mínimo propio, vale el de la moneda (en dólares no aplica el de $ 1.000).
+  const floor = Math.max(min ?? lim.min, lim.min);
+  if (Number.isNaN(a)) return `Escribí el monto ${CURRENCY_IN[currency]}, solo con números.`;
+  if (a < floor) return `El monto mínimo es ${formatMoney(floor, currency)}.`;
+  if (a > lim.max) return `El monto es demasiado alto: el máximo es ${formatMoney(lim.max, currency)}.`;
   return null;
 }
 
@@ -295,10 +300,11 @@ export const emptyState = (): AppState => ({
 
 export type AddResult = { state: AppState; added: number; skipped: number };
 
-const fromCatalog = (id: string, fromSet?: string): ListGift | null => {
+// GIFT-10 v2 (D5): cada regalo de la lista lleva su precio en pesos y en dólares; el catálogo los trae fijos.
+const fromCatalog = (id: string, fromSet: string | undefined): ListGift | null => {
   const g = catalogGift(id); if (!g) return null;
   return {
-    id: uid('g'), catalogId: g.id, fromSet, name: g.name, text: g.text, amount: g.amount, category: g.category, icon: g.icon,
+    id: uid('g'), catalogId: g.id, fromSet, name: g.name, text: g.text, amount: g.amount, amountUsd: g.amountUsd ?? usdFrom(g.amount), category: g.category, icon: g.icon,
     image: g.image, pos: g.pos, fit: g.fit, zoom: g.zoom,
   };
 };
@@ -329,14 +335,18 @@ export const removeGift = (s: AppState, id: string): AppState => ({ ...s, gifts:
 export const removeSetGifts = (s: AppState, giftIds: string[]): AppState => ({ ...s, gifts: { ...s.gifts, items: s.gifts.items.filter(g => !g.catalogId || !giftIds.includes(g.catalogId)) } });
 export const removeSet = (s: AppState, setId: string): AppState => ({ ...s, gifts: { ...s.gifts, items: s.gifts.items.filter(g => g.fromSet !== setId) } });
 
-export function addCustomGift(s: AppState, i: { name: string; amount: number; text?: string | undefined; category?: Category | undefined; image?: string | undefined }): AppState {
-  const g: ListGift = { id: uid('g'), name: i.name.trim(), text: (i.text ?? '').trim(), amount: i.amount, category: i.category ?? 'Proyectos futuros', icon: 'compass', image: i.image, custom: true };
+/** Regalo propio. `amount` en pesos; `amountUsd`, si no viene, se sugiere desde los pesos (D5). */
+export function addCustomGift(s: AppState, i: { name: string; amount: number; amountUsd?: number | undefined; text?: string | undefined; category?: Category | undefined; image?: string | undefined }): AppState {
+  const g: ListGift = { id: uid('g'), name: i.name.trim(), text: (i.text ?? '').trim(), amount: i.amount, amountUsd: i.amountUsd ?? usdFrom(i.amount), category: i.category ?? 'Proyectos futuros', icon: 'compass', image: i.image, custom: true };
   return { ...s, gifts: { ...s.gifts, items: [...s.gifts.items, g] } };
 }
 
-export const updateGift = (s: AppState, id: string, patch: Partial<Pick<ListGift, 'name' | 'text' | 'amount' | 'image' | 'category'>>): AppState => ({
+export const updateGift = (s: AppState, id: string, patch: Partial<Pick<ListGift, 'name' | 'text' | 'amount' | 'amountUsd' | 'image' | 'category'>>): AppState => ({
   ...s, gifts: { ...s.gifts, items: s.gifts.items.map(g => (g.id === id ? { ...g, ...patch } : g)) },
 });
+
+/** Cambia cómo se muestra la lista (GIFT-10 v2, D2). Ningún regalo pierde su monto: todos tienen precio en las dos monedas (D5). */
+export const setListMode = (s: AppState, mode: ListMode): AppState => (s.gifts.currency === mode ? s : { ...s, gifts: { ...s.gifts, currency: mode } });
 
 export function moveGift(s: AppState, id: string, dir: -1 | 1): AppState {
   const items = [...s.gifts.items];
@@ -520,6 +530,8 @@ export const receivedTotal = (r: ReceivedGift[]) => r.reduce((n, x) => n + x.amo
  *  (regalos registrados en este navegador, sin servidor: el archivo no se guarda). */
 export type Contribution = {
   id: string; giver: string; email: string; gifts: { name: string; amount: number }[]; total: number; at: number | null; message: string;
+  /** Moneda del aporte (GIFT-10). Los registrados sin moneda son pesos. */
+  currency?: Currency | undefined;
   how: 'alias' | 'tarjeta' | null; receipt: string | 'missing' | null; status: 'pending_review' | 'confirmed' | 'rejected' | null;
 };
 
@@ -547,7 +559,7 @@ export function contributionsFromServer(list: unknown): Contribution[] {
     const id = String(c['id'] ?? '');
     const status = c['status'] === 'confirmed' || c['status'] === 'pending_review' || c['status'] === 'rejected' ? c['status'] : null;
     return {
-      id, giver: String(c['giverName'] ?? '').trim() || 'Un invitado', email: String(c['giverEmail'] ?? ''), message: String(c['message'] ?? ''),
+      id, currency: c['currency'] === 'USD' ? 'USD' : 'ARS', giver: String(c['giverName'] ?? '').trim() || 'Un invitado', email: String(c['giverEmail'] ?? ''), message: String(c['message'] ?? ''),
       gifts: items.map(i => ({ name: i['kind'] === 'free' ? FREE_AMOUNT_LABEL : String(i['giftName'] ?? 'Regalo'), amount: Number(i['amount']) || 0 })),
       total: Number(c['total']) || 0, at: Number.isFinite(at) ? at : null, how: c['how'] === 'alias' ? 'alias' : null,
       receipt: c['hasReceipt'] ? `/api/contributions/${encodeURIComponent(id)}/receipt` : 'missing', status,

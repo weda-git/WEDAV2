@@ -3,7 +3,14 @@
 import { sectionGaps } from './journey';
 import { hasEventDetails, publicPages, spotifyEmbed } from './logic';
 import { publishes, planFor, type Feature } from './plans';
+import { listMode } from './money';
 import type { AppState, PlanId } from './types';
+
+/** Tiene cargada la cuenta de cada moneda que muestra la lista (GIFT-10 v2, D7). */
+export function hasPayout(s: AppState): boolean {
+  const mode = listMode(s.gifts);
+  return (mode === 'USD' || s.gifts.alias.trim() !== '') && (mode === 'ARS' || !!s.gifts.usd?.alias.trim());
+}
 
 export type PublishState = 'published' | 'empty' | 'draft';
 export type PublishItem = { feature: Feature; label: string; state: PublishState; detail: string; /** Plan que la habilita (solo si queda como borrador). */ plan?: string };
@@ -29,11 +36,16 @@ export function publishSummary(s: AppState, planId: PlanId): PublishSummary {
     else if (content) items.push({ feature: p.feature, label: p.label, state: 'draft', detail: `Tu contenido se conserva (${content}).`, plan: planFor(p.feature)?.name ?? '' });
   }
   const warnings: string[] = [];
-  if (publishes(planId, 'gifts') && s.gifts.items.length > 0 && s.gifts.alias.trim() === '') warnings.push('Falta configurar cómo vas a recibir los regalos: sin eso no se pueden activar los regalos reales.');
+  if (publishes(planId, 'gifts') && s.gifts.items.length > 0 && !hasPayout(s)) warnings.push('Falta configurar cómo vas a recibir los regalos: sin eso no se pueden activar los regalos reales.');
   if (publishes(planId, 'site') && !s.date) warnings.push('Todavía no definiste la fecha: la portada va a decir «Fecha a confirmar».');
   const todo: PublishTodo[] = [];
   if (publishes(planId, 'gifts') && s.gifts.items.length === 0) todo.push({ text: 'Elegí al menos un regalo para tu lista.', to: '/panel/regalos', cta: 'Elegir regalos' });
-  if (publishes(planId, 'gifts') && s.gifts.items.length > 0 && s.gifts.alias.trim() === '') todo.push({ text: 'Configurá cómo vas a recibir los regalos (alias).', to: '/panel/regalos', cta: 'Configurar cobro', search: { tab: 'cobro' } });
+  // GIFT-10 v2 (D7): hace falta la cuenta de cada moneda que muestra la lista.
+  if (publishes(planId, 'gifts') && s.gifts.items.length > 0) {
+    const mode = listMode(s.gifts);
+    if (mode !== 'USD' && s.gifts.alias.trim() === '') todo.push({ text: mode === 'both' ? 'Configurá tu cuenta en pesos (alias).' : 'Configurá cómo vas a recibir los regalos (alias).', to: '/panel/regalos', cta: 'Configurar cobro', search: { tab: 'cobro' } });
+    if (mode !== 'ARS' && !s.gifts.usd?.alias.trim()) todo.push({ text: 'Configurá tu cuenta en dólares (alias).', to: '/panel/regalos', cta: 'Configurar cobro', search: { tab: 'cobro' } });
+  }
   if (publishes(planId, 'site') && !s.date) todo.push({ text: 'Definí la fecha del casamiento.', to: '/panel', cta: 'Definir la fecha', search: { editar: 'datos' } });
   if (publishes(planId, 'site')) for (const g of sectionGaps(s)) todo.push({ text: `Completá «${g.label}»: está activada pero le faltan datos.`, to: '/panel/sitio', cta: 'Completar' });
   return { items, todo, published: items.filter(i => i.state === 'published'), drafts: items.filter(i => i.state === 'draft'), empty: items.filter(i => i.state === 'empty'), warnings };

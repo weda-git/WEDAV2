@@ -7,18 +7,20 @@ import { centerChild, useScrollFade } from '@/components/panel/scroll-row';
 import { ContributionReview } from '@/components/panel/contribution-review';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { catalog, categories, setGifts, SETS, type GiftSet } from '@/lib/weda/catalog';
-import { formatARS, type Gift } from '@/lib/demo-wedding';
+import type { Gift } from '@/lib/demo-wedding';
+import { arsFrom, CURRENCY_IN, CURRENCY_LABEL, CURRENCY_SYMBOL, currencyChosen, formatMoney, LIST_MODE_LABEL, listMode, priceIn, shownCurrencies, usdFrom, type Currency, type ListMode } from '@/lib/weda/money';
 import { readImage } from '@/lib/weda/images';
 import {
-  addCatalogGift, addCustomGift, addSet, contributionsFromServer, contributionsFromState, countsAsGift, hasCatalogGift, moveGiftTo, parseAmount, removeGift, removeSetGifts, sitePath, updateGift, type Contribution,
+  addCatalogGift, addCustomGift, addSet, setListMode, contributionsFromServer, contributionsFromState, countsAsGift, hasCatalogGift, moveGiftTo, parseAmount, removeGift, removeSetGifts, sitePath, updateGift, type Contribution,
   cleanCbu, MIN_AMOUNT, validateAlias, validateCbu, validateFreeAmount, validateGift,
 } from '@/lib/weda/logic';
 import { operates } from '@/lib/weda/plans';
 import { openPreview } from '@/lib/weda/preview-event';
 import { update, useAppState } from '@/lib/weda/store';
+import { hasPayout } from '@/lib/weda/publish';
 import { api, useRemote } from '@/lib/weda/remote';
 import type { Category } from '@/lib/demo-wedding';
-import type { ListGift } from '@/lib/weda/types';
+import type { ListGift, PayoutAccount } from '@/lib/weda/types';
 import '@/gift-card.css';
 
 export const Route = createFileRoute('/panel/regalos')({
@@ -36,23 +38,44 @@ const TABS: { id: Tab; label: string; short: string }[] = [
 ];
 
 /* Formulario de un regalo (para crear uno propio y para editar cualquiera de la lista): foto, monto, nombre y categoría.
-   Los regalos del catálogo (con `catalogId`) mantienen su foto y su monto (pedido de la dueña, 2026-11-23): para otra foto u otro monto, se crea uno propio. */
-type GiftValues = { name: string; amount: number; category: Category; image: string | undefined };
-function GiftForm({ initial, submitLabel, onSubmit, onCancel }: { initial?: ListGift | undefined; submitLabel: string; onSubmit: (v: GiftValues) => void; onCancel?: (() => void) | undefined }) {
+   Los regalos del catálogo (con `catalogId`) mantienen su foto y su monto (pedido de la dueña, 2026-11-23): para otra foto u otro monto, se crea uno propio.
+   GIFT-10 v2 (D5): el monto se pide en la moneda de la lista; con «Las dos», al escribir uno se completa el otro a $ 1.500 por dólar,
+   redondeado (D6), hasta que la pareja escriba el otro a mano. Con una sola moneda, el de la otra se sugiere al guardar. */
+type GiftValues = { name: string; amount: number; amountUsd: number; category: Category; image: string | undefined };
+function GiftForm({ initial, submitLabel, onSubmit, onCancel, mode = 'ARS' }: { initial?: ListGift | undefined; submitLabel: string; onSubmit: (v: GiftValues) => void; onCancel?: (() => void) | undefined; mode?: ListMode }) {
+  const shown = shownCurrencies(mode);
   const [name, setName] = useState(initial?.name ?? '');
-  const [amount, setAmount] = useState(initial ? String(initial.amount) : '');
+  const [money, setMoney] = useState<Record<Currency, string>>({ ARS: initial ? String(initial.amount) : '', USD: initial ? String(priceIn(initial, 'USD')) : '' });
+  // Qué monto escribió primero la pareja (el otro se completa solo); «manual» cuando escribió los dos.
+  const [lead, setLead] = useState<Currency | 'manual' | null>(null);
   const [category, setCategory] = useState<Category>(initial?.category ?? 'Proyectos futuros');
   const [image, setImage] = useState<string | undefined>(initial?.image);
-  const [errors, setErrors] = useState<ReturnType<typeof validateGift>>({});
+  const [errors, setErrors] = useState<{ name?: string | undefined; ARS?: string | undefined; USD?: string | undefined }>({});
   const [imgError, setImgError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
   const preset = !!initial?.catalogId;
+  const type = (c: Currency, v: string) => {
+    setErrors(x => ({ ...x, [c]: undefined }));
+    const other: Currency = c === 'ARS' ? 'USD' : 'ARS';
+    const auto = mode === 'both' && (lead === null || lead === c);
+    if (mode === 'both') setLead(auto ? c : 'manual');
+    const n = parseAmount(v);
+    setMoney(m => ({ ...m, [c]: v, ...(auto ? { [other]: v.trim() && !Number.isNaN(n) && n > 0 ? String(c === 'ARS' ? usdFrom(n) : arsFrom(n)) : '' } : {}) }));
+  };
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    const found = validateGift({ name, amount, text: '' });
+    const found: typeof errors = {};
+    for (const c of shown) {
+      const r = validateGift({ name, amount: money[c], text: '' }, c);
+      if (r.name) found.name = r.name;
+      if (r.amount) found[c] = r.amount;
+    }
     setErrors(found);
     if (Object.keys(found).length) return;
-    onSubmit({ name: name.trim(), amount: parseAmount(amount), category, image });
+    const ars = parseAmount(money.ARS), usd = parseAmount(money.USD);
+    const amount = mode === 'USD' ? (initial && usd === priceIn(initial, 'USD') ? initial.amount : arsFrom(usd)) : ars;
+    const amountUsd = mode === 'ARS' ? (initial && ars === initial.amount ? priceIn(initial, 'USD') : usdFrom(ars)) : usd;
+    onSubmit({ name: name.trim(), amount, amountUsd, category, image });
   };
   const pick = async (f: File | undefined) => {
     if (!f) return;
@@ -78,9 +101,19 @@ function GiftForm({ initial, submitLabel, onSubmit, onCancel }: { initial?: List
         {imgError && <p className="pn-error" role="alert">{imgError}</p>}
       </div>
       )}
-      <Field label="Monto en pesos" error={errors.amount}>
-        {a => <input id={a.id} type="text" inputMode="numeric" value={amount} readOnly={preset} aria-readonly={preset || undefined} placeholder="180000" onChange={e => { setAmount(e.target.value); setErrors(x => ({ ...x, amount: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
-      </Field>
+      <div className={shown.length > 1 ? 'cur-amounts' : undefined}>
+        {shown.map(c => (
+          <Field key={c} label={`Monto ${CURRENCY_IN[c]}`} error={errors[c]}>
+            {a => (
+              <div className="cur-input">
+                <span className="cur-input-sym" aria-hidden="true">{CURRENCY_SYMBOL[c]}</span>
+                <input id={a.id} type="text" inputMode="numeric" value={money[c]} readOnly={preset} aria-readonly={preset || undefined} placeholder={c === 'USD' ? '120' : '180000'} onChange={e => type(c, e.target.value)} aria-invalid={a.invalid} aria-describedby={a.describedBy} />
+              </div>
+            )}
+          </Field>
+        ))}
+      </div>
+      {mode === 'both' && !preset && <p className="pn-hint cur-hint">Escribí un monto y completamos el otro a $ 1.500 por dólar, redondeado. Lo podés cambiar.</p>}
       <Field label="Nombre del regalo" error={errors.name}>{a => <input id={a.id} type="text" value={name} placeholder="Auriculares para nuestros viajes" onChange={e => { setName(e.target.value); setErrors(x => ({ ...x, name: undefined })); }} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}</Field>
       <Field label="Categoría" optional>{a => <select id={a.id} value={category} onChange={e => setCategory(e.target.value as Category)}>{categories.map(c => <option key={c} value={c}>{c}</option>)}</select>}</Field>
       <div className="pn-actions is-end">
@@ -91,6 +124,55 @@ function GiftForm({ initial, submitLabel, onSubmit, onCancel }: { initial?: List
   );
 }
 
+/** Precio de un regalo en la moneda de la lista. Con «Las dos», pesos arriba y dólares abajo, en el mismo globito (GIFT-10 v2). */
+function PriceTag({ g, mode }: { g: { amount: number; amountUsd?: number | undefined }; mode: ListMode }) {
+  const cs = shownCurrencies(mode);
+  return <span className={`gc-price${cs.length > 1 ? ' is-two' : ''}`}>{cs.map(c => <span key={c}>{formatMoney(priceIn(g, c), c)}</span>)}</span>;
+}
+
+/** Los círculos de moneda (referencia de la dueña: «AR$» y «US$»). */
+function Coins({ mode, small }: { mode: ListMode; small?: boolean }) {
+  return <span className={`cur-coins${small ? ' is-small' : ''}`} aria-hidden="true">{shownCurrencies(mode).map(c => <span key={c} className={`cur-coin is-${c.toLowerCase()}`}>{CURRENCY_SYMBOL[c]}</span>)}</span>;
+}
+
+const CURRENCY_OPTIONS: { id: ListMode; title: string; text: string }[] = [
+  { id: 'ARS', title: 'Pesos', text: 'Tus invitados ven los precios en pesos y te transfieren a tu cuenta en pesos.' },
+  { id: 'USD', title: 'Dólares', text: 'Tus invitados ven los precios en dólares y te transfieren a tu cuenta en dólares.' },
+  { id: 'both', title: 'Las dos', text: 'Cada invitado elige si regala en pesos o en dólares. Cargás una cuenta para cada moneda.' },
+];
+/** Elegir la moneda (GIFT-10 v2, D1 y D2): al agregar el primer regalo y desde «Cambiar». Cambiar no borra montos: cada regalo tiene los dos. */
+function CurrencyDialog({ mode, first, onPick, onClose }: { mode: ListMode; first: boolean; onPick: (m: ListMode) => void; onClose: () => void }) {
+  return (
+    <Dialog open onOpenChange={o => { if (!o) onClose(); }}>
+      <DialogContent className="pn-dialog cur-dialog">
+        <DialogTitle>{first ? '¿En qué moneda armás tu lista?' : 'Moneda de tu lista'}</DialogTitle>
+        <DialogDescription>{first ? 'Es como tus invitados ven los precios. Lo podés cambiar cuando quieras.' : 'Cada regalo tiene su precio en pesos y en dólares: cambiar no borra nada.'}</DialogDescription>
+        <div className="cur-options" role="radiogroup" aria-label="Moneda de tu lista">
+          {CURRENCY_OPTIONS.map(o => {
+            const on = !first && mode === o.id;
+            return (
+              <button key={o.id} type="button" role="radio" aria-checked={on} className={`cur-option${on ? ' is-on' : ''}`} onClick={() => onPick(o.id)}>
+                <Coins mode={o.id} />
+                <span className="cur-option-copy"><strong>{o.title}</strong><small>{o.text}</small></span>
+                {on && <Check size={18} strokeWidth={2.2} className="cur-option-check" aria-hidden="true" />}
+              </button>
+            );
+          })}
+        </div>
+        {!first && <p className="cur-current">Moneda actual: <strong>{LIST_MODE_LABEL[mode]}</strong></p>}
+      </DialogContent>
+    </Dialog>
+  );
+}
+/** La moneda elegida, a la vista en «Mis regalos» y en el catálogo, con «Cambiar». */
+function CurrencyChip({ mode, onOpen }: { mode: ListMode; onOpen: () => void }) {
+  return (
+    <button type="button" className="cur-chip" onClick={onOpen} aria-label={`Moneda de tu lista: ${LIST_MODE_LABEL[mode]}. Cambiar`}>
+      <Coins mode={mode} small /><span>{LIST_MODE_LABEL[mode]}</span><span className="cur-chip-change">Cambiar</span>
+    </button>
+  );
+}
+
 /* Foto de cada set (de las imágenes que ya usa el catálogo). */
 const SET_COVER: Record<string, string> = {
   'luna-de-miel': '/lm-santorini.webp', hogar: '/lista-de-regalos-lampara.jpg', experiencias: '/lm-globo.webp?v=2',
@@ -98,13 +180,13 @@ const SET_COVER: Record<string, string> = {
 };
 
 /* Tarjeta única de regalo (gift-card.css): foto, nombre, monto siempre visible y una sola acción. «En tu lista»: tilde sobre la foto. */
-function CatalogCard({ gift, inList, onAdd, onRemove }: { gift: Gift; inList: boolean; onAdd: () => void; onRemove: () => void }) {
+function CatalogCard({ gift, inList, onAdd, onRemove, mode }: { gift: Gift; inList: boolean; onAdd: () => void; onRemove: () => void; mode: ListMode }) {
   return (
     <li className={`pn-gcard gc${inList ? ' is-in' : ''}`}>
       <div className="pn-gphoto gc-photo">
         {gift.image ? <img src={gift.image} alt="" loading="lazy" style={gift.pos ? { objectPosition: gift.pos } : undefined} /> : <GiftIcon size={34} strokeWidth={1.3} aria-hidden="true" />}
         {inList && <span className="gc-check" aria-hidden="true"><Check size={16} strokeWidth={2.5} /></span>}
-        <span className="gc-price">{formatARS(gift.amount)}</span>
+        <PriceTag g={gift} mode={mode} />
       </div>
       <h3 className="gc-name" title={gift.name}>{gift.name}</h3>
       {inList
@@ -123,7 +205,7 @@ function FreeFace() {
     </span>
   );
 }
-const freePrice = (min: number | null) => (min ? <>Desde {formatARS(min)}</> : <>Monto libre</>);
+const freePrice = (min: number | null) => (min ? <>Desde {formatMoney(min)}</> : <>Monto libre</>);
 
 /** Desde cuántos regalos en la lista aparece el aviso del alias: antes es pronto (la pareja recién está eligiendo). */
 const ALIAS_NUDGE_FROM = 3;
@@ -134,11 +216,18 @@ function AliasNudge({ count, onGo }: { count: number; onGo: () => void }) {
       <span className="rg-alias-ico" aria-hidden="true"><Landmark size={22} strokeWidth={1.6} /></span>
       <div className="rg-alias-copy">
         <h2 id="rg-alias-title">Ya elegiste {count} regalos</h2>
-        <p>Cargá tu alias para que tus invitados sepan a dónde transferir.</p>
+        <p>Cargá tu cuenta para que tus invitados sepan a dónde transferir.</p>
       </div>
-      <button type="button" className="pn-btn rg-alias-cta" onClick={onGo}>Cargar alias<ChevronRight size={16} aria-hidden="true" /></button>
+      <button type="button" className="pn-btn rg-alias-cta" onClick={onGo}>Cargar mi cuenta<ChevronRight size={16} aria-hidden="true" /></button>
     </section>
   );
+}
+
+/** Totales por moneda (BR-21, BR-53): nunca se suman monedas distintas. Siempre aparecen las de la lista, aunque sea en cero. */
+function totalsByCurrency(list: Contribution[], shown: Currency[]): [Currency, number][] {
+  const by = new Map<Currency, number>(shown.map(c => [c, 0]));
+  for (const c of list) { const k = c.currency ?? 'ARS'; by.set(k, (by.get(k) ?? 0) + c.total); }
+  return [...by.entries()];
 }
 
 const HOW_LABEL = { alias: 'Por alias', tarjeta: 'Con tarjeta' } as const;
@@ -164,14 +253,17 @@ function useContributions(s: ReturnType<typeof useAppState>): { list: Contributi
 const fmtDate = (t: number) => new Date(t).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 
 /* Transferencia bancaria: banco, CBU y alias. Cada dato se guarda solo apenas es válido; el error aparece al salir del campo. Los tres son opcionales (el alias alcanza para cobrar); si se cargan, los invitados los ven al transferir. */
-function BankFields({ bank, cbu, alias }: { bank: string; cbu: string; alias: string }) {
+function BankFields({ bank, cbu, alias, currency = 'ARS' }: PayoutAccount & { currency?: Currency }) {
   const [b, setB] = useState(bank);
   const [c, setC] = useState(cbu);
   const [al, setAl] = useState(alias);
   const [touched, setTouched] = useState<{ cbu?: boolean; alias?: boolean }>({});
   const cbuErr = c.trim() === '' ? undefined : validateCbu(c);
   const aliasErr = al.trim() === '' ? undefined : validateAlias(al);
-  const save = (patch: Partial<{ bank: string; cbu: string; alias: string }>) => update(x => ({ ...x, gifts: { ...x.gifts, ...patch } }));
+  // La cuenta en pesos vive en `gifts`; la de dólares, en `gifts.usd` (GIFT-10 v2, D4).
+  const save = (patch: Partial<PayoutAccount>) => update(x => (currency === 'USD'
+    ? { ...x, gifts: { ...x.gifts, usd: { alias: '', bank: '', cbu: '', ...x.gifts.usd, ...patch } } }
+    : { ...x, gifts: { ...x.gifts, ...patch } }));
   return (
     <div className="pn-form">
       <Field label="Banco" optional>
@@ -376,6 +468,18 @@ function GiftsModule() {
   const [editing, setEditing] = useState<ListGift | null>(null);
   const [freeOpen, setFreeOpen] = useState(false);
   const free = s.gifts.freeAmount;
+  const mode = listMode(s.gifts);
+  const shown = shownCurrencies(mode);
+  // GIFT-10 v2 (D1): la moneda se elige al agregar el primer regalo; `then` es lo que se quería hacer (se hace apenas se elige).
+  const [curAsk, setCurAsk] = useState<{ first: boolean; then?: (() => void) | undefined } | null>(null);
+  const gate = (then: () => void) => { if (currencyChosen(s.gifts)) then(); else setCurAsk({ first: true, then }); };
+  const pickMode = (m: ListMode) => {
+    const ask = curAsk; setCurAsk(null);
+    update(x => setListMode(x, m));
+    if (ask?.then) ask.then(); else if (m !== mode) toast(`Tu lista ahora se muestra en ${LIST_MODE_LABEL[m].toLowerCase()}.`);
+  };
+  // Pestaña de la cuenta que se está mirando en «Datos de cobro» (D4).
+  const [payCur, setPayCur] = useState<Currency>(() => (mode === 'USD' ? 'USD' : 'ARS'));
   const toggleFree = (on: boolean) => { saveFree({ enabled: on }); toast(on ? 'Agregaste el aporte libre.' : 'Quitaste el aporte libre.', 'ok', { label: 'Deshacer', onClick: () => saveFree({ enabled: !on }) }); };
   // El botón de la barra superior (panel.tsx) pide abrir la vista previa de la lista.
 
@@ -406,15 +510,16 @@ function GiftsModule() {
     const r = addSet(s, set);
     if (r.added === 0) { toast('Esos regalos ya estaban en tu lista.'); return; }
     const before = s.gifts.items;
-    update(() => r.state);
+    update(x => addSet(x, set).state);
     toast(`Agregaste ${r.added} ${r.added === 1 ? 'regalo' : 'regalos'}${r.skipped ? ` (${r.skipped} ya estaban)` : ''}.`, 'ok', { label: 'Deshacer', onClick: () => update(x => ({ ...x, gifts: { ...x.gifts, items: before } })) });
   };
   const rm = (g: ListGift) => withUndo(`Quitaste «${g.name}».`, () => update(x => removeGift(x, g.id)));
-  const addOne = (id: string, from?: string) => { const r = addCatalogGift(s, id, from); if (r.added) { update(() => r.state); toast('Agregado a tu lista.'); } };
+  const addOne = (id: string, from?: string) => { const r = addCatalogGift(s, id, from); if (r.added) { update(x => addCatalogGift(x, id, from).state); toast('Agregado a tu lista.'); } };
   const rmCatalog = (catalogId: string) => { const g = items.find(x => x.catalogId === catalogId); if (g) rm(g); };
 
 
   const alias = s.gifts.alias.trim();
+  const paid = hasPayout(s);
   const copyLink = () => { void navigator.clipboard?.writeText(`${window.location.origin}${sitePath(s)}/regalos`).catch(() => undefined); toast('Enlace de la lista copiado.'); };
 
   return (
@@ -426,7 +531,7 @@ function GiftsModule() {
         </div>
         <div className="rg-head-actions">
           <button type="button" className="pn-btn is-ghost" onClick={copyLink} title="Copiar el enlace de tu lista de regalos"><Copy size={16} aria-hidden="true" />Copiar enlace</button>
-          <button type="button" className="pn-btn" onClick={() => setCreating(true)}><Plus size={16} aria-hidden="true" />Crear regalo</button>
+          <button type="button" className="pn-btn" onClick={() => gate(() => setCreating(true))}><Plus size={16} aria-hidden="true" />Crear regalo</button>
         </div>
       </header>
 
@@ -436,7 +541,7 @@ function GiftsModule() {
             onKeyDown={e => { if (e.key === 'ArrowRight') { e.preventDefault(); setTab(TABS[(i + 1) % TABS.length]!.id); } if (e.key === 'ArrowLeft') { e.preventDefault(); setTab(TABS[(i + TABS.length - 1) % TABS.length]!.id); } }}>
             <span className="pn-tab-long">{t.label}</span><span className="pn-tab-short">{t.short}</span>
             {t.id === 'lista' && items.length > 0 && <span className="pn-count">{items.length}</span>}
-            {t.id === 'cobro' && !alias && <><span className="pn-dot-todo" aria-hidden="true" /><span className="pn-sr">(pendiente, opcional por ahora)</span></>}
+            {t.id === 'cobro' && !paid && <><span className="pn-dot-todo" aria-hidden="true" /><span className="pn-sr">(pendiente, opcional por ahora)</span></>}
             {t.id === 'recibidos' && counted.length > 0 && <span className="pn-count">{counted.length}</span>}
           </button>
         ))}
@@ -446,21 +551,24 @@ function GiftsModule() {
         {tab === 'lista' && (
           <>
           {items.length === 0 ? (
+            <>
             <div className="pn-empty is-centered">
               <span className="pn-empty-ico" aria-hidden="true"><GiftIcon size={22} strokeWidth={1.6} /></span>
               <h2>Todavía no hay regalos en tu lista</h2>
               <p>Agregá de nuestro catálogo un montón de regalos o creá tus propios regalos para tu lista.</p>
-              <div className="pn-actions is-center"><button type="button" className="pn-btn" onClick={() => setTab('agregar')}>Agregar del catálogo</button><button type="button" className="pn-btn is-ghost" onClick={() => setCreating(true)}>Crear un regalo propio</button></div>
+              <div className="pn-actions is-center"><button type="button" className="pn-btn" onClick={() => setTab('agregar')}>Agregar del catálogo</button><button type="button" className="pn-btn is-ghost" onClick={() => gate(() => setCreating(true))}>Crear un regalo propio</button></div>
             </div>
+            </>
           ) : (
             <>
               <div className="rg-section-head">
                 <div><h2>Mis regalos ({items.length})</h2><p className="pn-muted">Arrastrá las tarjetas para cambiar el orden y tocá una para editarla.</p></div>
                 <div className="rg-head-actions">
+                  <CurrencyChip mode={mode} onOpen={() => setCurAsk({ first: false })} />
                   <button type="button" className="pn-btn is-ghost" onClick={() => { setCatView('packs'); setTab('agregar'); }}><Package size={16} aria-hidden="true" />Explorar packs sugeridos</button>
                 </div>
               </div>
-              {items.length >= ALIAS_NUDGE_FROM && !alias && <AliasNudge count={items.length} onGo={() => setTab('cobro')} />}
+              {items.length >= ALIAS_NUDGE_FROM && !paid && <AliasNudge count={items.length} onGo={() => setTab('cobro')} />}
               <SortableGrid items={items} onMove={(id, to) => update(x => moveGiftTo(x, id, to))} onOpen={setEditing} renderCard={g => (
                 <>
                   <div className="rg-photo gc-photo">
@@ -469,7 +577,7 @@ function GiftsModule() {
                       <button type="button" onClick={() => setEditing(g)} aria-label={`Editar ${g.name}`}><Pencil size={15} aria-hidden="true" /></button>
                       <button type="button" onClick={() => rm(g)} aria-label={`Quitar ${g.name}`}><X size={15} aria-hidden="true" /></button>
                     </div>
-                    <span className="gc-price">{formatARS(g.amount)}</span>
+                    <PriceTag g={g} mode={mode} />
                   </div>
                   <h3 className="gc-name">{g.name}</h3>
                 </>
@@ -505,9 +613,12 @@ function GiftsModule() {
           <div className="rg-catalog">
             <div className="rg-section-head">
               <div><h2>Catálogo sugerido y packs</h2><p className="pn-muted">Elegí packs curados completos o agregá regalos individuales a tu lista.</p></div>
+              <div className="rg-head-actions">
+              {currencyChosen(s.gifts) && <CurrencyChip mode={mode} onOpen={() => setCurAsk({ first: false })} />}
               <div className="pn-switch is-small" role="group" aria-label="Qué querés ver">
                 <button type="button" className={catView === 'packs' ? 'on' : ''} aria-pressed={catView === 'packs'} onClick={() => setCatView('packs')}>Packs armados ({SETS.length})</button>
                 <button type="button" className={catView === 'singles' ? 'on' : ''} aria-pressed={catView === 'singles'} onClick={() => setCatView('singles')}>Regalos individuales</button>
+              </div>
               </div>
             </div>
 
@@ -518,7 +629,7 @@ function GiftsModule() {
                   const inList = gs.filter(g => hasCatalogGift(s, g.id)).length;
                   const all = inList === gs.length;
                   const cover = SET_COVER[set.id];
-                  const toggle = () => (all ? withUndo(`Quitaste los regalos de «${set.name}».`, () => update(x => removeSetGifts(x, set.giftIds))) : doAddSet(set));
+                  const toggle = () => (all ? withUndo(`Quitaste los regalos de «${set.name}».`, () => update(x => removeSetGifts(x, set.giftIds))) : gate(() => doAddSet(set)));
                   return (
                     <li key={set.id} className={`rg-pack${all ? ' is-on' : ''}`}>
                       <div className="rg-pack-cover" style={cover ? { backgroundImage: `url(${cover})` } : undefined}>
@@ -541,12 +652,12 @@ function GiftsModule() {
                 <div className="pn-catalog">
                   <ul className="pn-ggrid">
                     <li className="pn-gown">
-                      <button type="button" onClick={() => setCreating(true)}>
+                      <button type="button" onClick={() => gate(() => setCreating(true))}>
                         <span className="pn-owndot" aria-hidden="true"><Plus size={28} strokeWidth={1.6} /></span>
                         <strong>Crear regalo</strong>
                       </button>
                     </li>
-                    {catalog.map(g => <CatalogCard key={g.id} gift={g} inList={hasCatalogGift(s, g.id)} onAdd={() => addOne(g.id)} onRemove={() => rmCatalog(g.id)} />)}
+                    {catalog.map(g => <CatalogCard key={g.id} gift={g} mode={mode} inList={hasCatalogGift(s, g.id)} onAdd={() => gate(() => addOne(g.id))} onRemove={() => rmCatalog(g.id)} />)}
                   </ul>
                   <p className="pn-status-line" aria-live="polite" role="status">{catalog.length} {catalog.length === 1 ? 'regalo' : 'regalos'}</p>
                 </div>
@@ -560,10 +671,10 @@ function GiftsModule() {
             <div className="rg-section-head">
               <div><h2>Aportes recibidos</h2><p className="pn-muted">Quién te regaló, qué regalos, el monto, la fecha, su mensaje y el comprobante.</p></div>
             </div>
-            {/* Los totales están siempre, también antes del primer regalo (en cero). La lista es en pesos: el total en dólares se sacó (2026-11-23) hasta que la pareja pueda elegir la moneda. */}
-            <ul className="gl-stats is-two" aria-label="Resumen de aportes recibidos">
+            {/* Los totales están siempre, también antes del primer regalo (en cero): uno por cada moneda de la lista y de lo recibido (BR-21). */}
+            <ul className={`gl-stats${totalsByCurrency(counted, shown).length > 1 ? '' : ' is-two'}`} aria-label="Resumen de aportes recibidos">
               <li><span>Regalos recibidos</span><strong>{giftCount}</strong><small>{giftCount === 1 ? 'Regalo' : 'Regalos'}</small></li>
-              <li><span>Total en pesos</span><strong>{formatARS(counted.reduce((n, c) => n + c.total, 0))}</strong><small>Pesos argentinos</small></li>
+              {totalsByCurrency(counted, shown).map(([c, n]) => <li key={c}><span>Total {CURRENCY_IN[c]}</span><strong>{formatMoney(n, c)}</strong><small>{c === 'USD' ? 'Dólares' : 'Pesos argentinos'}</small></li>)}
             </ul>
             {contrib.failed && <p className="pn-banner" role="alert">No pudimos traer tus aportes. Revisá tu conexión y volvé a abrir esta pestaña.</p>}
             {contrib.loading ? <p className="pn-muted" role="status">Cargando tus aportes…</p> : received.length === 0 ? (
@@ -586,7 +697,7 @@ function GiftsModule() {
                         <p className="rg-rec-name">{r.giver}{r.how && <span className="pn-chip">{HOW_LABEL[r.how]}</span>}{r.status === 'pending_review' && <span className="pn-chip is-todo">A revisar</span>}{r.status === 'confirmed' && <span className="pn-chip is-ok">Confirmado</span>}{r.status === 'rejected' && <span className="pn-chip is-off">Rechazado</span>}</p>
                         {r.email && <p className="rg-rec-mail"><a className="pn-link" href={`mailto:${r.email}`}>{r.email}</a></p>}
                         <ul className="rg-rec-gifts" aria-label={`Regalos de ${r.giver}`}>
-                          {r.gifts.map((g, i) => <li key={`${g.name}-${i}`}><span>{g.name}</span><span>{formatARS(g.amount)}</span></li>)}
+                          {r.gifts.map((g, i) => <li key={`${g.name}-${i}`}><span>{g.name}</span><span>{formatMoney(g.amount, r.currency ?? 'ARS')}</span></li>)}
                         </ul>
                         {r.at && <p className="rg-rec-date">{fmtDate(r.at)}</p>}
                         {r.message && <p className="rg-quote">«{r.message}»</p>}
@@ -599,7 +710,7 @@ function GiftsModule() {
                         {r.receipt && r.receipt !== 'missing' && <a className="pn-btn is-ghost is-small rg-rec-proof" href={r.receipt} target="_blank" rel="noopener noreferrer"><Eye size={15} aria-hidden="true" />Ver comprobante<span className="pn-sr"> (se abre en una pestaña nueva)</span></a>}
                         <ContributionReview r={r} onChange={st => contrib.setStatus(r.id, st)} />
                       </div>
-                      <strong className="rg-rec-amount">{formatARS(r.total)}</strong>
+                      <strong className="rg-rec-amount">{formatMoney(r.total, r.currency ?? 'ARS')}</strong>
                     </li>
                   ))}
                 </ul>
@@ -614,23 +725,46 @@ function GiftsModule() {
             <div className="rg-section-head">
               <div><h2>Datos de cobro</h2><p className="pn-muted">A dónde te llegan los regalos de tus invitados.</p></div>
             </div>
+            {/* GIFT-10 v2 (D4): una cuenta por moneda, cada una con sus datos y sus protecciones. */}
+            <div className="cur-tabs" role="tablist" aria-label="Cuenta">
+              {(['ARS', 'USD'] as Currency[]).map(c => {
+                const acc = c === 'USD' ? s.gifts.usd : s.gifts;
+                const needed = shown.includes(c) && !acc?.alias.trim();
+                return (
+                  <button key={c} type="button" role="tab" aria-selected={payCur === c} className={`cur-tab${payCur === c ? ' is-on' : ''}`} onClick={() => setPayCur(c)}>
+                    <span className={`cur-coin is-${c.toLowerCase()}`} aria-hidden="true">{CURRENCY_SYMBOL[c]}</span>
+                    <span>Cuenta en {CURRENCY_LABEL[c].toLowerCase()}</span>
+                    {acc?.alias.trim() ? <Check size={15} strokeWidth={2.4} className="cur-tab-ok" aria-label="(configurada)" /> : needed ? <><span className="pn-dot-todo" aria-hidden="true" /><span className="pn-sr">(falta configurarla)</span></> : null}
+                  </button>
+                );
+              })}
+            </div>
             <div className="pn-cfg-two">
+              {(() => {
+                const acc: PayoutAccount = payCur === 'USD' ? (s.gifts.usd ?? { alias: '', bank: '', cbu: '' }) : s.gifts;
+                const a = acc.alias.trim();
+                const usedByList = shown.includes(payCur);
+                const server = payCur === 'USD' ? (remote.user ? remote.payoutUsd : null) : payout;
+                const pending = payCur === 'ARS' && payout && remote.pendingPayout;
+                return (
               <section className="pn-cfg-block" aria-labelledby="cfg-alias">
-                <div className="pn-cfg-head"><h2 id="cfg-alias">Transferencia bancaria</h2><span className={`pn-chip${alias ? ' is-ok' : ' is-todo'}`}>{alias ? 'Configurado' : 'Sin configurar'}</span></div>
-                {alias ? (
+                <div className="pn-cfg-head"><h2 id="cfg-alias">Transferencia en {CURRENCY_LABEL[payCur].toLowerCase()}</h2><span className={`pn-chip${a ? ' is-ok' : usedByList ? ' is-todo' : ''}`}>{a ? 'Configurada' : usedByList ? 'Sin configurar' : 'Opcional'}</span></div>
+                {a ? (
                   <dl className="pn-cfg-sum">
-                    <div><dt>Alias</dt><dd>{alias}</dd></div>
-                    {s.gifts.bank.trim() && <div><dt>Banco</dt><dd>{s.gifts.bank.trim()}</dd></div>}
-                    {s.gifts.cbu.trim() && <div><dt>CBU</dt><dd>{s.gifts.cbu.trim()}</dd></div>}
+                    <div><dt>Alias</dt><dd>{a}</dd></div>
+                    {acc.bank.trim() && <div><dt>Banco</dt><dd>{acc.bank.trim()}</dd></div>}
+                    {acc.cbu.trim() && <div><dt>CBU</dt><dd>{acc.cbu.trim()}</dd></div>}
                   </dl>
-                ) : <p className="pn-muted">Configurá los datos de tu cuenta para que tus invitados puedan transferirte a esta cuenta.</p>}
-                {payout && remote.pendingPayout && <p className="pn-note" role="status">Cargaste un alias antes de crear tu cuenta ({remote.pendingPayout.alias || 'sin alias'}). Confirmalo con tu clave para que tus invitados lo vean.</p>}
-                {payout && alias && <p className="pn-hint">Por seguridad, cambiarlos pide tu clave y te avisamos por correo.</p>}
+                ) : <p className="pn-muted">{payCur === 'USD' ? 'Cargá una cuenta que reciba dólares' : 'Cargá tu cuenta en pesos'} para que tus invitados te transfieran ahí.{usedByList ? '' : ` Tu lista hoy no se muestra ${CURRENCY_IN[payCur]}: la cuenta se usa si la cambiás.`}</p>}
+                {pending && <p className="pn-note" role="status">Cargaste un alias antes de crear tu cuenta ({remote.pendingPayout?.alias || 'sin alias'}). Confirmalo con tu clave para que tus invitados lo vean.</p>}
+                {server && a && <p className="pn-hint">Por seguridad, cambiarla pide tu clave y te avisamos por correo.</p>}
                 <div className="pn-cfg-actions">
-                  <button type="button" className={`pn-btn${!alias || (payout && remote.pendingPayout) ? ' is-primary' : ''}`} onClick={() => setCfg('bank')}>{payout && remote.pendingPayout ? 'Confirmar' : alias ? (payout ? 'Cambiar' : 'Editar') : 'Configurar'}</button>
-                  {alias && <button type="button" className="pn-link" onClick={() => { void navigator.clipboard?.writeText(alias).catch(() => undefined); toast('Alias copiado.'); }}><Copy size={14} aria-hidden="true" />Copiar alias</button>}
+                  <button type="button" className={`pn-btn${!a || pending ? ' is-primary' : ''}`} onClick={() => setCfg('bank')}>{pending ? 'Confirmar' : a ? (server ? 'Cambiar' : 'Editar') : 'Configurar'}</button>
+                  {a && <button type="button" className="pn-link" onClick={() => { void navigator.clipboard?.writeText(a).catch(() => undefined); toast('Alias copiado.'); }}><Copy size={14} aria-hidden="true" />Copiar alias</button>}
                 </div>
               </section>
+                );
+              })()}
               <section className="pn-cfg-block" aria-labelledby="cfg-mp">
                 <div className="pn-cfg-head"><h2 id="cfg-mp">Mercado Pago</h2><span className="pn-chip">Próximamente</span></div>
                 <p className="pn-muted">Conectá tu cuenta de Mercado Pago para recibir los aportes ahí. Todavía no está disponible.</p>
@@ -643,26 +777,30 @@ function GiftsModule() {
         )}
       </div>
 
-      {cfg === 'bank' && (
+      {cfg === 'bank' && (() => {
+        const server = payCur === 'USD' ? (remote.user ? remote.payoutUsd : null) : payout;
+        const acc: PayoutAccount = payCur === 'USD' ? (s.gifts.usd ?? { alias: '', bank: '', cbu: '' }) : s.gifts;
+        return (
         <Dialog open onOpenChange={o => { if (!o) setCfg(null); }}>
           <DialogContent className="pn-dialog">
-            <DialogTitle>Transferencia bancaria</DialogTitle>
-            {payout ? (
+            <DialogTitle>Cuenta en {CURRENCY_LABEL[payCur].toLowerCase()}</DialogTitle>
+            {server ? (
               <>
-                <DialogDescription>El alias alcanza para cobrar; el banco y el CBU son opcionales.{payout.alias || payout.bank || payout.cbu ? ' Para cambiarlos te pedimos tu clave.' : ''}</DialogDescription>
-                <PayoutForm current={payout} initial={remote.pendingPayout} onCancel={() => setCfg(null)}
-                  onDone={() => { setCfg(null); toast('Listo: guardamos tus datos de cobro. Tus invitados los ven cuando actualices tu página.'); }} />
+                <DialogDescription>{payCur === 'USD' ? 'Tiene que ser una cuenta que reciba dólares. ' : ''}El alias alcanza para cobrar; el banco y el CBU son opcionales.{server.alias || server.bank || server.cbu ? ' Para cambiarlos te pedimos tu clave.' : ''}</DialogDescription>
+                <PayoutForm currency={payCur} current={server} initial={payCur === 'ARS' ? remote.pendingPayout : null} onCancel={() => setCfg(null)}
+                  onDone={() => { setCfg(null); toast('Listo: guardamos tu cuenta. Tus invitados la ven cuando actualices tu página.'); }} />
               </>
             ) : (
               <>
-                <DialogDescription>Se guarda sola mientras escribís. El alias alcanza para cobrar; el banco y el CBU son opcionales.{remote.user ? '' : ' Al crear tu cuenta, vas a confirmarlos con tu clave.'}</DialogDescription>
-                <BankFields bank={s.gifts.bank} cbu={s.gifts.cbu} alias={s.gifts.alias} />
+                <DialogDescription>Se guarda sola mientras escribís. {payCur === 'USD' ? 'Tiene que ser una cuenta que reciba dólares. ' : ''}El alias alcanza para cobrar; el banco y el CBU son opcionales.{remote.user ? '' : ' Al crear tu cuenta, vas a confirmarlos con tu clave.'}</DialogDescription>
+                <BankFields key={payCur} currency={payCur} bank={acc.bank} cbu={acc.cbu} alias={acc.alias} />
                 <div className="pn-actions is-end"><button type="button" className="pn-btn" onClick={() => setCfg(null)}>Listo</button></div>
               </>
             )}
           </DialogContent>
         </Dialog>
-      )}
+        );
+      })()}
 
       {cfg === 'mp' && (
         <Dialog open onOpenChange={o => { if (!o) setCfg(null); }}>
@@ -681,7 +819,7 @@ function GiftsModule() {
           <DialogContent className="pn-dialog">
             <DialogTitle>Crear un regalo propio</DialogTitle>
             <DialogDescription>Una foto, el monto y el nombre alcanzan.</DialogDescription>
-            <GiftForm submitLabel="Agregar a mi lista" onCancel={() => setCreating(false)} onSubmit={v => { update(x => addCustomGift(x, v)); setCreating(false); setTab('lista'); toast('Regalo agregado a tu lista.'); }} />
+            <GiftForm mode={mode} submitLabel="Agregar a mi lista" onCancel={() => setCreating(false)} onSubmit={v => { update(x => addCustomGift(x, v)); setCreating(false); setTab('lista'); toast('Regalo agregado a tu lista.'); }} />
           </DialogContent>
         </Dialog>
       )}
@@ -692,11 +830,13 @@ function GiftsModule() {
             <DialogTitle>Editar regalo</DialogTitle>
             <DialogDescription>Los cambios se ven al instante en la vista previa.</DialogDescription>
             <div className="pn-form">
-              <GiftForm initial={editing} submitLabel="Guardar" onCancel={() => setEditing(null)} onSubmit={v => { update(x => updateGift(x, editing.id, { name: v.name, amount: v.amount, category: v.category, image: v.image })); setEditing(null); toast('Regalo actualizado.'); }} />
+              <GiftForm mode={mode} initial={editing} submitLabel="Guardar" onCancel={() => setEditing(null)} onSubmit={v => { update(x => updateGift(x, editing.id, { name: v.name, amount: v.amount, amountUsd: v.amountUsd, category: v.category, image: v.image })); setEditing(null); toast('Regalo actualizado.'); }} />
             </div>
           </DialogContent>
         </Dialog>
       )}
+
+      {curAsk && <CurrencyDialog mode={mode} first={curAsk.first} onPick={pickMode} onClose={() => setCurAsk(null)} />}
 
       {freeOpen && <FreeAmountDialog min={free.min} onClose={() => setFreeOpen(false)} />}
 
@@ -704,7 +844,7 @@ function GiftsModule() {
         const set = packOpen;
         const gs = setGifts(set);
         const all = gs.every(g => hasCatalogGift(s, g.id));
-        const toggle = () => { setPackOpen(null); if (all) withUndo(`Quitaste los regalos de «${set.name}».`, () => update(x => removeSetGifts(x, set.giftIds))); else doAddSet(set); };
+        const toggle = () => { setPackOpen(null); if (all) withUndo(`Quitaste los regalos de «${set.name}».`, () => update(x => removeSetGifts(x, set.giftIds))); else gate(() => doAddSet(set)); };
         return (
           <Dialog open onOpenChange={o => { if (!o) setPackOpen(null); }}>
             <DialogContent className="pn-dialog is-pack">
@@ -715,7 +855,7 @@ function GiftsModule() {
                 {gs.map(g => (
                   <li key={g.id} className="rg-mini">
                     <span className="rg-mini-photo">{g.image ? <img src={g.image} alt="" loading="lazy" style={g.pos ? { objectPosition: g.pos } : undefined} /> : <GiftIcon size={24} strokeWidth={1.3} aria-hidden="true" />}</span>
-                    <span className="rg-mini-name">{g.name}<strong className="rg-mini-price">{formatARS(g.amount)}</strong></span>
+                    <span className="rg-mini-name">{g.name}<strong className="rg-mini-price">{shownCurrencies(mode).map(c => formatMoney(priceIn(g, c), c)).join(' · ')}</strong></span>
                   </li>
                 ))}
               </ul>

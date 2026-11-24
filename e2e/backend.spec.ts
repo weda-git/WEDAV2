@@ -87,7 +87,7 @@ test.describe('multiusuario con servidor real', () => {
     await p2.fill('#ac-email', email);
     await p2.fill('#ac-pass', 'Equivocada1');
     await p2.getByRole('button', { name: 'Ingresar', exact: true }).click();
-    await expect(p2.getByText('El correo o la clave no coinciden.')).toBeVisible();
+    await expect(p2.getByText('Credenciales incorrectas.')).toBeVisible();
     expect(p2.url()).toContain('/crear/cuenta');
     await fresh.close();
   });

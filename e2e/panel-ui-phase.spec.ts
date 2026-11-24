@@ -165,6 +165,7 @@ test.describe('Panel · invitados, mesas y editor (390 px)', () => {
     await page.getByRole('tab', { name: 'Catálogo' }).click();
     await page.getByRole('button', { name: 'Regalos individuales' }).click();
     await page.getByRole('button', { name: 'Agregar Excursión en barco a tu lista' }).click();
+    await expect(page.getByRole('button', { name: 'Quitar Excursión en barco de tu lista' })).toBeVisible();   // antes: la pregunta de la moneda (la contesta el ayudante)
     await expect.poll(async () => (await stored(page)).gifts.items.map((g: { name: string }) => g.name)).toEqual(['Excursión en barco']);
     await page.getByRole('tab', { name: /Mis regalos/ }).click();
     await expect(page.getByRole('heading', { name: 'Excursión en barco' })).toBeVisible();

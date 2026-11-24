@@ -1,5 +1,5 @@
 // ADM-01: textos y fechas compartidos por las pantallas de administración.
-import { formatARS } from '@/lib/demo-wedding';
+import { formatMoney, type Currency } from '@/lib/weda/money';
 import { planById } from '@/lib/weda/plans';
 
 export const shortDate = (iso: string | null | undefined) => {
@@ -14,7 +14,7 @@ export const dateTime = (iso: string | null | undefined) => {
   return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString('es-AR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
-export const money = (n: number) => formatARS(n);
+export const money = (n: number, currency: Currency = 'ARS') => formatMoney(n, currency);
 
 export function planName(id: string | null | undefined): string {
   if (!id) return 'Sin plan';
