@@ -197,7 +197,7 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
   const remove = (g: Gift) => { onRemove(g); if (items.length <= 1) { onClose(); window.setTimeout(() => setView('cart'), 200); } };
   return (
     <Dialog open={open} onOpenChange={o => { if (!o) close(); }}>
-      <DialogContent className={`rg-dialog${!sent && view === 'pay' ? ' is-wide' : ''}`} onOpenAutoFocus={e => { e.preventDefault(); (e.currentTarget as HTMLElement).focus(); }} onCloseAutoFocus={e => { e.preventDefault(); returnFocus.current?.focus(); }}>
+      <DialogContent className={`rg-dialog${!sent && view === 'pay' ? ' is-wide' : ''}${!sent && view === 'cart' ? ' is-cart' : ''}`} onOpenAutoFocus={e => { e.preventDefault(); (e.currentTarget as HTMLElement).focus(); }} onCloseAutoFocus={e => { e.preventDefault(); returnFocus.current?.focus(); }}>
         {sent ? (
           <div className="rg-thanks">
             <span className="rg-check" aria-hidden="true"><Check size={22} strokeWidth={1.8} /></span>
@@ -207,30 +207,39 @@ function GiftDialog({ open, gifts: items, onClose, onFinished, onRemove, onChang
             <button type="button" className="dm-solid" onClick={close}>Listo</button>
           </div>
         ) : view === 'cart' ? (
-          <div className="rg-form rg-cart">
-            <header className="rg-head">
-              <div>
-                <p className="rg-kicker">Regalo para {site.names}</p>
-                <DialogTitle>Tu regalo</DialogTitle>
+          // Resumen del regalo (2026-11-24, referencia de la dueña): título en mayúsculas, columnas Cantidad / Precio / Subtotal, total en una
+          // banda oscura y «Agregar otro regalo» / «Continuar». La cantidad es siempre 1 (decisión de la dueña). En celular, cada fila se compacta.
+          <div className="rg-cart">
+            <header className="rg-cart-head"><DialogTitle>Regalo para {site.names}</DialogTitle></header>
+            <div className="rg-cart-table" role="table" aria-label="Tu regalo">
+              <div className="rg-cart-cols" role="row">
+                <span role="columnheader" className="is-name"><span className="dm-sr">Regalo</span></span>
+                <span role="columnheader" className="is-qty">Cantidad</span>
+                <span role="columnheader" className="is-price">Precio</span>
+                <span role="columnheader" className="is-sub">Subtotal</span>
+                <span role="columnheader" className="is-rm"><span className="dm-sr">Quitar</span></span>
               </div>
-            </header>
-            <ul className="rg-cart-list">
               {items.map(g => (
-                <li key={g.id} className="rg-cart-item">
-                  <Thumb gift={g} />
-                  <div className="rg-cart-info">
-                    <strong>{g.name}</strong>
-                    <span>{money(price(g))}</span>
+                <div key={g.id} role="row" className="rg-cart-row">
+                  <div role="cell" className="is-name">
+                    <Thumb gift={g} />
+                    <span className="rg-cart-name">
+                      <strong>{g.name}</strong>
+                      {isFreeGift(g) && <button type="button" className="rg-cart-change" onClick={onChangeFree} aria-label="Cambiar el monto del aporte libre">Cambiar monto</button>}
+                      <span className="rg-cart-mini" aria-hidden="true">1 × {money(price(g))}</span>
+                    </span>
                   </div>
-                  {isFreeGift(g) && <button type="button" className="rg-remove" onClick={onChangeFree} aria-label="Cambiar el monto del aporte libre">Cambiar</button>}
-                  <button type="button" className="rg-remove" onClick={() => remove(g)} aria-label={`Quitar ${g.name}`}><X size={14} aria-hidden="true" />Quitar</button>
-                </li>
+                  <div role="cell" className="is-qty">1</div>
+                  <div role="cell" className="is-price">{money(price(g))}</div>
+                  <div role="cell" className="is-sub">{money(price(g))}</div>
+                  <div role="cell" className="is-rm"><button type="button" className="rg-cart-x" onClick={() => remove(g)} aria-label={`Quitar ${g.name}`}><X size={16} aria-hidden="true" /></button></div>
+                </div>
               ))}
-            </ul>
-            <p className="rg-total"><span>Total</span><strong>{money(total)}</strong></p>
-            <div className="rg-actions">
-              <button type="button" className="dm-solid" onClick={() => setView('pay')} disabled={items.length === 0}>Continuar</button>
+            </div>
+            <p className="rg-cart-total"><span>Total</span><strong>{money(total)}</strong></p>
+            <div className="rg-cart-actions">
               <button type="button" className="dm-ghost" onClick={keepShopping}>Agregar otro regalo</button>
+              <button type="button" className="dm-solid" onClick={() => setView('pay')} disabled={items.length === 0}>Continuar</button>
             </div>
           </div>
         ) : (

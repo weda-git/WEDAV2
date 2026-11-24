@@ -688,3 +688,55 @@
   .rg-bar input, .rg-bar select { padding-left: 16px; }
   .rg-bar select { padding-right: 32px; background-position: calc(100% - 18px) 52%, calc(100% - 13px) 52%; }
 }
+
+/* ===== Resumen del regalo (2026-11-24, referencia de la dueña) =====
+   Compu: título en mayúsculas con la X en un círculo, columnas Cantidad / Precio / Subtotal, filas sobre un fondo suave, total en una banda
+   oscura y los dos botones a la derecha. Celular: sin encabezados de columna; cada regalo en una fila (foto, nombre, «1 × precio», subtotal y X). */
+.rg-dialog.is-cart { max-width: 760px !important; padding: 0 !important; overflow: hidden; }
+.rg-cart { display: grid; }
+.rg-cart-head { display: flex; align-items: center; min-height: 84px; padding: 0 84px 0 32px; }
+.rg-dialog.is-cart h2 { font-size: 15px !important; font-weight: 400 !important; line-height: 1.3 !important; letter-spacing: .16em !important; text-transform: uppercase; color: #3b3c3a; }
+.rg-dialog.is-cart > button:last-child { top: 22px !important; right: 24px !important; display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid rgb(59 60 58 / .45) !important; border-radius: 50% !important; opacity: 1 !important; background: #fff !important; color: #3b3c3a !important; }
+.rg-cart-table { display: grid; }
+.rg-cart-cols, .rg-cart-row { display: grid; grid-template-columns: minmax(0, 1fr) 90px 130px 130px 44px; align-items: center; column-gap: 12px; padding: 0 20px 0 32px; }
+.rg-cart-cols { min-height: 40px; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #6b6b6b; }
+.rg-cart-cols .is-qty, .rg-cart-row .is-qty { text-align: center; }
+.rg-cart-cols .is-price, .rg-cart-cols .is-sub, .rg-cart-row .is-price, .rg-cart-row .is-sub { text-align: right; font-variant-numeric: tabular-nums; }
+.rg-cart-row { min-height: 96px; padding-top: 14px; padding-bottom: 14px; background: #f4f2ed; border-top: 1px solid #fff; font-size: 15px; color: #3b3c3a; }
+.rg-cart-row .is-name { display: flex; align-items: center; gap: 18px; min-width: 0; }
+.rg-cart-row .rg-thumb { width: 64px; height: 64px; border-radius: 50%; }
+.rg-cart-name { display: grid; gap: 4px; min-width: 0; }
+.rg-cart-name strong { font-weight: 400; line-height: 1.3; overflow-wrap: anywhere; }
+.rg-cart-mini { display: none; font-size: 13.5px; color: #6b6b6b; font-variant-numeric: tabular-nums; }
+.rg-cart-change { justify-self: start; padding: 0; border: 0; background: none; font: inherit; font-size: 13px; color: #6b6b6b; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.rg-cart-x { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: transparent; color: #6b6b6b; cursor: pointer; }
+.rg-cart-x:hover { background: rgb(59 60 58 / .07); color: #3b3c3a; }
+.rg-cart-total { display: flex; justify-content: flex-end; align-items: baseline; gap: 28px; margin: 0; padding: 26px 76px 26px 32px; background: #2f3337; color: #fff; font-size: 14px; letter-spacing: .12em; text-transform: uppercase; }
+.rg-cart-total strong { font-size: 20px; font-weight: 400; letter-spacing: 0; text-transform: none; font-variant-numeric: tabular-nums; }
+.rg-cart-actions { display: flex; justify-content: flex-end; gap: 10px; padding: 24px 32px 28px; }
+.rg-cart-actions .dm-ghost, .rg-cart-actions .dm-solid { justify-content: center; min-width: 200px; }
+.rg-cart-x:focus-visible, .rg-cart-change:focus-visible { outline: 2px solid var(--ej-slate); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .rg-cart-head { min-height: 72px; padding: 0 72px 0 22px; }
+  .rg-dialog.is-cart h2 { font-size: 13.5px !important; letter-spacing: .12em !important; }
+  .rg-dialog.is-cart > button:last-child { top: 16px !important; right: 16px !important; }
+  .rg-cart-cols { display: none; }
+  .rg-cart-row { grid-template-columns: minmax(0, 1fr) auto 44px; column-gap: 8px; min-height: 84px; padding: 12px 8px 12px 22px; }
+  .rg-cart-row .is-qty, .rg-cart-row .is-price { display: none; }
+  .rg-cart-row .rg-thumb { width: 52px; height: 52px; }
+  .rg-cart-row .is-name { gap: 12px; }
+  .rg-cart-mini { display: block; }
+  .rg-cart-total { justify-content: space-between; padding: 20px 60px 20px 22px; }
+  .rg-cart-actions { flex-direction: column-reverse; padding: 18px 22px 22px; }
+  .rg-cart-actions .dm-ghost, .rg-cart-actions .dm-solid { width: 100%; min-width: 0; }
+}
+/* Resumen del regalo en una gama clara (2026-11-24, pedido de la dueña): nada de negro ni de verde. Filas blancas con líneas suaves,
+   total sobre arena muy clara y «Continuar» en arena, con más peso que «Agregar otro regalo» (borde fino). */
+.rg-cart-row { background: #fff; border-top: 1px solid #ece9e3; }
+.rg-cart-row:last-child { border-bottom: 1px solid #ece9e3; }
+.rg-cart-total { background: #f6f4f0; color: #6b6b6b; }
+.rg-cart-total strong { color: #3b3c3a; }
+.rg-dialog.is-cart .rg-cart-actions .dm-solid, .dm-root .rg-dialog.is-cart .rg-cart-actions .dm-solid { background: #e6e1d7; color: #3b3c3a; font-weight: 500; border: 0; box-shadow: none; }
+.rg-dialog.is-cart .rg-cart-actions .dm-solid:hover:not(:disabled), .dm-root .rg-dialog.is-cart .rg-cart-actions .dm-solid:hover:not(:disabled) { background: #dbd5c9; }
+.rg-dialog.is-cart .rg-cart-actions .dm-ghost, .dm-root .rg-dialog.is-cart .rg-cart-actions .dm-ghost { background: #fff; color: #3b3c3a; box-shadow: inset 0 0 0 1px #dcd8cf; border: 0; }
+.rg-dialog.is-cart .rg-cart-actions .dm-ghost:hover, .dm-root .rg-dialog.is-cart .rg-cart-actions .dm-ghost:hover { background: #faf9f6; }
