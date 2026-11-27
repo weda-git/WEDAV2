@@ -94,6 +94,19 @@ test.describe('Constructor en el celular: barra fija, contexto y vista previa', 
     await expect(page.getByRole('button', { name: /^Editar Dress code/ })).toContainText('Completa');
   });
 
+  test('recargar con un guardado en camino no congela el panel: lo que se cambia después también se guarda (2026-11-27)', async ({ page }) => {
+    await page.getByRole('button', { name: 'Agregar Dress code a tu sitio' }).click();
+    // Se recarga justo cuando sale el guardado al servidor: el navegador corta la respuesta, pero el servidor lo guarda igual.
+    const put = page.waitForRequest(r => r.url().endsWith('/api/wedding') && r.method() === 'PUT');
+    await page.getByLabel('Título').fill('Elegante sport');
+    await put;
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: /^Editar Dress code/ }).click();
+    await page.getByLabel('Título').fill('Formal');
+    await expect.poll(async () => (await (await page.request.get('/api/wedding')).json()).draft.site.dressCode.title, { timeout: 15_000 }).toBe('Formal');
+    await expect(page.getByText(/otro dispositivo|otra pestaña/i)).toHaveCount(0);
+  });
+
   for (const width of [320, 360, 430]) {
     test(`a ${width} px: los nombres de las secciones no se cortan, la barra entra y no hay scroll lateral`, async ({ page }) => {
       // Sin recargar: el diseño responde al ancho (recargar justo después del alta cortaba a veces un guardado en curso y dejaba un error en consola).
