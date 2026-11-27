@@ -18,6 +18,7 @@ import { operates } from '@/lib/weda/plans';
 import { openPreview } from '@/lib/weda/preview-event';
 import { update, useAppState } from '@/lib/weda/store';
 import { hasPayout } from '@/lib/weda/publish';
+import { isLive } from '@/lib/weda/payments';
 import { formatPhone, thankMessage, waLink } from '@/lib/weda/phone';
 import { api, useRemote } from '@/lib/weda/remote';
 import type { Category } from '@/lib/demo-wedding';
@@ -33,9 +34,10 @@ type Tab = 'lista' | 'agregar' | 'recibidos' | 'cobro';
 /* Cuatro solapas, sin numerar (no son pasos obligatorios): mi lista · catálogo y packs · aportes recibidos · datos de cobro. Se entra siempre a «Mis regalos»:
    si está vacía, su estado vacío lleva al catálogo. «Cómo funciona» dejó de ser una solapa: es un desplegable al pie de «Mis regalos» y un aviso del paso que falta. */
 const TABS: { id: Tab; label: string; short: string }[] = [
+  // Mismos nombres en compu y celular (auditoría 2026-11-27).
   { id: 'lista', label: 'Mis regalos', short: 'Mis regalos' },
-  { id: 'agregar', label: 'Catálogo y packs', short: 'Catálogo' }, { id: 'recibidos', label: 'Aportes recibidos', short: 'Aportes' },
-  { id: 'cobro', label: 'Datos de cobro', short: 'Cobro' },
+  { id: 'agregar', label: 'Catálogo', short: 'Catálogo' }, { id: 'recibidos', label: 'Aportes', short: 'Aportes' },
+  { id: 'cobro', label: 'Cobro', short: 'Cobro' },
 ];
 
 /* Formulario de un regalo (para crear uno propio y para editar cualquiera de la lista): foto, monto, nombre y categoría.
@@ -225,7 +227,7 @@ function AliasNudge({ count, onGo }: { count: number; onGo: () => void }) {
     <section className="rg-alias-banner" aria-labelledby="rg-alias-title">
       <span className="rg-alias-ico" aria-hidden="true"><Landmark size={22} strokeWidth={1.6} /></span>
       <div className="rg-alias-copy">
-        <h2 id="rg-alias-title">Ya elegiste {count} regalos</h2>
+        <h2 id="rg-alias-title">Ya elegiste {count} {count === 1 ? 'regalo' : 'regalos'}</h2>
         <p>Cargá tu cuenta para que tus invitados sepan a dónde transferir.</p>
       </div>
       <button type="button" className="pn-btn rg-alias-cta" onClick={onGo}>Cargar mi cuenta<ChevronRight size={16} aria-hidden="true" /></button>
@@ -494,6 +496,8 @@ function GiftsModule() {
   };
   // Pestaña de la cuenta que se está mirando en «Datos de cobro» (D4).
   const [payCur, setPayCur] = useState<Currency>(() => (mode === 'USD' ? 'USD' : 'ARS'));
+  const payTabs = (['ARS', 'USD'] as Currency[]).filter(c => shownCurrencies(mode).includes(c) || !!(c === 'USD' ? s.gifts.usd?.alias.trim() : s.gifts.alias.trim()));
+  useEffect(() => { if (payTabs.length && !payTabs.includes(payCur)) setPayCur(payTabs[0]!); }, [payTabs.join(), payCur]); // eslint-disable-line react-hooks/exhaustive-deps
   const toggleFree = (on: boolean) => { saveFree({ enabled: on }); toast(on ? 'Agregaste el aporte libre.' : 'Quitaste el aporte libre.', 'ok', { label: 'Deshacer', onClick: () => saveFree({ enabled: !on }) }); };
   // El botón de la barra superior (panel.tsx) pide abrir la vista previa de la lista.
 
@@ -551,7 +555,7 @@ function GiftsModule() {
           <p className="pn-sub" role="status" aria-live="polite">Tus invitados eligen un regalo de tu lista y te lo regalan por alias.</p>
         </div>
         <div className="rg-head-actions">
-          <button type="button" className="pn-btn is-ghost" onClick={copyLink} title="Copiar el enlace de tu lista de regalos"><Copy size={16} aria-hidden="true" />Copiar enlace</button>
+          {isLive(s) && <button type="button" className="pn-btn is-ghost" onClick={copyLink} title="Copiar el enlace de tu lista de regalos"><Copy size={16} aria-hidden="true" />Copiar enlace</button>}
           <button type="button" className="pn-btn" onClick={() => gate(() => setCreating(true))}><Plus size={16} aria-hidden="true" />Crear regalo</button>
         </div>
       </header>
@@ -632,6 +636,7 @@ function GiftsModule() {
 
         {tab === 'agregar' && (
           <div className="rg-catalog">
+            {items.length > 0 && !paid && <AliasNudge count={items.length} onGo={() => setTab('cobro')} />}
             <div className="rg-section-head">
               <div><h2>Catálogo sugerido y packs</h2><p className="pn-muted">Elegí packs curados completos o agregá regalos individuales a tu lista.</p></div>
               <div className="rg-head-actions">
@@ -758,8 +763,9 @@ function GiftsModule() {
               <div><h2>Datos de cobro</h2><p className="pn-muted">A dónde te llegan los regalos de tus invitados.</p></div>
             </div>
             {/* GIFT-10 v2 (D4): una cuenta por moneda, cada una con sus datos y sus protecciones. */}
-            <div className="cur-tabs" role="tablist" aria-label="Cuenta">
-              {(['ARS', 'USD'] as Currency[]).map(c => {
+            {/* Solo las monedas que usa la lista (o que ya tienen cuenta cargada); con una sola, no hay pestañas (auditoría 2026-11-27). */}
+            {payTabs.length > 1 && <div className="cur-tabs" role="tablist" aria-label="Cuenta">
+              {payTabs.map(c => {
                 const acc = c === 'USD' ? s.gifts.usd : s.gifts;
                 const needed = shown.includes(c) && !acc?.alias.trim();
                 return (
@@ -770,7 +776,7 @@ function GiftsModule() {
                   </button>
                 );
               })}
-            </div>
+            </div>}
             <div className="pn-cfg-two">
               {(() => {
                 const acc: PayoutAccount = payCur === 'USD' ? (s.gifts.usd ?? { alias: '', bank: '', cbu: '' }) : s.gifts;
@@ -801,7 +807,7 @@ function GiftsModule() {
               <section className="pn-cfg-block" aria-labelledby="cfg-mp">
                 <div className="pn-cfg-head"><h2 id="cfg-mp">Mercado Pago</h2><span className="pn-chip">Próximamente</span></div>
                 <p className="pn-muted">Conectá tu cuenta de Mercado Pago para recibir los aportes ahí. Todavía no está disponible.</p>
-                <div className="pn-cfg-actions">
+                <div className="pn-cfg-actions" hidden>
                   <button type="button" className="pn-btn" onClick={() => setCfg('mp')}>Configurar</button>
                 </div>
               </section>
@@ -821,7 +827,7 @@ function GiftsModule() {
               <>
                 <DialogDescription>{payCur === 'USD' ? 'Tiene que ser una cuenta que reciba dólares. ' : ''}El alias alcanza para cobrar; el titular, el banco y el CBU son opcionales.{server.alias || server.bank || server.cbu || server.holder ? ' Para cambiarlos te pedimos tu clave.' : ''}</DialogDescription>
                 <PayoutForm currency={payCur} current={server} initial={payCur === 'ARS' ? remote.pendingPayout : null} onCancel={() => setCfg(null)}
-                  onDone={() => { setCfg(null); toast('Listo: guardamos tu cuenta. Tus invitados la ven cuando actualices tu página.'); }} />
+                  onDone={() => { setCfg(null); toast('Listo: guardamos tu cuenta. Tus invitados la ven cuando actualices tu sitio.'); }} />
               </>
             ) : (
               <>

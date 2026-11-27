@@ -490,7 +490,7 @@ export function tasks(s: AppState): Task[] {
   }
   if (publishes(s.planId, 'site')) {
     const ev = s.site.events;
-    t.push(mk({ id: 'sitio', label: 'Tu página web', help: 'Lugares, horarios y las secciones que quieras mostrar.', status: ev.some(eventComplete) ? 'done' : ev.some(hasEventDetails) ? 'doing' : 'todo', to: '/panel/sitio' }));
+    t.push(mk({ id: 'sitio', label: 'Tu sitio', help: 'Lugares, horarios y las secciones que quieras mostrar.', status: ev.some(eventComplete) ? 'done' : ev.some(hasEventDetails) ? 'doing' : 'todo', to: '/panel/sitio' }));
   }
   if (publishes(s.planId, 'guests')) t.push(mk({ id: 'invitados', label: 'Invitados', help: 'Cargá a las personas y seguí sus confirmaciones.', status: s.guests.length ? 'done' : 'todo', to: '/panel/invitados' }));
   if (publishes(s.planId, 'groups')) {

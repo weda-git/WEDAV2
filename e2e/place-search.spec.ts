@@ -30,7 +30,7 @@ test.describe('Eventos: buscar el lugar con Google', () => {
   test('se escribe, aparece la lista, se elige con el teclado y queda confirmado con su punto en el mapa', async ({ page }) => {
     await fakeGoogle(page);
     await onboard(page);
-    await nav(page, 'Tu página').click();
+    await nav(page, 'Tu sitio').click();
     await page.getByRole('button', { name: /^Editar Eventos/ }).click();
     if ((await page.locator('#sec-ceremonia').getAttribute('aria-expanded')) !== 'true') await page.locator('#sec-ceremonia').click();
     // Ya no hay campo para pegar un enlace ni texto sobre lo que muestra la tarjeta.
@@ -52,7 +52,7 @@ test.describe('Eventos: buscar el lugar con Google', () => {
     await expect.poll(async () => (await stored(page)).site.events[0]).toMatchObject({ name: 'Catedral de San Isidro', address: 'Av. Centenario 1, San Isidro, Provincia de Buenos Aires', mapsUrl: url });
     // El nombre se puede retocar; «Cómo llegar» de la invitación abre el lugar elegido.
     await expect(page.getByLabel('Nombre del lugar')).toHaveValue('Catedral de San Isidro');
-    await expect(page.frameLocator('.lc-frame').locator('#dia a', { hasText: /Cómo llegar/i }).first()).toHaveAttribute('href', url);
+    // (Desde el 2026-11-25 el editor no tiene ventana propia: el enlace guardado es el que usa «Cómo llegar» en la página.)
 
     // Volver a escribir busca de nuevo; Escape deja el lugar que estaba.
     await box.fill('parro');
@@ -64,7 +64,7 @@ test.describe('Eventos: buscar el lugar con Google', () => {
   test('si no encuentra el lugar, lo dice y no cambia nada', async ({ page }) => {
     await fakeGoogle(page);
     await onboard(page);
-    await nav(page, 'Tu página').click();
+    await nav(page, 'Tu sitio').click();
     await page.getByRole('button', { name: /^Editar Eventos/ }).click();
     if ((await page.locator('#sec-ceremonia').getAttribute('aria-expanded')) !== 'true') await page.locator('#sec-ceremonia').click();
     await page.getByRole('combobox', { name: 'Ubicación' }).fill('zzzz');

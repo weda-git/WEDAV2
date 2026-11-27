@@ -37,10 +37,10 @@ test('rechazado no publica ni muestra éxito; aprobado (confirmado por el servid
   // Aprobado: el servidor lo confirma y en ese mismo momento publica; no hay un segundo paso.
   await page.goto(`/pago-de-prueba?orden=${second}`, { waitUntil: 'networkidle' });
   await page.getByRole('button', { name: 'Aprobar (prueba)' }).click();
-  await expect(page.getByRole('heading', { name: /Tu página está publicada/ })).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole('button', { name: 'Publicar mi página' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: /Tu sitio está publicado/ })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('button', { name: 'Publicar mi sitio' })).toHaveCount(0);
   await page.goto('/panel', { waitUntil: 'networkidle' });
-  await expect(top.getByRole('button', { name: 'Publicada', exact: true })).toBeVisible();
+  await expect(top.getByRole('button', { name: 'Publicado', exact: true })).toBeVisible();
 });
 
 /** Arranca la compra de un plan desde el diálogo «Publicar» y deja la página en el checkout de prueba. Devuelve el id de la orden. */
@@ -67,7 +67,7 @@ test('Celebración pagada: publica sola, la URL queda disponible y se operan inv
   await onboard(page, 'Rita', 'Gael');
   await checkout(page, 'Celebración', '140.000');
   await page.getByRole('button', { name: 'Aprobar (prueba)' }).click();
-  await expect(page.getByRole('heading', { name: /Tu página está publicada/ })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('heading', { name: /Tu sitio está publicado/ })).toBeVisible({ timeout: 15_000 });
   const w = await wedding(page);
   expect(w.access).toMatchObject({ state: 'active', plan: 'invitacion' });
   // La URL pública responde con la invitación y la confirmación de asistencia.
@@ -87,7 +87,7 @@ test('Regalos pagado: publica solo la lista; el panel no muestra la invitación 
   await onboard(page, 'Inés', 'Bruno');
   await checkout(page, 'Regalos', '120.000');
   await page.getByRole('button', { name: 'Aprobar (prueba)' }).click();
-  await expect(page.getByRole('heading', { name: /Tu página está publicada/ })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('heading', { name: /Tu sitio está publicado/ })).toBeVisible({ timeout: 15_000 });
   const w = await wedding(page);
   expect(w.access).toMatchObject({ state: 'active', plan: 'regalos' });
   const pub = await (await page.request.get(`/api/public/${w.slug}`)).json();
@@ -98,7 +98,7 @@ test('Regalos pagado: publica solo la lista; el panel no muestra la invitación 
   await openPreview(page);
   await expect(page.getByRole('dialog').locator('iframe')).toHaveAttribute('src', /\/regalos(\?|$)/);
   await closePreview(page);
-  await page.locator('.pn-top').getByRole('button', { name: 'Publicada', exact: true }).click();
+  await page.locator('.pn-top').getByRole('button', { name: 'Publicado', exact: true }).click();
   await expect(page.getByRole('dialog', { name: 'Tu publicación' })).toContainText('publicada con el plan Regalos');
   // Operar invitados sigue fuera de Regalos.
   const g = await addGuest(page, `inv-e2e-2-${w.slug}`);
@@ -117,7 +117,7 @@ test('pago cancelado no publica; un evento de pago repetido no vuelve a publicar
   await page.goto('/panel', { waitUntil: 'networkidle' });
   const second = await checkout(page, 'Regalos', '120.000');
   await page.getByRole('button', { name: 'Aprobar (prueba)' }).click();
-  await expect(page.getByRole('heading', { name: /Tu página está publicada/ })).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByRole('heading', { name: /Tu sitio está publicado/ })).toBeVisible({ timeout: 15_000 });
   const v1 = (await wedding(page)).publication.version;
   const again = await page.request.post(`/api/test-payments/${second}`, { data: { outcome: 'paid' } });
   expect(await again.json()).toMatchObject({ ignored: true });
@@ -136,14 +136,14 @@ test('si la publicación automática falla, «Publicar mi página» la recupera 
   await page.reload({ waitUntil: 'networkidle' });                        // el navegador toma la revisión nueva (sin conflicto de guardado)
   await page.getByRole('button', { name: 'Aprobar (prueba)' }).click();
   await expect(page.getByRole('heading', { name: /Pago confirmado/ })).toBeVisible({ timeout: 15_000 });
-  await expect(page.getByRole('button', { name: 'Publicar mi página' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Publicar mi sitio' })).toBeVisible();
   const paused = await wedding(page);
   expect([paused.access.state, paused.publication]).toEqual(['paid_unpublished', null]);
   // Se recuperan los nombres y se reintenta con el mismo pago.
   expect((await page.request.put('/api/wedding', { data: { baseRevision: paused.revision, draft: { ...paused.draft, couple: { first: 'Vera', second: 'Iván' } } } })).status()).toBe(200);
   await page.reload({ waitUntil: 'networkidle' });
-  await page.getByRole('button', { name: 'Publicar mi página' }).click();
-  await expect(page.getByRole('heading', { name: /Tu página está publicada/ })).toBeVisible({ timeout: 15_000 });
+  await page.getByRole('button', { name: 'Publicar mi sitio' }).click();
+  await expect(page.getByRole('heading', { name: /Tu sitio está publicado/ })).toBeVisible({ timeout: 15_000 });
   const orders = (await (await page.request.get('/api/orders')).json()).orders as { id: string; status: string }[];
   expect(orders.map(o => [o.id, o.status])).toEqual([[orden, 'paid']]);
   expect((await (await page.request.post('/api/checkout', { data: { planId: 'invitacion' } })).json()).error).toBe('already_paid');

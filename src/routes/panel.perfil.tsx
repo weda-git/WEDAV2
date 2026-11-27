@@ -28,7 +28,7 @@ function Profile() {
       <section className="pf-card" aria-labelledby="pf-wed">
         <div className="pf-head">
           <h2 id="pf-wed">Datos del casamiento</h2>
-          <p>Se ven en tu página, en la lista de regalos y en la vista previa.</p>
+          <p>Se ven en tu sitio, en la lista de regalos y en la vista previa.</p>
         </div>
         <CoupleForm />
       </section>

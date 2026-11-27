@@ -46,8 +46,8 @@
 .pn-field { display: grid; gap: 6px; }
 .pn-field > label, .pn-photo legend, .pn-label { font-size: var(--pn-fs-label); color: var(--text-main); }
 .pn-opt { color: var(--pn-muted); }
-.pn-root input[type='text'], .pn-root input[type='search'], .pn-root input[type='date'], .pn-root input[type='time'], .pn-root input[type='number'], .pn-root input[type='url'], .pn-root input[type='email'], .pn-root input[type='password'], .pn-root select, .pn-root textarea,
-.pn-dialog input[type='text'], .pn-dialog input[type='email'], .pn-dialog input[type='password'], .pn-dialog input[type='date'], .pn-dialog input[type='time'], .pn-dialog input[type='url'], .pn-dialog input[type='search'], .pn-dialog select, .pn-dialog textarea {
+.pn-root input[type='text'], .pn-root input[type='search'], .pn-root input[type='date'], .pn-root input[type='time'], .pn-root input[type='number'], .pn-root input[type='url'], .pn-root input[type='email'], .pn-root input[type='tel'], .pn-root input[type='password'], .pn-root select, .pn-root textarea,
+.pn-dialog input[type='text'], .pn-dialog input[type='email'], .pn-dialog input[type='tel'], .pn-dialog input[type='password'], .pn-dialog input[type='date'], .pn-dialog input[type='time'], .pn-dialog input[type='url'], .pn-dialog input[type='search'], .pn-dialog select, .pn-dialog textarea {
   width: 100%; min-height: var(--pn-h-ctl); padding: 0 14px; border: 1px solid var(--pn-line-s); border-radius: var(--pn-r-ctl); background: #fff; color: var(--text-main); font-size: 16px;
 }
 .pn-root input[type='date'], .pn-dialog input[type='date'] { -webkit-appearance: none; appearance: none; display: flex; align-items: center; height: var(--pn-h-ctl); min-width: 0; max-width: 100%; line-height: 1.2; text-align: left; }
@@ -617,7 +617,7 @@ body:has([role='dialog']) .pn-toast-region { bottom: auto; top: 12px; }
   .pn-page-head h1 { font-size: 34px; }
 
   /* controles */
-  .pn-root input[type='text'], .pn-root input[type='search'], .pn-root input[type='date'], .pn-root input[type='time'], .pn-root input[type='url'], .pn-root input[type='email'], .pn-root input[type='password'], .pn-root select, .pn-root textarea { border-color: var(--pn-line-s); box-shadow: none; }
+  .pn-root input[type='text'], .pn-root input[type='search'], .pn-root input[type='date'], .pn-root input[type='time'], .pn-root input[type='url'], .pn-root input[type='email'], .pn-root input[type='tel'], .pn-root input[type='password'], .pn-root select, .pn-root textarea { border-color: var(--pn-line-s); box-shadow: none; }
   .pn-field > label, .pn-label { font-weight: var(--w-medium); }
   .pn-switch { padding: 3px; border-color: transparent; border-radius: var(--pn-r-ctl); background: var(--pn-soft); }
   .pn-switch button { border-radius: calc(var(--pn-r-ctl) - 3px); }
@@ -2268,3 +2268,299 @@ body:has(.pn-app) { background: #f6f6f3; }
 /* Regalo grupal en «Aportes recibidos» (2026-11-24). */
 .rg-rec-group { margin: 2px 0 0; font-size: 14px; color: var(--pn-muted, #6b6b6b); }
 .rg-rec-group strong { font-weight: 500; color: var(--text-main, #3b3c3a); }
+
+/* =========================================================================
+   «Tu página» · rediseño (2026-11-25, boceto pedido por la dueña)
+   Mismo lenguaje que el Inicio: tarjetas blancas suaves, pasos numerados con círculos, verde Weda solo para lo hecho y la acción principal.
+   Compu: lista a la izquierda y, a la derecha, un celular con la página real y un acceso grande a «Ver mi página completa».
+   ========================================================================= */
+.pn-app .ed-page .ed-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; padding-bottom: 0; border: 0; }
+.pn-app .ed-page .ed-head h1 { margin: 0; }
+.pn-app .ed-page .ed-head .pn-sub { margin: 4px 0 0; }
+.pn-app .ed-page .pn-btn.ed-see { gap: 8px; min-height: 46px; padding: 0 20px; border-radius: 999px; background: var(--weda-green); border-color: transparent; color: #fff; font-weight: 600; box-shadow: 0 6px 18px rgb(116 116 83 / .25); }
+.pn-app .ed-page .pn-btn.ed-see:hover { background: var(--weda-green-h); }
+
+.pn-app .ed-page .ed-side { gap: 18px; }
+.ed-card { display: grid; gap: 14px; padding: 22px; border-radius: 22px; background: #fff; box-shadow: 0 1px 2px rgb(59 60 58 / .04), 0 10px 30px rgb(80 76 56 / .06); border: 1px solid rgb(59 60 58 / .06); }
+.ed-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.ed-card-head h2 { margin: 0; font-size: 19px; font-weight: 500; letter-spacing: -.01em; color: var(--text-main); }
+.ed-card-head p { margin: 3px 0 0; font-size: 13.5px; color: var(--pn-muted); }
+.ed-progress { display: grid; justify-items: end; gap: 6px; font-size: 12.5px; color: var(--pn-muted); white-space: nowrap; }
+.ed-progress-bar { display: block; width: 120px; height: 6px; border-radius: 99px; background: #eeece4; overflow: hidden; }
+.ed-progress-bar i { display: block; height: 100%; border-radius: inherit; background: var(--weda-green); transition: width .3s ease; }
+
+/* Pasos: una fila por sección, número (o tilde) en un círculo, como «Tu casamiento en tres pasos». */
+.ed-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.ed-item { position: relative; display: flex; align-items: center; gap: 4px; border-top: 1px solid #f0eee8; }
+.ed-item:first-child { border-top: 0; }
+.ed-item-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; min-height: 66px; padding: 8px 8px 8px 2px; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; border-radius: 14px; }
+.ed-item-main:hover { background: #faf9f5; }
+.ed-item-main:focus-visible { outline: 2px solid var(--weda-green); outline-offset: 2px; }
+.ed-dot { flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid #d9d6cb; background: #fff; font-size: 13.5px; font-weight: 600; color: var(--pn-muted); }
+.ed-item.is-ok .ed-dot { border-color: transparent; background: var(--weda-green); color: #fff; }
+.ed-item.is-todo .ed-dot { border-color: #c9a45c; color: #8a6a2a; }
+.ed-item-ico { flex: none; color: var(--pn-muted); }
+.ed-item-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.ed-item-text strong { font-size: 15.5px; font-weight: 500; color: var(--text-main); }
+.ed-item-text small { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--pn-muted); }
+.ed-item.is-ok .ed-item-text small { color: #5f6b3c; }
+.ed-item.is-todo .ed-item-text small { color: #8a6a2a; }
+.ed-item-go { flex: none; color: #b5b2a6; }
+.ed-item-acts { flex: none; display: flex; align-items: center; gap: 2px; }
+.ed-mini { display: grid; place-items: center; width: 34px; height: 34px; border: 0; border-radius: 50%; background: transparent; color: #a3a097; cursor: pointer; }
+.ed-mini:hover:not(:disabled) { background: #f3f1eb; color: var(--text-main); }
+.ed-mini:disabled { opacity: .3; cursor: default; }
+.ed-mini:focus-visible { outline: 2px solid var(--weda-green); outline-offset: 1px; }
+.ed-item .ed-fixed { width: 104px; font-size: 12px; color: #a3a097; text-align: center; }
+@media (hover: hover) and (min-width: 1024px) {
+  .ed-item-acts { opacity: .35; transition: opacity .15s; }
+  .ed-item:hover .ed-item-acts, .ed-item:focus-within .ed-item-acts { opacity: 1; }
+}
+
+/* Sumá más secciones: tarjetas livianas en dos columnas, con un «+» redondo (sin botones negros). */
+.ed-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ed-tile { width: 100%; display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 12px 10px 14px; border: 1px dashed #d9d6cb; border-radius: 16px; background: #fcfbf8; font: inherit; color: inherit; text-align: left; cursor: pointer; transition: background .15s, border-color .15s; }
+.ed-tile:hover { background: #f6f4ee; border-color: #c4c0b1; border-style: solid; }
+.ed-tile:focus-visible { outline: 2px solid var(--weda-green); outline-offset: 2px; }
+.ed-tile-ico { flex: none; color: var(--pn-muted); }
+.ed-tile-text { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.ed-tile-text strong { font-size: 14.5px; font-weight: 500; color: var(--text-main); }
+.ed-tile-text small { font-size: 12.5px; color: var(--pn-muted); }
+.ed-tile-plus { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: #efeee6; color: var(--weda-green); }
+.ed-tile:hover .ed-tile-plus { background: var(--weda-green); color: #fff; }
+
+/* Vista previa: un celular con la página real y, debajo, el acceso a la página completa. */
+.pn-app .ed-page .ed-view-bar { padding-bottom: 12px; }
+.ed-view-title { margin: 0; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--pn-muted); }
+.pn-app .ed-page .ed-view .sp-stage { background: #f3f1ea; border-radius: 26px; padding: 14px 0; }
+.pn-app .ed-page .ed-view .sp-device.is-mobile { border-radius: 26px; border: 6px solid #2f302d; box-shadow: 0 18px 40px rgb(47 48 45 / .18); }
+.ed-view-full { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 12px; padding: 14px 16px; border: 0; border-radius: 18px; background: var(--weda-green); color: #fff; font: inherit; text-align: left; cursor: pointer; box-shadow: 0 6px 18px rgb(116 116 83 / .25); }
+.ed-view-full:hover { background: var(--weda-green-h); }
+.ed-view-full span { flex: 1; display: grid; gap: 1px; }
+.ed-view-full strong { font-size: 15px; font-weight: 600; }
+.ed-view-full small { font-size: 12.5px; opacity: .85; }
+.ed-view-full:focus-visible { outline: 2px solid var(--text-main); outline-offset: 2px; }
+@media (min-width: 1024px) {
+  .pn-app .ed-page .ed-grid { grid-template-columns: minmax(0, 1fr) minmax(320px, 380px); gap: 28px; }
+  .pn-app .ed-page .ed-view, .pn-app .ed-page[data-tab='preview'] .ed-view { grid-template-rows: auto minmax(0, 1fr) auto; height: calc(100dvh - 140px); top: 24px; }
+}
+@media (max-width: 1023px) {
+  .pn-app .ed-page .ed-head { align-items: stretch; flex-direction: column; }
+  .pn-app .ed-page .pn-btn.ed-see { width: 100%; justify-content: center; }
+}
+@media (max-width: 639px) {
+  .ed-card { padding: 16px; border-radius: 18px; }
+  .ed-card-head { gap: 10px; }
+  .ed-progress { justify-items: start; }
+  .ed-item-main { gap: 10px; min-height: 60px; }
+  .ed-item-ico { display: none; }
+  .ed-item-go { display: none; }
+  .ed-mini { width: 32px; height: 32px; }
+  .ed-item .ed-fixed { width: auto; max-width: 70px; }
+  .ed-tiles { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 1024px) {
+  /* En compu el acceso a la página completa vive debajo del celular: el botón del título sobra. */
+  .pn-app .ed-page .pn-btn.ed-see { display: none; }
+  .pn-app .ed-page .ed-view .sp-stage { box-sizing: border-box; height: 100%; min-height: 0; }
+  .pn-app .ed-page .ed-view, .pn-app .ed-page[data-tab='preview'] .ed-view { height: calc(100dvh - 190px); min-height: 520px; }
+}
+@media (min-width: 1024px) {
+  .pn-app .ed-page .ed-view, .pn-app .ed-page[data-tab='preview'] .ed-view { height: calc(100dvh - 250px); min-height: 500px; }
+  .pn-app .ed-page .ed-view .sp-stage { padding: 0; background: transparent; }
+  .pn-app .ed-page .ed-grid { grid-template-columns: minmax(0, 1fr) minmax(300px, 340px); }
+}
+/* Sección abierta: mismo marco que la lista (tarjeta blanca) y «Listo» en verde Weda. */
+.pn-app .ed-page .pn-btn.ed-done { background: var(--weda-green); color: #fff; border-color: transparent; border-radius: 999px; padding: 0 22px; font-weight: 600; }
+.pn-app .ed-page .pn-btn.ed-done:hover:not(:disabled) { background: var(--weda-green-h); }
+.pn-app .ed-page .ed-back { color: var(--pn-muted); }
+.pn-app .ed-page .ed-back:hover { color: var(--text-main); }
+.pn-app .ed-page .ed-form { padding: 22px; border-radius: 22px; background: #fff; border: 1px solid rgb(59 60 58 / .06); box-shadow: 0 1px 2px rgb(59 60 58 / .04), 0 10px 30px rgb(80 76 56 / .06); }
+.pn-app .ed-page .ed-remove-row .pn-btn { border: 0; background: none; box-shadow: none; padding: 0; min-height: 40px; color: var(--pn-muted); text-decoration: underline; text-underline-offset: 3px; }
+.pn-app .ed-page .ed-remove-row .pn-btn:hover { color: #9a3b2b; background: none; }
+.pn-app .ed-page[data-sel] .pn-btn.ed-see { display: none; }
+@media (min-width: 1024px) {
+  .pn-app .ed-page .ed-stick { margin: 0 0 14px; padding: 0; border: 0; background: transparent; }
+}
+@media (max-width: 639px) {
+  .pn-app .ed-page .ed-form { padding: 16px; border-radius: 18px; margin-top: 12px; }
+}
+
+/* ===== «Tu página» · vuelta 2 (2026-11-25): sin vista previa al costado; cada sección con su ícono, qué trae, estado y lugar. ===== */
+.pn-app .ed-page .ed-grid, .pn-app .ed-page .ed-grid { grid-template-columns: minmax(0, 1fr) !important; max-width: 880px; }
+.pn-app .ed-page .pn-btn.ed-see { display: inline-flex !important; }
+.pn-app .ed-page[data-sel] .pn-btn.ed-see { display: none !important; }
+.pn-app .ed-page .ed-head { max-width: 880px; }
+
+/* Ícono de referencia de cada sección: un cuadradito suave con el dibujo. */
+.ed-tile-ico { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: #f1efe6; color: #5d5d44; }
+.ed-tile-ico.is-big { width: 56px; height: 56px; border-radius: 18px; }
+.ed-item.is-off .ed-tile-ico { color: #9b998e; background: #f4f3ef; }
+
+/* Fila de la lista: lugar · ícono · nombre, qué trae y estado · flechas y quitar. */
+.pn-app .ed-page .ed-item { gap: 6px; padding: 6px 0; }
+.ed-pos { flex: none; width: 22px; font-size: 13px; font-weight: 600; color: #aeab9f; text-align: center; font-variant-numeric: tabular-nums; }
+.pn-app .ed-page .ed-item-main { gap: 14px; min-height: 76px; padding: 10px 10px 10px 6px; align-items: center; }
+.pn-app .ed-page .ed-item-text { gap: 3px; }
+.pn-app .ed-page .ed-item-text strong { font-size: 16px; }
+.ed-item-desc { font-size: 13.5px !important; line-height: 1.35; color: var(--pn-muted) !important; display: block !important; }
+.ed-chip { justify-self: start; display: inline-flex; align-items: center; gap: 5px; margin-top: 3px; padding: 3px 9px; border-radius: 99px; font-size: 12px; font-weight: 500; background: #f2f1ec; color: #77756b; }
+.ed-chip.is-ok { background: #eef0e4; color: #56603a; }
+.ed-chip.is-todo { background: #f8f0de; color: #85662a; }
+.ed-chip.is-off { background: #f2f1ec; color: #8d8b81; }
+.pn-app .ed-page .ed-item-acts { flex-direction: column; gap: 0; }
+.pn-app .ed-page .ed-item-acts .ed-mini { width: 32px; height: 28px; border-radius: 8px; }
+.pn-app .ed-page .ed-item .ed-fixed { width: 64px; font-size: 11.5px; line-height: 1.25; }
+@media (min-width: 640px) {
+  .pn-app .ed-page .ed-item-acts { flex-direction: row; gap: 2px; }
+  .pn-app .ed-page .ed-item-acts .ed-mini { width: 34px; height: 34px; border-radius: 50%; }
+}
+@media (hover: hover) and (min-width: 1024px) { .pn-app .ed-page .ed-item-acts { opacity: .5; } }
+
+/* Sumá más secciones: el ícono en su cuadradito, nombre y qué trae (dos renglones legibles). */
+.pn-app .ed-page .ed-tile { align-items: flex-start; min-height: 84px; padding: 14px; gap: 12px; }
+.pn-app .ed-page .ed-tile .ed-tile-ico { width: 40px; height: 40px; border-radius: 12px; }
+.pn-app .ed-page .ed-tile-text small { line-height: 1.35; }
+.pn-app .ed-page .ed-tile-plus { align-self: center; }
+
+/* Al editar: dónde está la sección y cómo moverla, siempre arriba. */
+.pn-app .ed-page .ed-bar { gap: 12px; padding: 10px 12px; border-radius: 18px; background: #fff; border: 1px solid rgb(59 60 58 / .06); }
+.ed-place { flex: 1; display: flex; align-items: center; justify-content: center; gap: 4px; margin: 0; font-size: 13.5px; color: var(--pn-muted); }
+.ed-place span { margin-right: 6px; }
+.ed-panel-head { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 10px; padding-bottom: 18px; border-bottom: 1px solid #f0eee8; }
+.ed-panel-head h2 { margin: 0; font-size: 22px; font-weight: 500; letter-spacing: -.01em; }
+.ed-panel-desc { margin: 4px 0 0; font-size: 14px; color: var(--pn-muted); }
+.pn-app .ed-page .ed-panel > .pn-spanel-head { display: none; }
+
+/* Opciones sí/no: interruptor con explicación, en vez de una casilla suelta. */
+.ed-option { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 8px; padding: 14px 16px; border-radius: 16px; background: #faf9f5; border: 1px solid #efede6; cursor: pointer; }
+.ed-option-text { display: grid; gap: 2px; }
+.ed-option-text strong { font-size: 15px; font-weight: 500; }
+.ed-option-text small { font-size: 13px; color: var(--pn-muted); }
+.ed-switch { position: relative; display: inline-flex; align-items: center; gap: 8px; flex: none; cursor: pointer; }
+.ed-switch input { position: absolute; opacity: 0; width: 44px; height: 26px; margin: 0; cursor: pointer; }
+.ed-switch-ui { position: relative; width: 44px; height: 26px; border-radius: 99px; background: #d9d6cb; transition: background .15s; }
+.ed-switch-ui::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .18); transition: transform .15s; }
+.ed-switch input:checked + .ed-switch-ui { background: var(--weda-green); }
+.ed-switch input:checked + .ed-switch-ui::after { transform: translateX(18px); }
+.ed-switch input:focus-visible + .ed-switch-ui { outline: 2px solid var(--weda-green); outline-offset: 2px; }
+.ed-switch-txt { font-size: 13px; color: var(--pn-muted); min-width: 70px; }
+
+/* Cómo funciona: pasos cortos numerados. */
+.ed-how { list-style: none; counter-reset: how; margin: 6px 0 12px; padding: 0; display: grid; gap: 10px; }
+.ed-how li { counter-increment: how; position: relative; padding: 2px 0 0 38px; font-size: 14px; line-height: 1.45; color: var(--pn-muted); }
+.ed-how li::before { content: counter(how); position: absolute; left: 0; top: 0; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: #f1efe6; color: #5d5d44; font-size: 13px; font-weight: 600; }
+.ed-how strong { font-weight: 500; color: var(--text-main); }
+.ed-callout { display: flex; align-items: center; gap: 8px; margin: 4px 0 8px; padding: 12px 14px; border-radius: 14px; background: #f8f0de; color: #6f5524; font-size: 13.5px; }
+.ed-callout.is-ok { background: #eef0e4; color: #4c5532; }
+
+/* Eventos: cada momento con su ícono y un interruptor «Se muestra / Oculto». */
+.ed-ev-ico { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; background: #fff; color: #5d5d44; box-shadow: inset 0 0 0 1px #ebe8df; }
+.pn-ev.is-off .ed-ev-ico { color: #a9a69b; }
+.pn-app .ed-page .pn-ev-main { gap: 12px; }
+.pn-app .ed-page .pn-ev-head .ed-switch { padding-right: 12px; }
+
+@media (max-width: 639px) {
+  .pn-app .ed-page .ed-item-main { gap: 10px; min-height: 72px; padding: 8px 4px; }
+  .pn-app .ed-page .ed-tile-ico { width: 38px; height: 38px; border-radius: 12px; }
+  .ed-pos { width: 16px; font-size: 12px; }
+  .pn-app .ed-page .ed-item-go { display: none; }
+  .ed-item-desc { font-size: 12.5px !important; }
+  .ed-panel-head { gap: 12px; }
+  .ed-tile-ico.is-big { width: 46px; height: 46px; border-radius: 14px; }
+  .ed-panel-head h2 { font-size: 19px; }
+  .ed-place span { display: none; }
+  .ed-switch-txt { display: none; }
+}
+.pn-app .ed-page .pn-ev { border-radius: 18px; }
+.pn-app .ed-page .pn-ev.is-open { background: #fff; box-shadow: inset 0 0 0 1px #e4e1d6, 0 6px 20px rgb(80 76 56 / .06); border-color: transparent; outline: 0; }
+.pn-app .ed-page .pn-ev .ed-chip { margin: 0 0 0 auto; }
+@media (max-width: 639px) { .pn-app .ed-page .pn-ev .ed-chip { display: none; } }
+.ed-place strong { font-weight: 500; color: var(--text-main); margin-right: 4px; }
+@media (max-width: 639px) { .ed-place { justify-content: flex-start; } .ed-place strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
+
+/* ===== «Tu página» · vuelta 3 (2026-11-25): verde solo en el avance; íconos blancos y cuadrados; sin cajas crema ni explicaciones de más. ===== */
+.pn-app .ed-page .pn-btn.ed-see { background: #fff; color: var(--text-main); font-weight: 500; box-shadow: inset 0 0 0 1px #dcd8cf; }
+.pn-app .ed-page .pn-btn.ed-see:hover { background: #faf9f6; }
+.pn-app .ed-page .pn-btn.ed-done { background: var(--text-main, #3b3c3a); color: #fff; font-weight: 500; }
+.pn-app .ed-page .pn-btn.ed-done:hover:not(:disabled) { background: #2b2c2a; }
+.ed-tile-ico, .pn-app .ed-page .ed-tile .ed-tile-ico, .ed-ev-ico { background: #fff; color: #3b3c3a; border-radius: 10px; box-shadow: inset 0 0 0 1px #e4e1d8; }
+.ed-item.is-off .ed-tile-ico { background: #fff; color: #a3a097; }
+.ed-chip.is-ok { background: #f2f1ec; color: #5b5a53; }
+.ed-tile-plus { background: #f2f1ec; color: #3b3c3a; }
+.ed-tile:hover .ed-tile-plus { background: #3b3c3a; color: #fff; }
+.pn-app .ed-page .ed-tile { background: #fff; }
+.ed-switch input:checked + .ed-switch-ui { background: #3b3c3a; }
+.ed-option { background: #fff; border-color: #ebe8e0; }
+.ed-card-head { align-items: center; }
+
+/* Encabezado de una sección abierta: solo el título. Barra: volver · nombre · flechas · Listo. */
+.ed-panel-title { margin: 0 0 14px; font-size: 22px; font-weight: 500; letter-spacing: -.01em; color: var(--text-main); }
+.ed-place { gap: 2px; }
+
+/* Portada: la foto grande, con los nombres encima como en la página, y los datos al lado. */
+.ed-cover { display: grid; grid-template-columns: minmax(240px, 300px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.ed-cover-photo { position: relative; aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden; background-size: cover; background-color: #2f302d; display: grid; place-items: center; }
+.ed-cover-photo::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgb(0 0 0 / .15), rgb(0 0 0 / .35)); }
+.ed-cover-names { position: relative; padding: 0 16px; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 26px; line-height: 1.15; color: #fff; text-align: center; }
+.ed-cover-change { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 16px; border: 0; border-radius: 999px; background: rgb(255 255 255 / .92); color: #3b3c3a; font: inherit; font-size: 14px; white-space: nowrap; cursor: pointer; }
+.ed-cover-change:hover { background: #fff; }
+.ed-cover-change:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.ed-cover-fields { display: grid; gap: 4px; }
+@media (max-width: 760px) {
+  .ed-cover { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .ed-cover-photo { aspect-ratio: 16 / 10; }
+}
+@media (max-width: 1023px) { .pn-app .ed-page[data-sel] > .ed-head { display: none; } }
+.pn-app .ed-page .ed-place { justify-content: flex-end; }
+@media (max-width: 639px) {
+  .pn-app .ed-page .ed-item-acts { flex-direction: row; gap: 0; }
+  .pn-app .ed-page .ed-item-acts .ed-mini { width: 30px; height: 36px; }
+  .pn-app .ed-page .ed-item-main { min-height: 64px; }
+  .ed-chip { white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* ===== «Tu página» · vuelta 4 (2026-11-25): menos clics y menos alto. ===== */
+/* Eventos: sin desplegable. Oculto = la fila; prendido = sus campos, en dos columnas. */
+.pn-app .ed-page .ed-ev .pn-ev-head { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 14px 8px 8px; }
+.pn-app .ed-page .ed-ev .pn-ev-title { flex: 1; min-width: 0; font-size: 15.5px; font-weight: 500; color: var(--text-main); }
+.pn-app .ed-page .ed-ev.is-off .pn-ev-title { color: #a3a097; }
+.pn-app .ed-page .ed-ev.is-off { background: #fff; box-shadow: inset 0 0 0 1px #efede6; }
+.pn-app .ed-page .ed-ev .ed-switch { padding: 0; }
+.pn-app .ed-page .ed-ev-body { display: grid; gap: 2px; padding: 4px 14px 14px; border-top: 1px solid #f0eee8; }
+.ed-ev-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 12px; }
+.ed-ev-row:has(> :only-child) { grid-template-columns: minmax(0, 1fr); }
+.ed-icons-grid.is-compact { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
+.ed-icons-grid.is-compact .ed-ico-opt { width: 40px; height: 40px; min-height: 0; border-radius: 10px; }
+.pn-app .ed-page .pn-evlist { gap: 8px; }
+.ed-golink { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; padding: 10px 14px; border-radius: 12px; box-shadow: inset 0 0 0 1px #e4e1d8; color: var(--text-main); font-size: 14px; text-decoration: none; }
+.ed-golink:hover { background: #faf9f6; }
+/* Formularios más compactos en general. */
+.pn-app .ed-page .ed-form { padding: 20px 22px; }
+.pn-app .ed-page .ed-form .pn-field { margin-bottom: 0; }
+.pn-app .ed-page .ed-panel-title { margin-bottom: 10px; }
+.pn-app .ed-page .ed-remove-row { margin-top: 6px; padding-top: 10px; }
+.pn-app .ed-page .ed-card { gap: 10px; padding: 18px 20px; }
+.pn-app .ed-page .ed-item-main { min-height: 60px; padding-top: 6px; padding-bottom: 6px; }
+.pn-app .ed-page .ed-item { padding: 2px 0; }
+.pn-app .ed-page .ed-tile { min-height: 0; padding: 12px; }
+@media (max-width: 639px) {
+  .ed-ev-row { grid-template-columns: minmax(0, 1fr); }
+  .pn-app .ed-page .ed-form { padding: 16px; }
+  .pn-app .ed-page .ed-card { padding: 14px 16px; }
+}
+.ed-golink { justify-self: start; width: auto; }
+@media (max-width: 639px) { .ed-ev-row.is-time { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 0 8px; } }
+
+/* Menú lateral (2026-11-25): al abrir o recoger, la columna se anima y los textos no se parten en dos renglones ni empujan los íconos. */
+@media (min-width: 1024px) {
+  .pn-side { overflow-x: clip; }
+  .pn-nav-link, .pn-side-help { grid-template-columns: 20px minmax(0, 1fr); }
+  .pn-nav-link > span, .pn-side-help > span, .pn-profile-text, .pn-profile-text * { white-space: nowrap; overflow: hidden; text-overflow: clip; min-width: 0; }
+  .pn-nav-link > svg, .pn-side-help > svg { flex: none; }
+}
+@media (min-width: 1024px) {
+  .pn-app[data-side='collapsed'] .pn-nav-link, .pn-app[data-side='collapsed'] .pn-side-help { grid-template-columns: 20px; justify-content: center; }
+}
+.pn-photos .pn-gactions { grid-column: auto; } /* (2026-11-27) una regla de la galería la mandaba a la columna 2 y la foto quedaba de 1 px */
+.ed-switch input { z-index: 1; } /* el toque cae en la casilla real (también para el teclado y los lectores) */

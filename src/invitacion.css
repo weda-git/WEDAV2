@@ -774,3 +774,6 @@ html:has(.dm-root.is-window)::-webkit-scrollbar { display: none; }
 
 /* Playlist de Spotify: el reproductor oficial, a lo ancho del bloque. */
 .dm-root .iv-spotify { display: block; width: 100%; max-width: 640px; height: 352px; margin: clamp(20px, 3vw, 32px) auto 0; border: 0; border-radius: 12px; }
+/* Playlist conectada (auditoría 2026-11-27): el reproductor de Spotify sin otra caja alrededor. */
+.dm-root .iv-playlist:has(.iv-spotify) { border: 0; padding: 0; }
+.dm-root .iv-playlist .iv-spotify { margin-top: 24px; border: 0; border-radius: 16px; }

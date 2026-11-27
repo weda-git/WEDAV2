@@ -19,6 +19,11 @@ export const Route = createFileRoute('/panel/')({
    Sin la foto en arco (2026-11-21): repetía la del perfil y se metía en el bloque de pasos. */
 function Home() {
   const s = useAppState();
+  // Primera visita al Inicio en este navegador: «¡Bienvenidos!»; después, «Hola de nuevo» (auditoría 2026-11-27). Se lee después de montar para no romper la hidratación.
+  const [firstVisit, setFirstVisit] = useState(false);
+  useEffect(() => {
+    try { if (!localStorage.getItem('weda-welcomed')) { setFirstVisit(true); localStorage.setItem('weda-welcomed', '1'); } } catch { /* sin almacenamiento: queda «Hola de nuevo» */ }
+  }, []);
   const access = useRemote().access;
   const navigate = useNavigate();
   const { editar } = Route.useSearch();
@@ -63,7 +68,7 @@ function Home() {
       <header className="hx-hero">
         <div className="hx-hero-copy">
           <p className="hx-couple">{coupleLabel(s.couple)}</p>
-          <h1>Hola de nuevo</h1>
+          <h1>{firstVisit ? '¡Bienvenidos!' : 'Hola de nuevo'}</h1>
         </div>
       </header>
 

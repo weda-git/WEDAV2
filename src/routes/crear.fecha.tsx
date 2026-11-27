@@ -42,7 +42,7 @@ function DateAndPlace() {
     update(s => ({
       ...s,
       date: noDate ? null : date,
-      site: { ...s.site, events: s.site.events.map((ev, i) => (i === 0 && place.trim() ? { ...ev, name: place.trim() } : ev)) },
+      site: { ...s.site, events: s.site.events.map((ev, i) => (i === 0 && place.trim() ? { ...ev, name: place.trim(), title: ev.title.trim() || 'Ceremonia' } : ev)) },
     }));
     void navigate({ to: '/crear/foto' });
   };

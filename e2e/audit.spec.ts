@@ -76,7 +76,7 @@ test.describe('Persona K · publicar cuanto antes: el camino mínimo, contado', 
     await act(() => page.locator('.pn-top').getByRole('button', { name: 'Publicar', exact: true }).click());
     await act(() => page.getByRole('button', { name: 'Publicar Celebración', exact: true }).click());
     await act(() => page.getByRole('dialog').getByRole('button', { name: 'Publicar', exact: true }).click());
-    await expect(page.getByRole('heading', { name: '¡Tu página está publicada!' })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: '¡Tu sitio está publicado!' })).toBeVisible({ timeout: 15_000 });
     // Medido el 2026-10-28: 12 acciones. Desde el 2026-11-23 (ONB-06): 14, por el WhatsApp obligatorio y «Todavía no la sabemos»
     // (5 campos escritos y 9 toques), 5 pantallas (cuenta, nombres, fecha, foto, panel) + el diálogo. Si cambia, actualizar conversion-and-friction.md.
     expect(actions).toBe(14);
@@ -91,7 +91,7 @@ test.describe('Persona T · pareja con la página publicada que vuelve a editar'
     await top.getByRole('button', { name: 'Publicar', exact: true }).click();
     await page.getByRole('button', { name: 'Publicar Celebración', exact: true }).click();
     await page.getByRole('dialog').getByRole('button', { name: 'Publicar', exact: true }).click();
-    await expect(page.getByRole('heading', { name: '¡Tu página está publicada!' })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: '¡Tu sitio está publicado!' })).toBeVisible({ timeout: 15_000 });
     await page.getByRole('button', { name: 'Listo' }).click();
     const slug = (await stored(page)).slug as string;
     // Cambiar los nombres en el panel.
@@ -105,10 +105,10 @@ test.describe('Persona T · pareja con la página publicada que vuelve a editar'
     await guest.goto(`/sitio/${slug}`, { waitUntil: 'networkidle' });
     await expect(guest.locator('body')).toContainText(/Violeta/);
     // El estado «Publicada» avisa que hay cambios; «Actualizar mi página» los muestra, con el mismo link.
-    await top.getByRole('button', { name: /^Publicada: hay cambios/ }).click();
+    await top.getByRole('button', { name: /^Publicado: hay cambios/ }).click();
     await expect(page.getByText('Tenés cambios que tus invitados todavía no ven.', { exact: false })).toBeVisible();
-    await page.getByRole('button', { name: 'Actualizar mi página' }).click();
-    await expect(page.getByText('Listo: tu página ya muestra los cambios.')).toBeVisible({ timeout: 15_000 });
+    await page.getByRole('button', { name: 'Actualizar mi sitio' }).click();
+    await expect(page.getByText('Listo: tu sitio ya muestra los cambios.')).toBeVisible({ timeout: 15_000 });
     expect((await stored(page)).slug).toBe(slug);
     await guest.reload({ waitUntil: 'networkidle' });
     await expect(guest.locator('body')).toContainText(/Vera/);

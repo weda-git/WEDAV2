@@ -20,10 +20,10 @@ function Preview() {
       <header className="pn-page-head">
         <div>
           <h1>Vista previa</h1>
-          <p className="pn-sub">Así la ven tus invitados. Todavía no está publicada.</p>
+          <p className="pn-sub">Así lo ven tus invitados. Todavía no está publicado.</p>
         </div>
         <div className="pn-head-actions">
-          <Link to={(pages.invitation ? '/panel/sitio' : '/panel/regalos') as never} className="pn-btn is-ghost"><ArrowLeft size={16} aria-hidden="true" />{pages.invitation ? 'Volver a editar mi página' : 'Volver a mis regalos'}</Link>
+          <Link to={(pages.invitation ? '/panel/sitio' : '/panel/regalos') as never} className="pn-btn is-ghost"><ArrowLeft size={16} aria-hidden="true" />{pages.invitation ? 'Volver a editar mi sitio' : 'Volver a mis regalos'}</Link>
           <button type="button" className="pn-btn" onClick={plans.open}>Publicar</button>
         </div>
       </header>

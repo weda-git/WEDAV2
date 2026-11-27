@@ -126,8 +126,8 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
                       {drafts.length > 0 && <p className="pn-note">No se publica: {drafts.map(d => d.label.toLowerCase()).join(', ')}. Lo que cargaste queda como borrador.</p>}
                     </details>
                     <div className="pn-prod-actions">
-                      <a className="pn-btn is-ghost" href={link} target="_blank" rel="noopener noreferrer" aria-label={`Ver el link de ${p.name} (se abre en otra pestaña)`}>
-                        <ExternalLink size={16} aria-hidden="true" /> Ver link
+                      <a className="pn-btn is-ghost" href={link} target="_blank" rel="noopener noreferrer" aria-label={`Ver cómo queda con ${p.name} (se abre en otra pestaña)`}>
+                        <ExternalLink size={16} aria-hidden="true" /> Ver cómo queda
                       </a>
                       <button type="button" className="pn-btn" aria-label={`Publicar ${p.name}`} onClick={() => choose(p.id)}>Publicar</button>
                     </div>
@@ -143,7 +143,7 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
         {(step === 'review' || step === 'paying') && plan && (
           <>
             <DialogTitle>Publicar · {plan.name}</DialogTitle>
-            <DialogDescription>{`${formatPrice(plan.price)} ${PRICE_UNIT}, sin renovaciones. Al confirmarse el pago, tu página se publica. Esto es lo que se publica.`}</DialogDescription>
+            <DialogDescription>{`${formatPrice(plan.price)} ${PRICE_UNIT}, sin renovaciones. Al confirmarse el pago, tu sitio se publica. Esto es lo que se publica.`}</DialogDescription>
             {summary && (
               <div className="pn-publish">
                 {summary.published.length > 0 && (<><p className="pn-group-label">Se publica</p><ul className="pn-plan-items">{summary.published.map(i => <li key={i.feature}><Check size={16} strokeWidth={1.6} aria-hidden="true" /><span><strong>{i.label}</strong> · {i.detail}</span></li>)}</ul></>)}
@@ -165,12 +165,12 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
             </dl>
             {error && <p className="pn-banner" role="alert">No se pudo publicar: {error}</p>}
             {!online
-              ? <p className="pn-note" role="status">Para publicar necesitás una cuenta: ahí queda guardado todo lo que armaste y tu página se puede abrir desde cualquier lugar.</p>
+              ? <p className="pn-note" role="status">Para publicar necesitás una cuenta: ahí queda guardado todo lo que armaste y tu sitio se puede abrir desde cualquier lugar.</p>
               : otherPaid
                 ? <p className="pn-note" role="status">Ya contrataste {planById(paidPlan)?.name}. Por ahora el plan no se puede cambiar después de contratarlo: publicá con {planById(paidPlan)?.name}.</p>
                 : mustPay
-                ? <p className="pn-note" role="status">Vas a pagar en una página segura. Cuando el pago se confirma, tu página se publica en ese momento.</p>
-                : <p className="pn-note" role="status">Al publicar, tu página se puede abrir con el link y también se encuentra en Weda buscando sus nombres.</p>}
+                ? <p className="pn-note" role="status">Vas a pagar en una página segura. Cuando el pago se confirma, tu sitio se publica en ese momento.</p>
+                : <p className="pn-note" role="status">Al publicar, tu sitio se puede abrir con el link y también se encuentra en Weda buscando sus nombres.</p>}
             <div className="pn-actions is-end">
               <button type="button" className="pn-btn is-ghost" disabled={step === 'paying'} onClick={() => setStep(pub ? 'manage' : 'choose')}>Volver</button>
               {!online
@@ -189,48 +189,48 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
         )}
         {step === 'done' && pub && plan && (
           <>
-            <DialogTitle>¡Tu página está publicada!</DialogTitle>
-            <DialogDescription>Ya la puede abrir cualquiera que tenga el link.</DialogDescription>
+            <DialogTitle>¡Tu sitio está publicado!</DialogTitle>
+            <DialogDescription>Ya lo puede abrir cualquiera que tenga el link.</DialogDescription>
             <dl className="pn-pay">
               <div><dt>Plan</dt><dd>{plan.name}</dd></div>
               <div><dt>Tu link</dt><dd><code>{path}</code></dd></div>
             </dl>
             <div className="pn-actions">
-              <a className="pn-btn" href={path} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" /> Ver mi página<span className="pn-sr"> (se abre en otra pestaña)</span></a>
+              <a className="pn-btn" href={path} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" /> Ver mi sitio<span className="pn-sr"> (se abre en otra pestaña)</span></a>
               <button type="button" className="pn-btn is-ghost" onClick={copyLink}>{copied ? 'Link copiado' : 'Copiar link'}</button>
             </div>
-            <p className="pn-note">Tu página está publicada: cualquiera con el link la puede abrir. Desde «Publicada», arriba a la derecha, la podés actualizar o bajar cuando quieras.</p>
+            <p className="pn-note">Tu sitio está publicado: cualquiera con el link lo puede abrir. Desde «Publicado», arriba a la derecha, lo podés actualizar o bajar cuando quieras.</p>
             <div className="pn-actions is-end"><button type="button" className="pn-btn is-ghost" onClick={onClose}>Listo</button></div>
           </>
         )}
         {step === 'manage' && pub && (
           <>
             <DialogTitle>Tu publicación</DialogTitle>
-            <DialogDescription>{live ? `Tu página está publicada con el plan ${planById(pub.planId)?.name}.` : `Diste de baja tu página. Tu plan ${planById(pub.planId)?.name} sigue contratado: podés volver a publicarla cuando quieras.`}</DialogDescription>
+            <DialogDescription>{live ? `Tu sitio está publicado con el plan ${planById(pub.planId)?.name}.` : `Diste de baja tu sitio. Tu plan ${planById(pub.planId)?.name} sigue contratado: podés volver a publicarlo cuando quieras.`}</DialogDescription>
             <dl className="pn-pay">
-              <div><dt>Estado</dt><dd>{live ? (pending ? 'Publicada, con cambios para actualizar' : 'Publicada') : 'Dada de baja'}</dd></div>
+              <div><dt>Estado</dt><dd>{live ? (pending ? 'Publicado, con cambios para actualizar' : 'Publicado') : 'Dado de baja'}</dd></div>
               <div><dt>Plan</dt><dd>{planById(pub.planId)?.name}</dd></div>
-              <div><dt>Publicada desde</dt><dd>{since}</dd></div>
+              <div><dt>Publicado desde</dt><dd>{since}</dd></div>
               {live && <div><dt>Tu link</dt><dd><code>{path}</code></dd></div>}
             </dl>
             {live && (
               <>
                 <div className="pn-actions">
-                  <a className="pn-btn" href={path} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" /> Ver mi página<span className="pn-sr"> (se abre en otra pestaña)</span></a>
+                  <a className="pn-btn" href={path} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" /> Ver mi sitio<span className="pn-sr"> (se abre en otra pestaña)</span></a>
                   <button type="button" className="pn-btn is-ghost" onClick={copyLink}>{copied ? 'Link copiado' : 'Copiar link'}</button>
                 </div>
                 <div className="pn-refresh">
                   {refresh === 'done' && upToDate
-                    ? <p className="pn-note" role="status"><Check size={16} aria-hidden="true" /> Listo: tu página ya muestra los cambios.</p>
+                    ? <p className="pn-note" role="status"><Check size={16} aria-hidden="true" /> Listo: tu sitio ya muestra los cambios.</p>
                     : upToDate
-                      ? <p className="pn-hint">Tu página ya muestra todo lo que guardaste. Si cambiás algo en el panel, te avisamos acá para que lo publiques.</p>
+                      ? <p className="pn-hint">Tu sitio ya muestra todo lo que guardaste. Si cambiás algo en el panel, te avisamos acá para que lo publiques.</p>
                       : <>
                           {pending
-                            ? <p className="pn-note" role="status">Tenés cambios que tus invitados todavía no ven. Actualizá tu página para mostrarlos. El link no cambia.</p>
-                            : <p className="pn-hint">Lo que cambies en el panel se ve en tu página cuando tocás «Actualizar mi página». El link no cambia.</p>}
+                            ? <p className="pn-note" role="status">Tenés cambios que tus invitados todavía no ven. Actualizá tu sitio para mostrarlos. El link no cambia.</p>
+                            : <p className="pn-hint">Lo que cambies en el panel se ve en tu sitio cuando tocás «Actualizar mi sitio». El link no cambia.</p>}
                           <button type="button" className={`pn-btn${pending ? ' pn-update-btn' : ' is-ghost'}`} disabled={refresh === 'busy'} aria-busy={refresh === 'busy'}
                             onClick={() => { setRefresh('busy'); setError(null); void publishRemote().then(r => { if (r.ok) setRefresh('done'); else { setRefresh('idle'); setError(errorText(r.code)); } }); }}>
-                            {refresh === 'busy' ? <><Loader2 size={16} className="pn-spin" aria-hidden="true" /> Actualizando…</> : 'Actualizar mi página'}
+                            {refresh === 'busy' ? <><Loader2 size={16} className="pn-spin" aria-hidden="true" /> Actualizando…</> : 'Actualizar mi sitio'}
                           </button>
                         </>}
                 </div>
@@ -238,11 +238,11 @@ export function PublishDialog({ open, onClose }: { open: boolean; onClose: () =>
             )}
             <p className="pn-hint">Por ahora el plan no se puede cambiar después de contratarlo.</p>
             {confirmDown ? (
-              <div className="pn-note" role="alertdialog" aria-label="Confirmar bajar la página">
-                <p><strong>¿Bajar tu página?</strong> Deja de estar publicada. Tu plan sigue contratado: podés volver a publicarla cuando quieras.</p>
+              <div className="pn-note" role="alertdialog" aria-label="Confirmar bajar el sitio">
+                <p><strong>¿Bajar tu sitio?</strong> Deja de estar publicado. Tu plan sigue contratado: podés volver a publicarlo cuando quieras.</p>
                 <div className="pn-actions is-end">
                   <button type="button" className="pn-btn is-ghost" onClick={() => setConfirmDown(false)}>Cancelar</button>
-                  <button type="button" className="pn-btn is-danger" onClick={() => { const apply = () => { update(takeDown); setConfirmDown(false); }; if (online) runRemote(unpublishRemote, apply); else apply(); }}>Sí, bajar la página</button>
+                  <button type="button" className="pn-btn is-danger" onClick={() => { const apply = () => { update(takeDown); setConfirmDown(false); }; if (online) runRemote(unpublishRemote, apply); else apply(); }}>Sí, bajar el sitio</button>
                 </div>
               </div>
             ) : (

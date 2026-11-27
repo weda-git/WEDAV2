@@ -55,8 +55,8 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
     await expect(page.getByRole('region', { name: 'Transferencia en pesos' }).getByText('Sin configurar')).toBeVisible();
 
     // Se puede seguir sin completar el cobro.
-    await nav(page, 'Tu página').click();
-    await expect(page.getByRole('heading', { name: 'Tu página' })).toBeVisible();
+    await nav(page, 'Tu sitio').click();
+    await expect(page.getByRole('heading', { name: 'Tu sitio' })).toBeVisible();
     await nav(page, 'Regalos').click();
 
     // El alias se guarda mientras se escribe (sin botón «Guardar»).
@@ -76,9 +76,9 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
   });
 
   test('Flujo 3: Tu página → elegir Eventos → editar → verlo en la vista previa a pantalla completa → volver sin perder datos', async ({ page }) => {
-    await nav(page, 'Tu página').click();
+    await nav(page, 'Tu sitio').click();
     // Primero la estructura de la invitación; los campos de una sección aparecen recién al elegirla.
-    await expect(page.getByRole('heading', { name: 'Tu invitación', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tus secciones', exact: true })).toBeVisible();
     await expect(page.getByLabel('Nombre del lugar')).toHaveCount(0);
     await page.getByRole('button', { name: /^Editar Eventos/ }).click();
     // La primera fila de eventos ya viene abierta.
@@ -88,8 +88,7 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
     await page.getByLabel('Dirección').fill('Calle 123, Ciudad');
     await expect(page.locator('#sec-ceremonia')).toContainText('Ceremonia');
 
-    // La ventana (la página real, recortada en la sección que se edita) refleja lo escrito; la vista previa abre la página real en un pop-up con salida clara.
-    await expect(page.frameLocator('.lc-frame').locator('#dia')).toContainText('Parroquia San Isidro');
+    // La vista previa abre la página real en un pop-up con salida clara y refleja lo escrito.
     await openPreview(page);
     await expect.poll(() => previewText(page)).toContain('Parroquia San Isidro');
     await closePreview(page);
@@ -99,21 +98,21 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
   });
 
   test('Flujo 4: quitar y volver a agregar una sección se refleja en la vista previa, sin perder lo cargado', async ({ page }) => {
-    await nav(page, 'Tu página').click();
+    await nav(page, 'Tu sitio').click();
     const inPreview = async () => { await openPreview(page); await previewFrame(page).locator('.iv-cover-img').waitFor(); const n = await previewFrame(page).locator('#confirmar').count(); await closePreview(page); return n; };
     await expect.poll(inPreview).toBe(1);
-    await page.getByRole('button', { name: 'Quitar Confirmación de la invitación' }).click();
+    await page.getByRole('button', { name: 'Quitar Confirmación de tu sitio' }).click();
     // Pasa a «Para agregar» (reversible) y la página ya no la muestra.
-    await expect(page.getByRole('button', { name: 'Agregar Confirmación a la invitación' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Agregar Confirmación a tu sitio' })).toBeVisible();
     await expect.poll(inPreview).toBe(0);
-    await page.getByRole('button', { name: 'Agregar Confirmación a la invitación' }).click();
+    await page.getByRole('button', { name: 'Agregar Confirmación a tu sitio' }).click();
     await expect(page.getByRole('heading', { name: 'Confirmación de asistencia' })).toBeVisible();
     await expect.poll(inPreview).toBe(1);
   });
 
   test('Flujo 4b: reordenar secciones cambia el orden de la página y se conserva al recargar', async ({ page }) => {
-    await nav(page, 'Tu página').click();
-    await page.getByRole('button', { name: 'Agregar Dress code a la invitación' }).click();
+    await nav(page, 'Tu sitio').click();
+    await page.getByRole('button', { name: 'Agregar Dress code a tu sitio' }).click();
     await page.getByLabel('Título').fill('Elegante sport');
     await page.getByRole('button', { name: 'Listo' }).click();
     const order = async () => { await openPreview(page); await previewFrame(page).locator('.iv-cover-img').waitFor(); const ids = await previewFrame(page).locator('#confirmar, #dresscode').evaluateAll(els => els.map(e => e.id)); await closePreview(page); return ids; };
@@ -129,7 +128,7 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
     await page.goto('/panel/regalos', { waitUntil: 'networkidle' });
     await page.getByRole('tab', { name: 'Catálogo' }).click();
     await page.getByRole('list', { name: 'Packs de regalos' }).getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Luna de miel' }) }).getByRole('button', { name: 'Agregar' }).click();
-    await nav(page, 'Tu página').click();
+    await nav(page, 'Tu sitio').click();
 
     // Eventos: la tarjeta muestra solo calle y altura; «Cómo llegar» usa la dirección completa y hay un acceso a Google Maps para fijar el lugar.
     await page.getByRole('button', { name: /^Editar Eventos/ }).click();
@@ -138,15 +137,18 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
     await page.getByLabel('Nombre del evento').fill('Ceremonia');
     await page.getByLabel('Nombre del lugar').fill('Parroquia San Isidro');
     await page.getByLabel('Dirección').fill('Av. del Libertador 1234, C1425 CABA, Argentina');
-    await page.getByLabel('Horario').selectOption('18:00');
+    await page.getByLabel('Hora', { exact: true }).selectOption('18:00');
     // Sin clave de Google: sin texto de ayuda sobre la tarjeta ni campo para pegar un enlace; «Cómo llegar» busca nombre + dirección.
     await expect(page.getByText(/En la tarjeta se ve/)).toHaveCount(0);
     await expect(page.getByLabel('Enlace de Google Maps')).toHaveCount(0);
-    await expect(page.getByRole('link', { name: /Probar el enlace de «Cómo llegar»/ })).toHaveAttribute('href', /google\.com\/maps\/search/);
+    // «Probar el enlace» se sacó en el rediseño de «Tu sitio» (2026-11-25): «Cómo llegar» se comprueba en la vista previa.
+    await openPreview(page);
+    await expect(previewFrame(page).locator('#dia a', { hasText: /Cómo llegar/i }).first()).toHaveAttribute('href', /google\.com\/maps\/search/);
+    await closePreview(page);
     await page.getByRole('button', { name: 'Listo' }).click();
 
     // Dress code: círculos de colores que se pueden apagar y cuyo color elige la pareja.
-    await page.getByRole('button', { name: 'Agregar Dress code a la invitación' }).click();
+    await page.getByRole('button', { name: 'Agregar Dress code a tu sitio' }).click();
     await page.getByLabel('Título').fill('Elegante sport');
     await page.getByLabel('Color del círculo 1').evaluate((el: HTMLInputElement) => {
       Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(el, '#ff6699');
@@ -156,7 +158,7 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
     await page.getByRole('button', { name: 'Listo' }).click();
 
     // Texto libre y sección de regalos.
-    await page.getByRole('button', { name: 'Agregar Texto libre a la invitación' }).click();
+    await page.getByRole('button', { name: 'Agregar Texto libre a tu sitio' }).click();
     await page.getByLabel('Título').fill('Un aviso');
     await page.getByLabel('Mensaje').fill('Habrá estacionamiento en el lugar.');
     await page.getByRole('button', { name: 'Listo' }).click();
@@ -267,7 +269,7 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
     await page.getByRole('list', { name: 'Packs de regalos' }).getByRole('listitem').filter({ has: page.getByRole('heading', { name: 'Luna de miel' }) }).getByRole('button', { name: 'Agregar' }).click();
     await page.locator('.pn-top').getByRole('button', { name: 'Publicar', exact: true }).click();
     const links: Record<string, string> = {};
-    for (const plan of ['Regalos', 'Celebración']) links[plan] = (await page.getByRole('link', { name: new RegExp(`Ver el link de ${plan} \\(`) }).getAttribute('href'))!;
+    for (const plan of ['Regalos', 'Celebración']) links[plan] = (await page.getByRole('link', { name: new RegExp(`Ver cómo queda con ${plan} \\(`) }).getAttribute('href'))!;
     await page.keyboard.press('Escape');
     for (const plan of ['Celebración']) {
       await page.goto(links[plan]!, { waitUntil: 'networkidle' });
@@ -289,7 +291,7 @@ test.describe('Recorridos del panel en celular (390 px)', () => {
     await page.goto('/panel/vista-previa');
     await page.waitForURL(/\/crear\/cuenta/);
     await expect(page.locator('#ac-email')).toBeVisible();
-    await expect(page.getByText('Publicada')).toHaveCount(0);
+    await expect(page.getByText('Publicado')).toHaveCount(0);
   });
 });
 
