@@ -222,13 +222,13 @@ const freePrice = (min: number | null) => (min ? <>Desde {formatMoney(min)}</> :
 /** Desde cuántos regalos en la lista aparece el aviso del alias: antes es pronto (la pareja recién está eligiendo). */
 const ALIAS_NUDGE_FROM = 3;
 /** Banner del alias (2026-11-23): aparece cuando la lista ya tiene varios regalos y todavía no hay alias. Sin el alias los invitados no saben a dónde transferir. */
-function AliasNudge({ count, onGo }: { count: number; onGo: () => void }) {
+function AliasNudge({ onGo }: { onGo: () => void }) {
   return (
     <section className="rg-alias-banner" aria-labelledby="rg-alias-title">
       <span className="rg-alias-ico" aria-hidden="true"><Landmark size={22} strokeWidth={1.6} /></span>
       <div className="rg-alias-copy">
-        <h2 id="rg-alias-title">Ya elegiste {count} {count === 1 ? 'regalo' : 'regalos'}</h2>
-        <p>Cargá tu cuenta para que tus invitados sepan a dónde transferir.</p>
+        <h2 id="rg-alias-title">Cargá tu cuenta</h2>
+        <p>Para que tus invitados sepan a dónde transferir.</p>
       </div>
       <button type="button" className="pn-btn rg-alias-cta" onClick={onGo}>Cargar mi cuenta<ChevronRight size={16} aria-hidden="true" /></button>
     </section>
@@ -593,7 +593,7 @@ function GiftsModule() {
                   <button type="button" className="pn-btn is-ghost" onClick={() => { setCatView('packs'); setTab('agregar'); }}><Package size={16} aria-hidden="true" />Explorar packs sugeridos</button>
                 </div>
               </div>
-              {items.length >= ALIAS_NUDGE_FROM && !paid && <AliasNudge count={items.length} onGo={() => setTab('cobro')} />}
+              {items.length >= ALIAS_NUDGE_FROM && !paid && <AliasNudge onGo={() => setTab('cobro')} />}
               <SortableGrid items={items} onMove={(id, to) => update(x => moveGiftTo(x, id, to))} onOpen={setEditing} renderCard={g => (
                 <>
                   <div className="rg-photo gc-photo">
@@ -636,7 +636,7 @@ function GiftsModule() {
 
         {tab === 'agregar' && (
           <div className="rg-catalog">
-            {items.length > 0 && !paid && <AliasNudge count={items.length} onGo={() => setTab('cobro')} />}
+            {items.length > 0 && !paid && <AliasNudge onGo={() => setTab('cobro')} />}
             <div className="rg-section-head">
               <div><h2>Catálogo sugerido y packs</h2><p className="pn-muted">Elegí packs curados completos o agregá regalos individuales a tu lista.</p></div>
               <div className="rg-head-actions">
