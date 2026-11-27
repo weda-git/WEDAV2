@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-/* «Save the date» (la fecha con su cuenta regresiva) es una sección más del orden de la invitación: la pareja la sube y la baja en «Tu invitación».
+/* «Save the date» (la fecha con su cuenta regresiva) es una sección más del orden de la invitación: la pareja la sube y la baja en «Tu página».
    La portada queda siempre primera. Cada prueba crea su cuenta y guarda el casamiento en ella antes de abrir la página (sin cuenta no se arma nada). */
 
 const initial = (date: string | null) => JSON.stringify({
@@ -20,7 +20,7 @@ async function seed(page: Page, date: string | null) {
   const draft = { ...w.draft, ...init, site: { ...w.draft.site, events }, gifts: { ...w.draft.gifts, items: init.gifts.items } };
   expect((await api.put('/api/wedding', { data: { baseRevision: w.revision, draft } })).status()).toBe(200);
 }
-const rows = (page: Page) => page.locator('li.ed-row[data-section]').evaluateAll(els => els.map(e => e.getAttribute('data-section')));
+const rows = (page: Page) => page.locator('li.ed-item[data-section]').evaluateAll(els => els.map(e => e.getAttribute('data-section')));
 const publicOrder = (page: Page) => page.evaluate(() => [...document.querySelectorAll('main > section')].map(s => s.id || s.className.split(' ')[0]));
 const fecha = (page: Page, name: string) => page.getByRole('button', { name: `${name} Save the date` });
 
@@ -28,16 +28,16 @@ for (const width of [390, 1280]) {
   test.describe(`«Save the date» movible (${width} px)`, () => {
     test.beforeEach(async ({ page }) => { await page.setViewportSize({ width, height: 900 }); });
 
-    test('aparece en «Tu invitación» debajo de la portada; sube y baja entre las secciones y se refleja en la página pública', async ({ page }) => {
+    test('aparece en «Tu página» debajo de la portada; sube y baja entre las secciones y se refleja en la página pública', async ({ page }) => {
       await seed(page, '2030-05-18');
       await page.goto('/panel/sitio', { waitUntil: 'networkidle' });
-      await expect(page.locator('li.ed-row[data-section="fecha"]')).toBeVisible();
+      await expect(page.locator('li.ed-item[data-section="fecha"]')).toBeVisible();
       expect(await rows(page)).toEqual(['portada', 'fecha', 'eventos', 'regalos', 'rsvp']);
       // Es lo primero que se puede mover (no tiene dónde subir). Desde el 2026-10-28 es opcional: se puede quitar (ver la prueba de «opcional»).
       await expect(fecha(page, 'Subir')).toBeDisabled();
-      await expect(page.getByRole('button', { name: 'Quitar Save the date de la invitación' })).toHaveCount(1);
+      await expect(page.getByRole('button', { name: 'Quitar Save the date de tu sitio' })).toHaveCount(1);
       // La portada ni sube ni baja: dice que es siempre primera.
-      await expect(page.locator('li.ed-row[data-section="portada"]').getByText('Siempre primera')).toBeVisible();
+      await expect(page.locator('li.ed-item[data-section="portada"]').getByText('Siempre primera')).toBeVisible();
 
       const pub = await page.context().newPage();
       const readPublic = async () => { await pub.goto('/sitio/ana-y-beto', { waitUntil: 'networkidle' }); return publicOrder(pub); };
@@ -82,7 +82,7 @@ for (const width of [390, 1280]) {
     test('su panel cambia la cuenta regresiva y la página pública lo muestra', async ({ page }) => {
       await seed(page, '2030-05-18');
       await page.goto('/panel/sitio', { waitUntil: 'networkidle' });
-      await page.locator('li.ed-row[data-section="fecha"] .ed-main').click();
+      await page.locator('li.ed-item[data-section="fecha"] .ed-item-main').click();
       const check = page.getByLabel('Mostrar la cuenta regresiva');
       await expect(check).toBeChecked();
       await check.uncheck();
@@ -94,16 +94,16 @@ for (const width of [390, 1280]) {
       await pub.close();
     });
 
-    test('«Save the date» es opcional: se quita y se vuelve a agregar desde «Para agregar»', async ({ page }) => {
+    test('«Save the date» es opcional: se quita y se vuelve a agregar desde «Sumá más secciones»', async ({ page }) => {
       await seed(page, '2030-05-18');
       await page.goto('/panel/sitio', { waitUntil: 'networkidle' });
-      await page.getByRole('button', { name: 'Quitar Save the date de la invitación' }).click();
+      await page.getByRole('button', { name: 'Quitar Save the date de tu sitio' }).click();
       expect(await rows(page)).not.toContain('fecha');
       const pub = await page.context().newPage();
       await pub.goto('/sitio/ana-y-beto', { waitUntil: 'networkidle' });
       expect(await publicOrder(pub)).not.toContain('save-the-date');
       await pub.close();
-      await page.getByRole('button', { name: 'Agregar Save the date a la invitación' }).click();
+      await page.getByRole('button', { name: 'Agregar Save the date a tu sitio' }).click();
       await expect.poll(async () => (await page.evaluate(() => JSON.parse(localStorage.getItem('weda-app') ?? '{}').site.saveDate))).toBe(true);
     });
 
@@ -111,7 +111,7 @@ for (const width of [390, 1280]) {
       await seed(page, null);
       await page.goto('/panel/sitio', { waitUntil: 'networkidle' });
       expect(await rows(page)).toEqual(['portada', 'fecha', 'eventos', 'regalos', 'rsvp']);
-      await expect(page.locator('li.ed-row[data-section="fecha"]')).toContainText('Aparece al definir la fecha');
+      await expect(page.locator('li.ed-item[data-section="fecha"]')).toContainText('Sin fecha todavía');
       const pub = await page.context().newPage();
       await pub.goto('/sitio/ana-y-beto', { waitUntil: 'networkidle' });
       expect(await publicOrder(pub)).not.toContain('save-the-date');

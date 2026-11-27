@@ -120,15 +120,15 @@ test.describe('Panel · invitados, mesas y editor (390 px)', () => {
 
   test('Editor: la estructura primero, una sección a la vez con su estado, campos sin tapar por la barra inferior y vista previa que se abre y se cierra', async ({ page }) => {
     await page.goto('/panel/sitio', { waitUntil: 'networkidle' });
-    await expect(page.getByRole('heading', { name: 'Tu invitación', exact: true })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tus secciones', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /Editar Portada/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Editar Eventos/ })).toBeVisible();
     // Las secciones que no están se ofrecen para agregar, con su propósito.
-    await expect(page.getByRole('button', { name: 'Agregar Dress code a la invitación' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Agregar Dress code a tu sitio' })).toBeVisible();
     await page.getByRole('button', { name: /Editar Portada/ }).click();
     await expect(page.getByLabel('Tu nombre')).toBeVisible();
-    await page.getByRole('button', { name: /Tu invitación/ }).click();
-    await page.getByRole('button', { name: 'Agregar Dress code a la invitación' }).click();
+    await page.getByRole('button', { name: 'Volver a Tu sitio' }).click();
+    await page.getByRole('button', { name: 'Agregar Dress code a tu sitio' }).click();
     // Solo los campos de la sección elegida.
     await expect(page.getByLabel('Tu nombre')).toHaveCount(0);
     await page.getByLabel('Título').fill('Elegante sport');
@@ -137,16 +137,12 @@ test.describe('Panel · invitados, mesas y editor (390 px)', () => {
     const bottomNav = (await page.locator('.pn-side').boundingBox())!;
     expect(field.y + field.height).toBeLessThanOrEqual(bottomNav.y);
     await expect.poll(async () => (await stored(page)).site.dressCode.title).toBe('Elegante sport'); // el guardado local es diferido (se vuelca al ocultar o cerrar la pestaña)
-    // La ventana (página real) ya muestra el título; la vista previa es la página real en un pop-up y se cierra con Escape.
-    await expect(page.frameLocator('.lc-frame').locator('#dresscode')).toContainText('Elegante sport');
+    // La vista previa es la página real en un pop-up y se cierra con Escape (en el editor ya no hay ventana propia: rediseño 2026-11-25).
     await openPreview(page);
     await expect.poll(() => previewFrame(page).locator('#dresscode').count()).toBe(1);
+    await expect(previewFrame(page).locator('#dresscode')).toContainText('Elegante sport');
     await closePreview(page);
     await expect(page.getByLabel('Título')).toHaveValue('Elegante sport');
-    // «Cómo queda»: la página completa en el propio editor, con la sección que se edita marcada.
-    await page.getByRole('button', { name: 'Cómo queda' }).click();
-    await expect(page.frameLocator('iframe[title^="Vista previa de tu invitación"]').locator('#dresscode')).toContainText('Elegante sport');
-    await page.getByRole('button', { name: 'Editar', exact: true }).click();
     await page.getByRole('button', { name: 'Listo' }).click();
     await expect(page.getByRole('button', { name: /Editar Dress code. Completa/ })).toBeVisible();
   });
@@ -192,7 +188,7 @@ test.describe('Panel · invitados, mesas y editor (390 px)', () => {
     await page.locator('.pn-top').getByRole('button', { name: 'Publicar', exact: true }).click();
     const dlg = page.getByRole('dialog');
     await expect(dlg.getByRole('heading', { name: '¿Qué querés publicar?' })).toBeVisible();
-    await expect(dlg.getByRole('link', { name: /Ver el link de/ })).toHaveCount(2);
+    await expect(dlg.getByRole('link', { name: /Ver cómo queda con/ })).toHaveCount(2);
     await expect(dlg.getByText('Sin renovaciones')).toHaveCount(2);
     await expect(dlg.getByText('Recomendado')).toHaveCount(1);
     const box = (await dlg.boundingBox())!;

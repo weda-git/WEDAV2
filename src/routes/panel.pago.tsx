@@ -11,7 +11,7 @@ import type { PlanId } from '@/lib/weda/types';
 
 /* Vuelta del checkout. La URL trae el id de la orden, pero llegar acá NO prueba nada: se pregunta al servidor, que solo marca «pagada» con una
    notificación verificada del proveedor. Mientras está pendiente, se vuelve a preguntar unas veces. Pagada, el servidor ya publicó en el mismo momento
-   (BR-01, PAY-07): se muestra la página. Si la publicación falló, «Publicar mi página» la reintenta con el mismo pago (DP-25). */
+   (BR-01, PAY-07): se muestra la página. Si la publicación falló, «Publicar mi sitio» la reintenta con el mismo pago (DP-25). */
 export const Route = createFileRoute('/panel/pago')({
   validateSearch: (q: Record<string, unknown>): { orden?: string } => (typeof q['orden'] === 'string' ? { orden: q['orden'] } : {}),
   component: PaymentReturn,
@@ -79,27 +79,27 @@ function PaymentReturn() {
             <button type="button" className="pn-btn is-ghost" onClick={() => { setPolls(0); void check(); }}>Revisar de nuevo</button>
           </>
         )}
-        {order?.status === 'paid' && pub === 'checking' && <p className="pn-muted" role="status"><Loader2 size={16} className="pn-spin" aria-hidden="true" /> Publicando tu página…</p>}
+        {order?.status === 'paid' && pub === 'checking' && <p className="pn-muted" role="status"><Loader2 size={16} className="pn-spin" aria-hidden="true" /> Publicando tu sitio…</p>}
         {order?.status === 'paid' && (pub === 'idle' || pub === 'busy') && (
           <>
             <h2><Check size={20} aria-hidden="true" /> Pago confirmado</h2>
-            <p className="pn-muted">Tu pago está confirmado, pero todavía no pudimos publicar tu página. Probá de nuevo: no se vuelve a cobrar y el link no cambia.</p>
+            <p className="pn-muted">Tu pago está confirmado, pero todavía no pudimos publicar tu sitio. Probá de nuevo: no se vuelve a cobrar y el link no cambia.</p>
             <button type="button" className="pn-btn" disabled={pub === 'busy'} aria-busy={pub === 'busy'} onClick={publish}>
-              {pub === 'busy' ? <><Loader2 size={16} className="pn-spin" aria-hidden="true" /> Publicando…</> : 'Publicar mi página'}
+              {pub === 'busy' ? <><Loader2 size={16} className="pn-spin" aria-hidden="true" /> Publicando…</> : 'Publicar mi sitio'}
             </button>
           </>
         )}
         {pub === 'done' && (
           <>
-            <h2><Check size={20} aria-hidden="true" /> ¡Tu página está publicada!</h2>
-            <p className="pn-muted">Pago confirmado. Ya la puede abrir cualquiera que tenga el link, y podés seguir editándola cuando quieras.</p>
-            <a className="pn-btn" href={sitePath(s)} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" /> Ver mi página<span className="pn-sr"> (se abre en otra pestaña)</span></a>
+            <h2><Check size={20} aria-hidden="true" /> ¡Tu sitio está publicado!</h2>
+            <p className="pn-muted">Pago confirmado. Ya lo puede abrir cualquiera que tenga el link, y podés seguir editándolo cuando quieras.</p>
+            <a className="pn-btn" href={sitePath(s)} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} aria-hidden="true" /> Ver mi sitio<span className="pn-sr"> (se abre en otra pestaña)</span></a>
           </>
         )}
         {(order?.status === 'failed' || order?.status === 'cancelled') && (
           <>
             <h2>{order.status === 'failed' ? 'El pago no se aprobó' : 'Cancelaste el pago'}</h2>
-            <p className="pn-muted">Tu página no se publicó. Podés intentarlo de nuevo cuando quieras.</p>
+            <p className="pn-muted">Tu sitio no se publicó. Podés intentarlo de nuevo cuando quieras.</p>
             <button type="button" className="pn-btn" onClick={plans.open}>Volver a intentar</button>
           </>
         )}

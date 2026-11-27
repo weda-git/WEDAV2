@@ -39,12 +39,12 @@ export function GetStarted() {
     { key: 'regalos', title: 'Lista de regalos', done: g.status === 'done',
       now: noGifts ? 'Elegí un set completo o los regalos uno por uno, y cómo querés recibirlos.' : g.detail,
       later: 'Los regalos y cómo te llegan.', doneText: g.detail },
-    { key: 'sitio', title: 'Tu invitación', done: si.status === 'done',
+    { key: 'sitio', title: 'Tu sitio', done: si.status === 'done',
       now: si.status === 'todo' ? 'Cargá lugares y horarios, y elegí las secciones que querés mostrar.' : si.detail,
       later: 'Lugares, horarios y lo que quieras contar.', doneText: si.detail },
     { key: 'publicar', title: 'Publicar', done: live,
       now: 'Mirá cómo queda y elegí si publicás solo la lista de regalos o la invitación completa.',
-      later: 'Tu link para compartir con los invitados.', doneText: `Tu página está en línea: ${sitePath(s)}` },
+      later: 'Tu link para compartir con los invitados.', doneText: `Tu sitio está en línea: ${sitePath(s)}` },
   ];
   const current = steps.find(x => !x.done)?.key ?? null;
   const doneCount = steps.filter(x => x.done).length;
@@ -54,7 +54,7 @@ export function GetStarted() {
       const cta = noGifts ? 'Armar mi lista' : next.stage === 'regalos' ? next.cta : 'Continuar';
       return <Link to="/panel/regalos" {...(next.stage === 'regalos' && next.search ? { search: next.search as never } : {})} className="pn-btn hs-cta">{cta}<ArrowRight size={16} aria-hidden="true" /></Link>;
     }
-    if (x.key === 'sitio') return <Link to="/panel/sitio" className="pn-btn hs-cta">{si.status === 'todo' ? 'Diseñar mi invitación' : 'Continuar'}<ArrowRight size={16} aria-hidden="true" /></Link>;
+    if (x.key === 'sitio') return <Link to="/panel/sitio" className="pn-btn hs-cta">{si.status === 'todo' ? 'Armar mi sitio' : 'Continuar'}<ArrowRight size={16} aria-hidden="true" /></Link>;
     return (
       <>
         <button type="button" className="pn-btn hs-cta is-goal" onClick={plans.open}>Publicar<ArrowRight size={16} aria-hidden="true" /></button>
@@ -63,7 +63,7 @@ export function GetStarted() {
     );
   };
   const side = (x: Step) => {
-    if (x.key === 'publicar') return x.done ? <a className="hs-side" href={sitePath(s)} target="_blank" rel="noreferrer">Ver mi página<ArrowUpRight size={14} aria-hidden="true" /></a> : null;
+    if (x.key === 'publicar') return x.done ? <a className="hs-side" href={sitePath(s)} target="_blank" rel="noreferrer">Ver mi sitio<ArrowUpRight size={14} aria-hidden="true" /></a> : null;
     const to = x.key === 'regalos' ? '/panel/regalos' : '/panel/sitio';
     return <Link to={to} className="hs-side">{x.done ? 'Editar' : 'Ver'}<span className="pn-sr"> {x.title}</span></Link>;
   };

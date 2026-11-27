@@ -84,7 +84,7 @@ const need = (cond: boolean, why: string) => { if (!cond) throw new Skip(why); }
 
 type Action = { name: string; run: (c: Ctx) => Promise<string | void> };
 const actions: Action[] = [
-  { name: 'ir a una sección', run: async ({ page, r }) => { const to = r.pick(['Inicio', 'Regalos', 'Tu página', 'Invitados']); await nav(page, to).click(); await settle(page); return to; } },
+  { name: 'ir a una sección', run: async ({ page, r }) => { const to = r.pick(['Inicio', 'Regalos', 'Tu sitio', 'Invitados']); await nav(page, to).click(); await settle(page); return to; } },
   { name: 'atrás o adelante', run: async ({ page, r }) => {
     // «Atrás» desde la primera pantalla del panel sale de la app (vuelve a la página desde donde la prueba cargó el estado): es el comportamiento normal del navegador,
     // así que la prueba vuelve «adelante» para seguir dentro del panel.
@@ -188,7 +188,7 @@ const actions: Action[] = [
     return 'aceptada';
   } },
   { name: 'editar el texto de la portada', run: async ({ page, r }) => {
-    await nav(page, 'Tu página').click(); await settle(page);
+    await nav(page, 'Tu sitio').click(); await settle(page);
     const f = page.getByLabel('Texto sobre los nombres'); need(await visible(f), 'sin campo');
     const v = r.pick(['¡Nos casamos!', 'Nos casamos en otoño', '', 'Tres, dos, uno… ¡sí!', 'x'.repeat(120)]);
     await f.fill(v); const s = await storedSoon(page, x => x.site.coverText === v); expect(s.site.coverText, 'la portada guarda lo escrito').toBe(v);
@@ -202,7 +202,7 @@ const actions: Action[] = [
     const s = await storedSoon(page, x => x.couple.first === nv.trim()); expect(s.couple.first).toBe(nv.trim()); return 'aceptado';
   } },
   { name: 'mirar los productos de publicación y cerrar', run: async ({ page, r, contracted }) => {
-    const pub = page.locator('.pn-top').getByRole('button', { name: /^Publicar$|^Publicada$/ }); need(await visible(pub), 'sin botón');
+    const pub = page.locator('.pn-top').getByRole('button', { name: /^Publicar$|^Publicado$/ }); need(await visible(pub), 'sin botón');
     await pub.first().click(); const dlg = page.getByRole('dialog'); await expect(dlg).toBeVisible();
     const plan = dlg.getByRole('button', { name: /^Publicar (Regalos|Celebración)$/ });
     // El texto tiene que corresponder a la sesión real (revisión B2): el equivocado hace fallar la prueba.
@@ -221,7 +221,7 @@ const actions: Action[] = [
       await plan.nth(r.int(0, 1)).click();
       // Sin sesión (auditoría 2026-10-28): se pide crear la cuenta y nunca se promete publicar.
       await expect(dlg.getByText('Para publicar necesitás una cuenta'), 'sin sesión se pide crear una cuenta').toBeVisible();
-      await expect(dlg.getByText('Al publicar, tu página se puede abrir con el link'), 'sin sesión no se promete publicar').toHaveCount(0);
+      await expect(dlg.getByText('Al publicar, tu sitio se puede abrir con el link'), 'sin sesión no se promete publicar').toHaveCount(0);
       await dlg.getByRole('button', { name: 'Volver', exact: true }).click();
       shown = 'sin sesión: pide crear la cuenta';
     }

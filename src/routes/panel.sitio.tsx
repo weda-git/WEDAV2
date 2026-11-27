@@ -1,15 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowDown, ArrowLeft, Type, ArrowUp, CalendarClock, CalendarDays, Check, ChevronDown, CircleAlert, ExternalLink, EyeOff, Gift as GiftIcon, MapPin, Image as ImageIcon, Images, MessageSquareText, Music, Plus, Shirt, UserCheck, X, type LucideIcon } from 'lucide-react';
-import { EVENT_ICONS } from '@/components/event-icons';
-import { PhotoPicker } from '@/components/panel/couple-form';
+import { ArrowDown, ArrowLeft, Type, ArrowUp, CalendarClock, CalendarDays, Check, ChevronDown, ChevronRight, Eye, CircleAlert, ExternalLink, EyeOff, Gift as GiftIcon, MapPin, Image as ImageIcon, Images, MessageSquareText, Music, Plus, Shirt, UserCheck, X, type LucideIcon } from 'lucide-react';
+import { EVENT_ICONS, eventIcon } from '@/components/event-icons';
 import { PlaceSearch } from '@/components/panel/place-search';
-import { LiveCard, useKeyboardState } from '@/components/panel/live-card';
-import { SitePreview, type Device, type PreviewSection } from '@/components/panel/site-preview';
+import { useKeyboardState } from '@/components/panel/live-card';
 import { Field, useToast } from '@/components/panel/ui';
 import { placesEnabled } from '@/lib/weda/google-places';
 import { readImage } from '@/lib/weda/images';
-import { DEFAULT_GIFTS_BUTTON, DEFAULT_GIFTS_TEXT, DEFAULT_GIFTS_TITLE, defaultColors, hasEventDetails, isHexColor, isSafeMapsUrl, mapsLink, moveBlock, sitePath, spotifyEmbed, uid, validateOnboarding } from '@/lib/weda/logic';
+import { resolvePhoto, photoPosition, DEFAULT_GIFTS_BUTTON, DEFAULT_GIFTS_TEXT, DEFAULT_GIFTS_TITLE, defaultColors, hasEventDetails, isHexColor, isSafeMapsUrl, mapsLink, moveBlock, sitePath, spotifyEmbed, uid, validateOnboarding } from '@/lib/weda/logic';
 import { eventBlank, eventComplete } from '@/lib/weda/journey';
 import { publishes, planFor, type Feature } from '@/lib/weda/plans';
 import { openPreview } from '@/lib/weda/preview-event';
@@ -41,9 +39,18 @@ const ANCHOR: Record<SectionId, string> = { portada: '', fecha: 'save-the-date',
 /** Estado de la sección con forma además de color: tilde = lista, aviso = falta algo, ojo tachado = oculta o fuera del plan. */
 const STATUS_ICON: Record<Tone, LucideIcon> = { ok: Check, todo: CircleAlert, off: EyeOff };
 /** Para qué sirve cada sección, en una línea (se muestra en «Para agregar»). */
+/** Qué trae cada sección, en una línea (rediseño 2026-11-25): se ve en la lista, en «Sumá más secciones» y al abrirla. */
 const PURPOSE: Record<SectionId, string> = {
-  portada: 'Foto, nombres y fecha', fecha: 'Fecha y cuenta regresiva', eventos: 'Horarios y lugares', regalos: 'Acceso a tu lista', texto: 'Un mensaje propio', rsvp: 'Respuestas de tus invitados', dress: 'Cómo vestirse',
-  fotos: 'Galería y hashtag', mensaje: 'Palabras de cierre', musica: 'Tu playlist en la invitación',
+  portada: 'Tu foto, sus nombres y la fecha. Es lo primero que ven.',
+  fecha: 'La fecha bien grande y cuántos días faltan.',
+  eventos: 'Cada momento del día: lugar, horario y cómo llegar.',
+  regalos: 'Un acceso directo a tu lista de regalos.',
+  rsvp: 'Un botón para que confirmen si van.',
+  dress: 'Cómo vestirse, con colores sugeridos.',
+  texto: 'Un mensaje tuyo: un aviso, una historia, lo que quieras.',
+  fotos: 'Hasta 6 fotos de ustedes, con hashtag e Instagram.',
+  musica: 'Tu playlist de Spotify, para escuchar antes de la fiesta.',
+  mensaje: 'Unas palabras de cierre al final del sitio.',
 };
 /** Las secciones que se pueden reordenar y su id en el orden guardado. */
 const BLOCK_SECTION: Record<BlockId, SectionId> = { fecha: 'fecha', eventos: 'eventos', regalos: 'regalos', rsvp: 'rsvp', dress: 'dress', texto: 'texto', fotos: 'fotos', musica: 'musica', mensaje: 'mensaje' };
@@ -58,7 +65,7 @@ function sectionsOf(s: AppState): Sec[] {
   const dressOk = site.dressCode.title.trim() !== '' || site.dressCode.text.trim() !== '';
   const list: Sec[] = [
     { id: 'portada', label: 'Portada', title: 'Portada', status: s.date ? 'Completa' : 'Falta la fecha', tone: s.date ? 'ok' : 'todo' },
-    { id: 'fecha', label: 'Save the date', title: 'Save the date y cuenta regresiva', status: s.date ? (site.countdown ? 'Con cuenta regresiva' : 'Sin cuenta regresiva') : 'Aparece al definir la fecha', tone: s.date ? 'ok' : 'off' },
+    { id: 'fecha', label: 'Save the date', title: 'Save the date', status: s.date ? (site.countdown ? 'Con contador' : 'Sin contador') : 'Sin fecha todavía', tone: s.date ? 'ok' : 'off' },
     { id: 'eventos', label: 'Eventos', title: 'Eventos', status: on.length === 0 ? 'Sin eventos' : gaps.length > 0 ? 'Falta completar' : done.length === 0 ? 'Sin cargar' : `${done.length} ${done.length === 1 ? 'listo' : 'listos'}`, tone: on.length === 0 ? 'off' : gaps.length > 0 || done.length === 0 ? 'todo' : 'ok' },
     { id: 'rsvp', label: 'Confirmación', title: 'Confirmación de asistencia', status: site.rsvp.enabled ? 'Visible' : 'Oculta', tone: site.rsvp.enabled ? 'ok' : 'off' },
     { id: 'dress', label: 'Dress code', title: 'Dress code', status: !site.dressCode.enabled ? 'Oculta' : dressOk ? 'Completa' : 'Falta completar', tone: !site.dressCode.enabled ? 'off' : dressOk ? 'ok' : 'todo' },
@@ -81,13 +88,8 @@ function sectionsOf(s: AppState): Sec[] {
 /** La sección elegida: título, estado y solo sus campos. Agregar, quitar y ordenar viven en la estructura de la invitación. */
 function Panel({ sec, planTag, children }: { sec: Sec; planTag?: string | undefined; children: React.ReactNode }) {
   return (
-    <section className="pn-spanel" aria-labelledby={`panel-${sec.id}`}>
-      <header className="pn-spanel-head">
-        <div>
-          <h2 id={`panel-${sec.id}`}>{sec.title}{planTag && <em className="pn-plantag">{planTag}</em>}</h2>
-          <p className={`pn-sec-status is-${sec.tone}`}>{sec.status}</p>
-        </div>
-      </header>
+    <section className="pn-spanel ed-panel" aria-labelledby={`panel-${sec.id}`}>
+      <h2 id={`panel-${sec.id}`} className="ed-panel-title">{sec.title}{planTag && <em className="pn-plantag">{planTag}</em>}</h2>
       {children}
     </section>
   );
@@ -100,83 +102,90 @@ function CoverFields() {
   const [second, setSecond] = useState(s.couple.second);
   const [noDate, setNoDate] = useState(!s.date);
   const [errors, setErrors] = useState<ReturnType<typeof validateOnboarding>>({});
+  const [photoError, setPhotoError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const commitNames = () => {
     const found = validateOnboarding({ first, second, date: '', noDate: true });
     setErrors({ ...(found.first ? { first: found.first } : {}), ...(found.second ? { second: found.second } : {}) });
     if (!found.first && !found.second) update(x => ({ ...x, couple: { first: first.trim(), second: second.trim() } }));
   };
+  const pick = async (file: File | undefined) => {
+    if (!file) return;
+    setPhotoError(''); setLoading(true);
+    try { const img = await readImage(file); update(x => ({ ...x, photo: { kind: 'upload', ...img } })); }
+    catch (e) { setPhotoError(e instanceof Error ? e.message : 'No pudimos cargar la foto.'); }
+    finally { setLoading(false); if (fileRef.current) fileRef.current.value = ''; }
+  };
+  // Portada (rediseño 2026-11-25): la foto grande, como se ve arriba de la página, con los nombres encima; los datos al lado.
   return (
-    <>
-      <PhotoPicker value={s.photo} onChange={p => update(x => ({ ...x, photo: p }))} />
-      <div className="pn-two">
-        <Field label="Tu nombre" error={errors.first}>{a => <input type="text" id={a.id} value={first} onChange={e => setFirst(e.target.value)} onBlur={commitNames} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}</Field>
-        <Field label="Nombre de tu pareja" error={errors.second}>{a => <input type="text" id={a.id} value={second} onChange={e => setSecond(e.target.value)} onBlur={commitNames} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}</Field>
+    <div className="ed-cover">
+      <div className="ed-cover-photo" style={{ backgroundImage: `url(${resolvePhoto(s.photo)})`, backgroundPosition: photoPosition(s.photo) ?? 'center' }}>
+        <span className="ed-cover-names" aria-hidden="true">{s.couple.first || 'Nombre'} &amp; {s.couple.second || 'Nombre'}</span>
+        <button type="button" className="ed-cover-change" onClick={() => fileRef.current?.click()} disabled={loading}>
+          <ImageIcon size={16} strokeWidth={1.6} aria-hidden="true" />{loading ? 'Cargando…' : s.photo.kind === 'upload' ? 'Cambiar foto' : 'Subir tu foto'}
+        </button>
+        <input ref={fileRef} className="pn-sr" type="file" accept="image/jpeg,image/png,image/webp" onChange={e => void pick(e.target.files?.[0])} aria-label="Elegir una foto de tu dispositivo" />
       </div>
-      <Field label="Fecha del casamiento">{a => <input type="date" id={a.id} value={noDate ? '' : s.date ?? ''} disabled={noDate} onChange={e => update(x => ({ ...x, date: e.target.value || null }))} />}</Field>
-      <label className="pn-check"><input type="checkbox" checked={noDate} onChange={e => { setNoDate(e.target.checked); if (e.target.checked) update(x => ({ ...x, date: null })); }} /><span>Todavía no tenemos fecha</span></label>
-      <Field label="Texto sobre los nombres" optional>{a => <input id={a.id} type="text" value={s.site.coverText} placeholder="Nos casamos" onChange={e => patchSite(x => ({ ...x, coverText: e.target.value }))} />}</Field>
-    </>
+      {photoError && <p className="pn-error" role="alert">{photoError}</p>}
+      <div className="ed-cover-fields">
+        <div className="pn-two">
+          <Field label="Tu nombre" error={errors.first}>{a => <input type="text" id={a.id} value={first} onChange={e => setFirst(e.target.value)} onBlur={commitNames} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}</Field>
+          <Field label="Nombre de tu pareja" error={errors.second}>{a => <input type="text" id={a.id} value={second} onChange={e => setSecond(e.target.value)} onBlur={commitNames} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}</Field>
+        </div>
+        <Field label="Fecha del casamiento">{a => <input type="date" id={a.id} value={noDate ? '' : s.date ?? ''} disabled={noDate} onChange={e => update(x => ({ ...x, date: e.target.value || null }))} />}</Field>
+        <label className="pn-check"><input type="checkbox" checked={noDate} onChange={e => { setNoDate(e.target.checked); if (e.target.checked) update(x => ({ ...x, date: null })); }} /><span>Todavía no tenemos fecha</span></label>
+        <Field label="Texto sobre los nombres" optional>{a => <input id={a.id} type="text" value={s.site.coverText} placeholder="Nos casamos" onChange={e => patchSite(x => ({ ...x, coverText: e.target.value }))} />}</Field>
+      </div>
+    </div>
   );
 }
 
 
 const SLOT: Record<string, number> = { ceremonia: 1, recepcion: 2, fiesta: 3, civil: 4, brunch: 5 };
 
-/** Un momento del día: fila compacta con estado y «Mostrar»; abierta, muestra solo sus campos. */
-function EventRow({ ev, open, onOpen }: { ev: SiteEvent; open: boolean; onOpen: (k: SiteEvent['key'] | null) => void }) {
+/** Un momento del día (rediseño 2026-11-25): oculto = una fila con su interruptor; prendido = sus campos a la vista, sin desplegable. */
+function EventRow({ ev }: { ev: SiteEvent }) {
   const set = (patch: Partial<SiteEvent>) => patchSite(s => ({ ...s, events: s.events.map(e => (e.key === ev.key ? { ...e, ...patch } : e)) }));
-  const link = mapsLink(ev);
-  const complete = eventComplete(ev);
-  const status = !ev.enabled ? 'Oculta' : complete ? 'Completa' : hasEventDetails(ev) || ev.title.trim() ? 'Falta completar' : 'Sin cargar';
   const title = ev.title.trim() || `Evento ${SLOT[ev.key]}`;
-  const tone: Tone = !ev.enabled || eventBlank(ev) ? 'off' : complete ? 'ok' : 'todo';
+  const EvIcon = eventIcon(ev.icon, 'rings');
   return (
-    <li className={`pn-ev${open ? ' is-open' : ''}${ev.enabled ? '' : ' is-off'}`}>
+    <li className={`pn-ev ed-ev${ev.enabled ? ' is-open' : ' is-off'}`}>
       <div className="pn-ev-head">
-        <button type="button" className="pn-ev-main" id={`sec-${ev.key}`} aria-expanded={open} aria-controls={`ev-body-${ev.key}`} onClick={() => onOpen(open ? null : ev.key)}>
-          <span className="pn-ev-title">{title}</span>
-          <span className={`pn-sec-status is-${tone}`}>{status}</span>
-          <ChevronDown size={18} aria-hidden="true" className="pn-sec-chev" />
-        </button>
-        <label className="pn-sec-toggle"><input type="checkbox" checked={ev.enabled} onChange={e => set({ enabled: e.target.checked })} aria-label={`Mostrar ${title}`} /><span>Mostrar</span></label>
+        <span className="ed-ev-ico" aria-hidden="true"><EvIcon size={24} strokeWidth={1.5} /></span>
+        <span className="pn-ev-title" id={`sec-${ev.key}`}>{title}</span>
+        <label className="ed-switch"><input type="checkbox" role="switch" checked={ev.enabled} onChange={e => set({ enabled: e.target.checked })} aria-label={`Mostrar ${title}`} /><span className="ed-switch-ui" aria-hidden="true" /></label>
       </div>
-      {open && (
-        <div className="pn-ev-body" id={`ev-body-${ev.key}`}>
-          {!ev.enabled ? <p className="pn-note">Activá «Mostrar» para editarlo.</p> : <>
-      <Field label="Nombre del evento">{a => <input id={a.id} type="text" value={ev.title} placeholder="Ceremonia, brindis, after beach…" onChange={e => set({ title: e.target.value })} />}</Field>
-      <fieldset className="ed-icons">
-        <legend>Ícono</legend>
-        <div className="ed-icons-grid" role="radiogroup" aria-label={`Ícono de ${title}`}>
-          {EVENT_ICONS.map(i => (
-            <label key={i.id} className={`ed-ico-opt${ev.icon === i.id ? ' on' : ''}`} title={i.label}>
-              <input type="radio" name={`ico-${ev.key}`} className="pn-sr" checked={ev.icon === i.id} onChange={() => set({ icon: i.id })} aria-label={i.label} />
-              <i.Icon size={30} strokeWidth={1.5} />
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      {placesEnabled() && (
-        <PlaceSearch
-          confirmed={ev.mapsUrl.trim() && isSafeMapsUrl(ev.mapsUrl) ? { name: ev.name, address: ev.address, mapsUrl: ev.mapsUrl.trim() } : null}
-          onPick={p => set({ name: p.name, address: p.address, mapsUrl: p.mapsUrl })}
-        />
-      )}
-      <Field label="Nombre del lugar">{a => <input id={a.id} type="text" value={ev.name} placeholder="Parroquia San Isidro Labrador" onChange={e => set({ name: e.target.value })} />}</Field>
-      {!placesEnabled() && <Field label="Dirección">{a => <input id={a.id} type="text" value={ev.address} placeholder="Calle 123, Ciudad" onChange={e => set({ address: e.target.value, mapsUrl: '' })} />}</Field>}
-      <Field label="Horario" optional>{a => (
-        <select id={a.id} value={ev.time} onChange={e => set({ time: e.target.value })}>
-          <option value="">Sin horario</option>
-          {(ev.time && !TIME_OPTIONS.includes(ev.time) ? [ev.time, ...TIME_OPTIONS].sort() : TIME_OPTIONS).map(t => <option key={t} value={t}>{t} hs</option>)}
-        </select>
-      )}</Field>
-      <details className="pn-more" open={!!ev.note}>
-        <summary>Más opciones: nota para los invitados</summary>
-        <div className="pn-more-body">
-          <Field label="Nota para los invitados" optional>{a => <textarea id={a.id} rows={2} value={ev.note} onChange={e => set({ note: e.target.value })} />}</Field>
-        </div>
-      </details>
-      {!placesEnabled() && (link ? <a className="pn-link" href={link} target="_blank" rel="noopener noreferrer">Probar el enlace de «Cómo llegar» <ExternalLink size={13} aria-hidden="true" /><span className="pn-sr"> (se abre en una pestaña nueva)</span></a> : <p className="pn-hint">Cargá el nombre o la dirección para que aparezca «Cómo llegar».</p>)}
-          </>}
+      {ev.enabled && (
+        <div className="pn-ev-body ed-ev-body" id={`ev-body-${ev.key}`}>
+          <div className="ed-ev-row is-time">
+            <Field label="Nombre del evento">{a => <input id={a.id} type="text" value={ev.title} placeholder="Ceremonia, fiesta…" onChange={e => set({ title: e.target.value })} />}</Field>
+            <Field label="Hora">{a => (
+              <select id={a.id} value={ev.time} onChange={e => set({ time: e.target.value })}>
+                <option value="">Sin horario</option>
+                {(ev.time && !TIME_OPTIONS.includes(ev.time) ? [ev.time, ...TIME_OPTIONS].sort() : TIME_OPTIONS).map(t => <option key={t} value={t}>{t} hs</option>)}
+              </select>
+            )}</Field>
+          </div>
+          {placesEnabled() && (
+            <PlaceSearch
+              confirmed={ev.mapsUrl.trim() && isSafeMapsUrl(ev.mapsUrl) ? { name: ev.name, address: ev.address, mapsUrl: ev.mapsUrl.trim() } : null}
+              onPick={p => set({ name: p.name, address: p.address, mapsUrl: p.mapsUrl })}
+            />
+          )}
+          <div className="ed-ev-row">
+            <Field label="Nombre del lugar">{a => <input id={a.id} type="text" value={ev.name} placeholder="Parroquia San Isidro" onChange={e => set({ name: e.target.value })} />}</Field>
+            {!placesEnabled() && <Field label="Dirección">{a => <input id={a.id} type="text" value={ev.address} placeholder="Calle 123, Ciudad" onChange={e => set({ address: e.target.value, mapsUrl: '' })} />}</Field>}
+          </div>
+          <div className="ed-icons-grid is-compact" role="radiogroup" aria-label={`Ícono de ${title}`}>
+            {EVENT_ICONS.map(i => (
+              <label key={i.id} className={`ed-ico-opt${ev.icon === i.id ? ' on' : ''}`} title={i.label}>
+                <input type="radio" name={`ico-${ev.key}`} className="pn-sr" checked={ev.icon === i.id} onChange={() => set({ icon: i.id })} aria-label={i.label} />
+                <i.Icon size={22} strokeWidth={1.5} />
+              </label>
+            ))}
+          </div>
+          <Field label="Nota para los invitados" optional>{a => <input id={a.id} type="text" value={ev.note} placeholder="Ej.: hay estacionamiento" onChange={e => set({ note: e.target.value })} />}</Field>
         </div>
       )}
     </li>
@@ -189,7 +198,7 @@ function isOn(s: AppState, id: SectionId): boolean {
   const site = s.site;
   switch (id) {
     case 'portada': return true;
-    case 'fecha': return site.saveDate;            // sin fecha, el bloque espera: «Aparece al definir la fecha»
+    case 'fecha': return site.saveDate;            // sin fecha, el bloque espera («Sin fecha todavía»)
     case 'eventos': return site.events.some(e => e.enabled);
     case 'regalos': return site.giftsSection.enabled && publishes(s.planId, 'gifts');
     case 'texto': return site.note.enabled;
@@ -227,12 +236,7 @@ function SiteEditor() {
   const toast = useToast();
   // `null` = la estructura de la invitación; una sección = su edición.
   const [sel, setSel] = useState<SectionId | null>(null);
-  const [tab, setTab] = useState<'edit' | 'preview'>('edit');
-  const [device, setDevice] = useState<Device>(() => (typeof window !== 'undefined' && window.matchMedia('(min-width: 1280px)').matches ? 'desktop' : 'mobile'));
-  const [jump, setJump] = useState(0);
   const [announce, setAnnounce] = useState('');
-  // Los eventos arrancan cerrados: se abre el que la pareja toque.
-  const [openEv, setOpenEv] = useState<SiteEvent['key'] | null>(null);
   const [track, setTrack] = useState({ title: '', artist: '' });
   const [trackError, setTrackError] = useState('');
   const photoRef = useRef<HTMLInputElement>(null);
@@ -253,18 +257,19 @@ function SiteEditor() {
   const movableIds = rows.filter(r => r.movable).map(r => r.id);
   const addable = sections.filter(x => x.id !== 'portada' && !isOn(s, x.id));
   const visibleCount = rows.length;
+  const readyCount = rows.filter(r => r.tone === 'ok').length;
   const sec = sel ? byId(sel) : null;
   const hiddenNow = sel ? !isOn(s, sel) : false;
 
   const open = (id: SectionId) => {
-    setSel(id); setTab('edit'); setJump(j => j + 1);
+    setSel(id);
     window.setTimeout(() => topRef.current?.scrollIntoView({ block: 'nearest' }), 0);
   };
   const back = () => { setSel(null); window.setTimeout(() => topRef.current?.scrollIntoView({ block: 'nearest' }), 0); };
   const remove = (id: SectionId, label: string) => {
     setOn(id, false);
     if (sel === id) back();
-    toast(`Quitamos «${label}» de tu invitación. Lo que cargaste se guardó.`, 'ok', { label: 'Deshacer', onClick: () => setOn(id, true) });
+    toast(`Quitamos «${label}» de tu sitio. Lo que cargaste se guardó.`, 'ok', { label: 'Deshacer', onClick: () => setOn(id, true) });
   };
   const add = (id: SectionId) => { setOn(id, true); open(id); };
   const move = (id: SectionId, dir: -1 | 1, label: string) => {
@@ -272,7 +277,6 @@ function SiteEditor() {
     const next = moveBlock(site.order, b, dir, shown);
     if (next === site.order) return;
     patchSite(x => ({ ...x, order: next }));
-    setJump(j => j + 1);
     const pos = next.filter(shown).indexOf(b) + 2; // la portada es la 1
     setAnnounce(`${label} ahora es la sección ${pos} de ${visibleCount}.`);
     // Al reordenar, la fila cambia de lugar: el foco vuelve al mismo botón para poder seguir moviéndola con el teclado.
@@ -280,10 +284,6 @@ function SiteEditor() {
       const same = document.querySelector<HTMLButtonElement>(`[data-section="${id}"] [data-move="${dir}"]`);
       (same && !same.disabled ? same : document.querySelector<HTMLElement>(`[data-section="${id}"] [data-move="${-dir}"]`))?.focus();
     });
-  };
-  // Tocar una sección en la vista previa la elige en el editor.
-  const fromPreview = (p: PreviewSection) => {
-    open(p);
   };
   const anchor = sel ? ANCHOR[sel] : undefined;
   const path = sitePath(s);
@@ -311,16 +311,14 @@ function SiteEditor() {
 
 
   return (
-    <div className="pn-page pn-editor ed-page" data-kb={kb} data-tab={tab} data-sel={sel ?? undefined}>
-      <header className="pn-page-head is-compact">
+    <div className="pn-page pn-editor ed-page" data-kb={kb} data-sel={sel ?? undefined}>
+      {/* Rediseño «Tu sitio» (2026-11-25, boceto): título, avance y un único acceso claro a «Ver mi sitio», como el Inicio. */}
+      <header className="pn-page-head is-compact ed-head">
         <div>
-          <h1>Tu página</h1>
-          <p className="pn-sub">Tus invitados ven {visibleCount} {visibleCount === 1 ? 'sección' : 'secciones'}. Todo se guarda solo.</p>
+          <h1>Tu sitio</h1>
+          <p className="pn-sub">Armalo sección por sección. Todo se guarda solo.</p>
         </div>
-        <div className="pn-switch is-small ed-tabs" role="group" aria-label="Qué ver">
-          <button type="button" className={tab === 'edit' ? 'on' : ''} aria-pressed={tab === 'edit'} onClick={() => setTab('edit')}>Editar</button>
-          <button type="button" className={tab === 'preview' ? 'on' : ''} aria-pressed={tab === 'preview'} onClick={() => setTab('preview')}>Cómo queda</button>
-        </div>
+        <button type="button" className="pn-btn ed-see" onClick={() => openPreview('home', anchor)}><Eye size={17} aria-hidden="true" />Ver mi sitio</button>
       </header>
       <p className="pn-sr" role="status" aria-live="polite">{announce}</p>
 
@@ -328,30 +326,33 @@ function SiteEditor() {
         <div className="ed-side" ref={topRef}>
           {!sec ? (
             <>
-              <section className="ed-block is-current" aria-labelledby="ed-structure">
-                <h2 id="ed-structure" className="ed-h">Tu invitación<span className="ed-count" aria-hidden="true">{visibleCount}</span></h2>
-                <ol className="ed-rows">
+              <section className="ed-card ed-steps" aria-labelledby="ed-structure">
+                <div className="ed-card-head">
+                  <h2 id="ed-structure">Tus secciones</h2>
+                </div>
+                <ol className="ed-list">
                   {rows.map((r, i) => {
                     const Icon = ICON[r.id];
                     const Status = STATUS_ICON[r.tone];
-                    const main = (
-                      <>
-                        <span className="ed-num" aria-hidden="true">{i + 1}</span>
-                        <Icon size={18} strokeWidth={1.6} className="ed-ico" aria-hidden="true" />
-                        <span className="ed-text"><strong>{r.label}</strong><small className={`is-${r.tone}`}><Status size={12} strokeWidth={2.4} aria-hidden="true" />{r.status}</small></span>
-                      </>
-                    );
                     return (
-                      <li key={r.id} className="ed-row" data-section={r.id}>
-                        <button type="button" className="ed-main" onClick={() => open(r.id)} aria-label={`Editar ${r.label}. ${r.status}`}>{main}</button>
-                        <div className="ed-acts">
+                      <li key={r.id} className={`ed-item is-${r.tone}`} data-section={r.id}>
+                        <span className="ed-pos" aria-hidden="true">{i + 1}</span>
+                        <button type="button" className="ed-item-main" onClick={() => open(r.id)} aria-label={`Editar ${r.label}. ${r.status}`}>
+                          <span className="ed-tile-ico" aria-hidden="true"><Icon size={21} strokeWidth={1.5} /></span>
+                          <span className="ed-item-text">
+                            <strong>{r.label}</strong>
+                            <span className={`ed-chip is-${r.tone}`}><Status size={12} strokeWidth={2.4} aria-hidden="true" />{r.status}</span>
+                          </span>
+                          <ChevronRight size={18} className="ed-item-go" aria-hidden="true" />
+                        </button>
+                        <div className="ed-item-acts">
                           {r.movable
                             ? <>
-                                <button type="button" className="pn-icon" data-move="-1" disabled={movableIds[0] === r.id} onClick={() => move(r.id, -1, r.label)} aria-label={`Subir ${r.label}`}><ArrowUp size={16} aria-hidden="true" /></button>
-                                <button type="button" className="pn-icon" data-move="1" disabled={movableIds[movableIds.length - 1] === r.id} onClick={() => move(r.id, 1, r.label)} aria-label={`Bajar ${r.label}`}><ArrowDown size={16} aria-hidden="true" /></button>
+                                <button type="button" className="ed-mini" data-move="-1" disabled={movableIds[0] === r.id} onClick={() => move(r.id, -1, r.label)} aria-label={`Subir ${r.label}`}><ArrowUp size={15} aria-hidden="true" /></button>
+                                <button type="button" className="ed-mini" data-move="1" disabled={movableIds[movableIds.length - 1] === r.id} onClick={() => move(r.id, 1, r.label)} aria-label={`Bajar ${r.label}`}><ArrowDown size={15} aria-hidden="true" /></button>
                               </>
                             : <span className="ed-fixed">{r.fixed}</span>}
-                          {r.removable && <button type="button" className="pn-icon" onClick={() => remove(r.id, r.label)} aria-label={`Quitar ${r.label} de la invitación`}><X size={16} aria-hidden="true" /></button>}
+                          {r.removable && <button type="button" className="ed-mini" onClick={() => remove(r.id, r.label)} aria-label={`Quitar ${r.label} de tu sitio`}><X size={15} aria-hidden="true" /></button>}
                         </div>
                       </li>
                     );
@@ -359,28 +360,26 @@ function SiteEditor() {
                 </ol>
               </section>
 
-              <section className="ed-block is-extra" aria-labelledby="ed-add">
-                <h2 id="ed-add" className="ed-h"><Plus size={16} strokeWidth={2.2} aria-hidden="true" />Para agregar</h2>
+              <section className="ed-card ed-more" aria-labelledby="ed-add">
+                <div className="ed-card-head">
+                  <h2 id="ed-add">Sumá más secciones</h2>
+                </div>
                 {addable.length === 0
-                  ? <p className="ed-help">Ya tenés todas las secciones en tu invitación.</p>
-                  : <>
-                      <ul className="ed-rows is-add">
-                        {addable.map(x => {
-                          const Icon = ICON[x.id];
-                          return (
-                            <li key={x.id} className="ed-row">
-                              <div className="ed-main is-static">
-                                <Icon size={18} strokeWidth={1.6} className="ed-ico" aria-hidden="true" />
-                                <span className="ed-text"><strong>{x.label}</strong><small>{PURPOSE[x.id]}</small></span>
-                              </div>
-                              <div className="ed-acts">
-                                <button type="button" className="pn-btn is-small ed-add-btn" onClick={() => add(x.id)} aria-label={`Agregar ${x.label} a la invitación`}><Plus size={15} aria-hidden="true" />Agregar</button>
-                              </div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </>}
+                  ? <p className="ed-help">Ya tenés todas las secciones en tu sitio.</p>
+                  : <ul className="ed-tiles">
+                      {addable.map(x => {
+                        const Icon = ICON[x.id];
+                        return (
+                          <li key={x.id}>
+                            <button type="button" className="ed-tile" onClick={() => add(x.id)} aria-label={`Agregar ${x.label} a tu sitio`}>
+                              <span className="ed-tile-ico" aria-hidden="true"><Icon size={21} strokeWidth={1.5} /></span>
+                              <span className="ed-tile-text"><strong>{x.label}</strong><small>{PURPOSE[x.id]}</small></span>
+                              <span className="ed-tile-plus" aria-hidden="true"><Plus size={16} strokeWidth={2.2} /></span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>}
               </section>
             </>
           ) : (
@@ -389,15 +388,10 @@ function SiteEditor() {
                   En el celular la ventana en vivo va pegada debajo, en el mismo bloque fijo, para que nada del formulario asome por encima. */}
               <div className="ed-stick">
                 <div className="ed-bar">
-                  <button type="button" className="ed-back" onClick={back} aria-label="Volver a Tu invitación"><ArrowLeft size={18} aria-hidden="true" /><span className="ed-back-txt">Tu invitación</span></button>
-                  <p className="ed-now" aria-hidden="true">{(() => { const Icon = ICON[sel!]; return <Icon size={16} strokeWidth={1.7} />; })()}<span>{sec.label}</span></p>
+                  <button type="button" className="ed-back" onClick={back} aria-label="Volver a Tu sitio"><ArrowLeft size={18} aria-hidden="true" /><span className="ed-back-txt">Tu sitio</span></button>
+                  <p className="ed-place"><strong className="pn-sr">{sec.label}</strong></p>
                   <button type="button" className="pn-btn is-small ed-done" onClick={back}>Listo</button>
                 </div>
-                {(
-                  <div className="pn-live ed-live">
-                    <LiveCard s={s} section={sel!} label={sec.title} hidden={hiddenNow} openEvent={openEv} keyboard={kb} onSeeFull={() => setTab('preview')} />
-                  </div>
-                )}
               </div>
               <div className="ed-form">
 
@@ -408,18 +402,23 @@ function SiteEditor() {
       )}
       {sel === 'fecha' && (
         <Panel sec={sec}>
-          <p className="pn-hint">La fecha se cambia en Portada.</p>
-          <label className="pn-check"><input type="checkbox" checked={site.countdown} onChange={e => patchSite(x => ({ ...x, countdown: e.target.checked }))} /><span>Mostrar la cuenta regresiva</span></label>
+          {/* Save the date (2026-11-25): la fecha se puede cargar acá también (es el mismo dato que la portada) y la cuenta regresiva es un interruptor claro. */}
+          <Field label="Fecha del casamiento">{a => <input type="date" id={a.id} value={s.date ?? ''} onChange={e => update(x => ({ ...x, date: e.target.value || null }))} />}</Field>
+          <label className="ed-option">
+            <span className="ed-option-text"><strong>Cuenta regresiva</strong></span>
+            <span className="ed-switch"><input type="checkbox" role="switch" checked={site.countdown} onChange={e => patchSite(x => ({ ...x, countdown: e.target.checked }))} aria-label="Mostrar la cuenta regresiva" /><span className="ed-switch-ui" aria-hidden="true" /></span>
+          </label>
         </Panel>
       )}
       {sel === 'eventos' && (
         <Panel sec={sec}>
-          <ul className="pn-evlist">{site.events.map(ev => <EventRow key={ev.key} ev={ev} open={openEv === ev.key} onOpen={setOpenEv} />)}</ul>
+          <ul className="pn-evlist">{site.events.map(ev => <EventRow key={ev.key} ev={ev} />)}</ul>
         </Panel>
       )}
       {sel === 'rsvp' && (
         <Panel sec={sec}>
-        <p className="pn-muted">Las respuestas llegan a Invitados.</p>
+          <p className="pn-muted">Las respuestas te llegan a Invitados.</p>
+          <Link to="/panel/invitados" className="pn-link">Ver las respuestas en Invitados</Link>
         </Panel>
       )}
       {sel === 'dress' && (
@@ -444,12 +443,12 @@ function SiteEditor() {
       )}
       {sel === 'regalos' && (
         <Panel sec={sec}>
-        <Field label="Título">{a => <input id={a.id} type="text" value={site.giftsSection.title} placeholder={DEFAULT_GIFTS_TITLE} onChange={e => patchSite(x => ({ ...x, giftsSection: { ...x.giftsSection, title: e.target.value } }))} />}</Field>
-        <Field label="Texto" optional>{a => <textarea id={a.id} rows={2} value={site.giftsSection.text} placeholder={DEFAULT_GIFTS_TEXT} onChange={e => patchSite(x => ({ ...x, giftsSection: { ...x.giftsSection, text: e.target.value } }))} />}</Field>
-        <Field label="Texto del botón">{a => <input id={a.id} type="text" value={site.giftsSection.button} placeholder={DEFAULT_GIFTS_BUTTON} maxLength={40} onChange={e => patchSite(x => ({ ...x, giftsSection: { ...x.giftsSection, button: e.target.value } }))} />}</Field>
-        {s.gifts.items.length === 0
-          ? <p className="pn-note">Todavía sin regalos. <Link to="/panel/regalos" className="pn-link">Elegir regalos</Link></p>
-          : <Link to="/panel/regalos" className="pn-link">Ir a mi lista de regalos</Link>}
+        <div className="ed-ev-row">
+          <Field label="Título">{a => <input id={a.id} type="text" value={site.giftsSection.title} placeholder={DEFAULT_GIFTS_TITLE} onChange={e => patchSite(x => ({ ...x, giftsSection: { ...x.giftsSection, title: e.target.value } }))} />}</Field>
+          <Field label="Texto del botón">{a => <input id={a.id} type="text" value={site.giftsSection.button} placeholder={DEFAULT_GIFTS_BUTTON} maxLength={40} onChange={e => patchSite(x => ({ ...x, giftsSection: { ...x.giftsSection, button: e.target.value } }))} />}</Field>
+        </div>
+        <Field label="Texto" optional>{a => <input id={a.id} type="text" value={site.giftsSection.text} placeholder={DEFAULT_GIFTS_TEXT} onChange={e => patchSite(x => ({ ...x, giftsSection: { ...x.giftsSection, text: e.target.value } }))} />}</Field>
+        <Link to="/panel/regalos" className="ed-golink"><GiftIcon size={16} strokeWidth={1.6} aria-hidden="true" />{s.gifts.items.length === 0 ? 'Elegir regalos' : `Mi lista · ${s.gifts.items.length} ${s.gifts.items.length === 1 ? 'regalo' : 'regalos'}`}<ChevronRight size={16} aria-hidden="true" /></Link>
         </Panel>
       )}
       {sel === 'texto' && (
@@ -491,31 +490,18 @@ function SiteEditor() {
           <Field label="Link de tu playlist de Spotify" error={site.playlist.spotify.trim() && !spotifyEmbed(site.playlist.spotify) ? 'Pegá el link de una playlist de Spotify (open.spotify.com/playlist/…).' : undefined}>
             {a => <input id={a.id} type="url" inputMode="url" value={site.playlist.spotify} placeholder="https://open.spotify.com/playlist/…" onChange={e => patchSite(x => ({ ...x, playlist: { ...x.playlist, spotify: e.target.value } }))} aria-invalid={a.invalid} aria-describedby={a.describedBy} />}
           </Field>
-          <p className="pn-hint">En Spotify: Compartir → Copiar enlace de la playlist.</p>
+          {!spotifyEmbed(site.playlist.spotify) && <p className="pn-hint">En Spotify: Compartir → Copiar enlace.</p>}
         </Panel>
       )}
 
                 {REMOVABLE.includes(sel!) && !hiddenNow && (
-                  <div className="pn-actions ed-remove-row"><button type="button" className="pn-btn is-ghost is-small" onClick={() => remove(sel!, sec.label)}>Quitar de la invitación</button></div>
+                  <div className="pn-actions ed-remove-row"><button type="button" className="pn-btn is-ghost is-small" onClick={() => remove(sel!, sec.label)}>Quitar de tu sitio</button></div>
                 )}
               </div>
             </>
           )}
         </div>
 
-        <div className="ed-view">
-          <div className="ed-view-bar">
-            <div className="pn-switch is-small" role="group" aria-label="Cómo verla">
-              <button type="button" className={device === 'mobile' ? 'on' : ''} aria-pressed={device === 'mobile'} onClick={() => setDevice('mobile')}>Celular</button>
-              <button type="button" className={device === 'desktop' ? 'on' : ''} aria-pressed={device === 'desktop'} onClick={() => setDevice('desktop')}>Compu</button>
-            </div>
-            {sec && tab === 'preview'
-              ? <button type="button" className="ed-resume" onClick={() => { setTab('edit'); setJump(j => j + 1); }}><ArrowLeft size={16} aria-hidden="true" />Seguir editando {sec.label}</button>
-              : <p className="ed-hint">Tocá una sección para editarla</p>}
-            <button type="button" className="pn-link" onClick={() => openPreview('home', anchor)}>Ver completa</button>
-          </div>
-          <SitePreview path={path} device={device} anchor={anchor} jump={jump} active={sel && sel !== 'portada' ? sel : sel} onSelect={fromPreview} label="Vista previa de tu invitación, tal como la ven tus invitados" />
-        </div>
       </div>
     </div>
   );

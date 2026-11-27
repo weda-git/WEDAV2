@@ -115,7 +115,7 @@ test.describe('Fecha y lugar opcionales: qué pasa en cada pantalla que los usa'
     // El siguiente paso no depende de la fecha ni del lugar.
     await expect(page.locator('.hs-item[aria-current="step"]').getByRole('heading', { name: 'Lista de regalos' })).toBeVisible(); // paso actual (rediseño 2026-11-21)
     // Editor: la portada marca la fecha como pendiente y los eventos no inventan un lugar.
-    await nav(page, 'Tu página').click();
+    await nav(page, 'Tu sitio').click();
     await expect(page.getByRole('button', { name: /Editar Portada.*Falta la fecha/ })).toBeVisible();
     // Vista previa: «Fecha a confirmar» y nada de cuenta regresiva ni «Guardar la fecha».
     await openPreview(page);
@@ -211,7 +211,7 @@ test.describe('Perfil H · abandona y regresa / navegación atrás y adelante', 
   test('en el panel: atrás y adelante recorren las secciones y la recarga conserva todo', async ({ page }) => {
     await onboard(page);
     await nav(page, 'Regalos').click();
-    await nav(page, 'Tu página').click();
+    await nav(page, 'Tu sitio').click();
     await nav(page, 'Invitados').click();
     await page.goBack();
     await expect(page).toHaveURL(/\/panel\/sitio/);
@@ -220,7 +220,7 @@ test.describe('Perfil H · abandona y regresa / navegación atrás y adelante', 
     await page.goForward();
     await expect(page).toHaveURL(/\/panel\/sitio/);
     await page.reload({ waitUntil: 'networkidle' });
-    await expect(page.getByRole('heading', { name: 'Tu página' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tu sitio' })).toBeVisible();
     expect((await stored(page)).couple.first).toBe('Lucía');
   });
 });
@@ -228,7 +228,7 @@ test.describe('Perfil H · abandona y regresa / navegación atrás y adelante', 
 test.describe('Perfil B · lo visual: editor y vista previa sincronizados', () => {
   test('el texto de la portada y los nombres se ven en la vista previa; un cambio repetido deja el último valor', async ({ page }) => {
     await onboard(page, 'Lucía', 'Violeta');
-    await nav(page, 'Tu página').click();
+    await nav(page, 'Tu sitio').click();
     await page.getByRole('button', { name: /^Editar Portada/ }).click();
     const cover = page.getByLabel('Texto sobre los nombres');
     await cover.fill('Nos casamos en primavera');
@@ -425,13 +425,13 @@ test.describe('Perfil J · publicar cuanto antes', () => {
     await topPublish(page).click();
     await publishDialog(page).getByRole('button', { name: 'Publicar Celebración', exact: true }).click();
     await publishDialog(page).getByRole('button', { name: 'Publicar', exact: true }).click();
-    await expect(publishDialog(page).getByRole('heading', { name: '¡Tu página está publicada!' })).toBeVisible({ timeout: 10000 });
+    await expect(publishDialog(page).getByRole('heading', { name: '¡Tu sitio está publicado!' })).toBeVisible({ timeout: 10000 });
     await expect(publishDialog(page).getByText(/Pagaste|Total pagado/)).toHaveCount(0);
     await expect(publishDialog(page).getByText(/\/sitio\/lucia-y-violeta/)).toBeVisible();
     await publishDialog(page).getByRole('button', { name: 'Listo' }).click();
-    await expect(page.locator('.pn-top').getByRole('button', { name: 'Publicada', exact: true })).toBeVisible();
+    await expect(page.locator('.pn-top').getByRole('button', { name: 'Publicado', exact: true })).toBeVisible();
     await page.reload({ waitUntil: 'networkidle' });
-    await expect(page.locator('.pn-top').getByRole('button', { name: 'Publicada', exact: true })).toBeVisible();
+    await expect(page.locator('.pn-top').getByRole('button', { name: 'Publicado', exact: true })).toBeVisible();
     // El link público (con el slug que asignó el servidor, que lleva un sufijo si otra pareja ya publicó los mismos nombres) abre lo PUBLICADO.
     await expect.poll(async () => (await stored(page)).slug).toMatch(/^lucia-y-violeta(-\d+)?$/);
     await page.goto(`/sitio/${(await stored(page)).slug}`, { waitUntil: 'networkidle' });
@@ -495,7 +495,7 @@ test.describe('Trial de 14 días y pausa (PAY-07)', () => {
     await expect(page.getByText(/te quedan \d+ días/)).toHaveCount(0);
     await nav(page, 'Regalos').click();
     await expect(page.getByRole('button', { name: 'Crear regalo' }).first()).toBeDisabled();
-    await nav(page, 'Tu página').click();
+    await nav(page, 'Tu sitio').click();
     await expect(page.locator('fieldset.pn-readonly[disabled]').first()).toBeVisible();
     // Contratar sigue disponible: abre los planes.
     await page.getByRole('button', { name: 'Elegir plan' }).click();

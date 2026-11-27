@@ -126,7 +126,7 @@ export function OperationNotice({ id, op }: { id: string; op: Operation }) {
         {paused
           ? `Terminó tu período gratuito. Se habilita al contratar y publicar con ${plan?.name ?? 'Celebración'}.`
           : paidWaiting
-            ? `Tu pago está confirmado: se habilita cuando publiques tu página.`
+            ? `Tu pago está confirmado: se habilita cuando publiques tu sitio.`
             : `Se habilita al publicar con ${plan?.name ?? 'Celebración'}. Mientras tanto podés ver cómo funciona.`}
       </p>
       <button type="button" className="pn-link" onClick={plans.open}>{paidWaiting ? 'Publicar' : paused ? 'Elegir plan' : 'Ver qué incluye'}</button>

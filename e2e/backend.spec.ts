@@ -252,7 +252,7 @@ test.describe('sitio publicado, confirmaciones y regalos', () => {
     await page.fill('#ac-pass', PASS);
     await page.getByRole('button', { name: 'Ingresar', exact: true }).click();
     await page.waitForURL(/\/panel/, { timeout: 15_000 });
-    await expect(page.getByRole('button', { name: 'Publicada' }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Publicado' }).first()).toBeVisible();
     await a.close(); await b.close();
   });
 });

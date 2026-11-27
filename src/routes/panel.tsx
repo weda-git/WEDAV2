@@ -30,7 +30,7 @@ type NavItem = { to: string; label: string; icon: typeof House; end?: boolean };
 const NAV: NavItem[] = [
   { to: '/panel', label: 'Inicio', icon: House, end: true },
   { to: '/panel/regalos', label: 'Regalos', icon: Gift },
-  { to: '/panel/sitio', label: 'Tu página', icon: Globe },
+  { to: '/panel/sitio', label: 'Tu sitio', icon: Globe },
   { to: '/panel/invitados', label: 'Invitados', icon: Users },
 ];
 /* Perfil de la pareja arriba del menú: la misma foto que usa la portada, los nombres y el estado. «Publicada» solo con cuenta: la publicación
@@ -40,7 +40,7 @@ function Profile({ compact = false }: { compact?: boolean }) {
   const photo = useAppSelector(s => s.photo);
   const couple = useAppSelector(s => s.couple);
   const online = !!useRemote().user;
-  const status = useAppSelector(s => isLive(s)) && online ? 'Publicada' : 'Borrador';
+  const status = useAppSelector(s => isLive(s)) && online ? 'Publicado' : 'Borrador';
   const img = <img className="pn-profile-img" src={resolvePhoto(photo)} alt="" />;
   if (compact) return (
     <Link to="/panel/perfil" className="pn-top-avatar" activeProps={{ 'aria-current': 'page' }} aria-label={`Perfil de ${coupleLabel(couple)}`}>
@@ -74,7 +74,7 @@ function PreviewDialog({ req, onClose }: { req: PreviewRequest; onClose: () => v
       {/* El foco entra al diálogo y no al iframe de la página: así Escape lo cierra y el teclado no queda atrapado dentro de la página embebida. */}
       <DialogContent className={`pn-dialog is-pv is-${device}`} onOpenAutoFocus={e => { e.preventDefault(); (e.currentTarget as HTMLElement).focus(); }}>
         <DialogTitle>Vista previa</DialogTitle>
-        <DialogDescription>Así recibe tu casamiento un invitado, con tus datos. Todavía no está publicada.</DialogDescription>
+        <DialogDescription>Así recibe tu casamiento un invitado, con tus datos. Todavía no está publicado.</DialogDescription>
         {wide && (
           <div className="pn-pv-tools">
             <div className="pn-switch is-small" role="group" aria-label="Cómo verla">
@@ -102,7 +102,7 @@ function PublishButton() {
   const down = online && !!state.publication && !live;
   const pending = live && remote.publication?.pendingChanges === true;
   if (!live && !down) return <button type="button" className="pn-btn pn-publish-btn" onClick={plans.open}><Heart size={16} aria-hidden="true" /><span>Publicar</span></button>;
-  const label = live ? 'Publicada' : 'Despublicada';
+  const label = live ? 'Publicado' : 'Despublicado';
   return (
     <button type="button" className={`pn-btn pn-publish-btn is-status${live ? ' is-live' : ' is-down'}`} onClick={plans.open}
       aria-label={pending ? `${label}: hay cambios que tus invitados todavía no ven` : label}>
@@ -117,14 +117,14 @@ function PublishButton() {
 function HelpDialog({ onClose }: { onClose: () => void }) {
   const prices = PLANS.map(p => `${p.name} ${formatPrice(p.price)}`).join(', ');
   const faq: [string, string][] = [
-    ['¿Cuánto cuesta y cuándo pago?', `Tenés ${TRIAL_DAYS} días para armar todo gratis, sin tarjeta. Cuando está lista, elegís un plan y pagás una sola vez: ${prices}. Al confirmarse el pago, tu página se publica.`],
+    ['¿Cuánto cuesta y cuándo pago?', `Tenés ${TRIAL_DAYS} días para armar todo gratis, sin tarjeta. Cuando está listo, elegís un plan y pagás una sola vez: ${prices}. Al confirmarse el pago, tu sitio se publica.`],
     ['¿Qué pasa si no contrato en esos días?', 'Tu proyecto queda guardado y en pausa: lo podés ver, pero no editar ni publicar. Elegís un plan cuando quieras y seguís desde donde lo dejaste.'],
     ['¿Puedo cambiar de plan después de publicar?', 'Por ahora no: el plan que elegís al publicar no se puede cambiar después de contratarlo.'],
-    ['¿Cómo comparto la invitación?', 'Al publicar se genera el link de tu página. Lo podés mandar a todos tus contactos.'],
+    ['¿Cómo comparto mi sitio?', 'Al publicar se genera el link de tu sitio. Lo podés mandar a todos tus contactos.'],
     ['¿Cómo recibo los regalos?', 'Cargás el alias de tu cuenta en Regalos → Datos de cobro. Tus invitados eligen un regalo, te transfieren directo a esa cuenta y adjuntan el comprobante. No hay comisión: el dinero va directo a tu banco y podés validar cada regalo con su comprobante.'],
     ['¿Dónde veo los regalos que recibí?', 'En Regalos → Aportes recibidos: quién te hizo el regalo, qué regalos eligió (puede ser más de uno), el monto, la fecha y el comprobante.'],
-    ['¿Puedo editar la invitación después de publicarla?', 'Sí, cuando quieras. Lo que cambies se ve en tu página cuando la actualizás: tocá «Publicada», arriba a la derecha, y después «Actualizar mi página».'],
-    ['¿Cuánto tiempo queda online la página?', 'No vence: es un pago único, sin renovaciones. Tu página y tu link siguen activos y la podés seguir usando.'],
+    ['¿Puedo editar mi sitio después de publicarlo?', 'Sí, cuando quieras. Lo que cambies se ve en tu sitio cuando lo actualizás: tocá «Publicado», arriba a la derecha, y después «Actualizar mi sitio».'],
+    ['¿Cuánto tiempo queda online mi sitio?', 'No vence: es un pago único, sin renovaciones. Tu sitio y tu link siguen activos y lo podés seguir usando.'],
   ];
   return (
     <Dialog open onOpenChange={o => { if (!o) onClose(); }}>

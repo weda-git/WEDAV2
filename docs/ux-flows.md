@@ -547,3 +547,40 @@ Origen: [PAY-07](../specs/PAY-07-trial-contratacion-permanencia/spec.md). **Reem
   - Mandar el enlace para elegir una clave nueva.
   - Entrar como la pareja: franja fija «Estás viendo la cuenta de X · Salir», 30 minutos. No permite tocar cobro, correo, clave ni pagos.
 
+
+## «Tu página»: rediseño (2026-11-25, pedido de la dueña)
+- **Un solo nombre:** el panel dice «Tu página» en todos lados:
+  - el menú y el título;
+  - el paso 2 del Inicio, con el botón «Armar mi página»;
+  - «Volver a Tu página», «Quitar de tu página», los avisos y la ayuda.
+
+  «Invitación completa» queda solo donde se elige qué se publica, porque ahí es el nombre del plan.
+- **Sin vista previa dentro del editor:** se sacaron la columna con la página a la derecha (compu) y la ventana en vivo (celular). Para ver el resultado está el botón verde «Ver mi página», arriba, y «Vista previa», en la barra del panel. Las dos abren el pop-up con la página real.
+- **Dos tarjetas:**
+  - **«Tus secciones»:** lo que ven los invitados, de arriba abajo, con una barra de avance («1 de 5 listas»). Cada fila muestra el lugar, el ícono de referencia, el nombre, qué trae y su estado, con flechas para ordenar y ✕ para quitar.
+  - **«Sumá más secciones»:** las opcionales, en tarjetas con ícono, qué trae y «+».
+- **Qué trae cada sección:**
+  - **Portada:** «Tu foto, sus nombres y la fecha».
+  - **Save the date:** «La fecha bien grande y cuántos días faltan».
+  - **Eventos:** «Cada momento del día: lugar, horario y cómo llegar».
+  - **Regalos:** «Un acceso directo a tu lista».
+  - **Confirmación:** «Un botón para que confirmen si van».
+  - **Dress code:** «Cómo vestirse, con colores sugeridos».
+  - **Texto libre:** «Un mensaje tuyo».
+  - **Fotos:** «Hasta 6 fotos, con hashtag e Instagram».
+  - **Playlist:** «Tu playlist de Spotify».
+  - **Mensaje final:** «Unas palabras de cierre».
+- **Al editar:** cada sección abre con su ícono grande, qué trae y su estado. Arriba dice qué sección es y en qué lugar está («Eventos · 3 de 5»), con flechas para moverla sin volver a la lista.
+  - **Save the date:** se mantiene aparte de la Portada, porque en la página son dos bloques. Tiene su propio campo de fecha, que es el mismo dato que la portada. Si no hay fecha, avisa que la sección aparece sola cuando se cargue. La cuenta regresiva es un interruptor con explicación.
+  - **Eventos:** cada evento muestra su ícono y un interruptor «Se muestra / Oculto».
+  - **Confirmación:** explica en 3 pasos cómo funciona y enlaza a Invitados.
+  - **Playlist:** explica en 3 pasos cómo copiar el link de Spotify y, cuando está bien, avisa «Playlist conectada».
+- **Nombre final: «Tu sitio»** (2026-11-25, pedido de la dueña). Reemplaza a «Tu página» en todo el panel, con el género concordado:
+  - el menú y el título;
+  - el Inicio («Armar mi sitio», «Ver mi sitio»);
+  - el estado arriba a la derecha («Publicado» / «Despublicado»);
+  - «Tu publicación» («Actualizar mi sitio», «¿Bajar tu sitio?»);
+  - el pago y la ayuda.
+
+  Quedan con «página» los textos que ven los invitados y los legales (términos y privacidad).
+- **Menú lateral:** al abrir o recoger el menú, los nombres quedan en un renglón (antes «Tu página» se partía en dos durante la animación). Recogido, los íconos quedan centrados con el botón del menú.

@@ -76,7 +76,7 @@ Pesos: `--w-regular` 400 (texto), `--w-medium` 500 (navegación, botones, etique
 | Solapas `.pn-tabs` | Módulo de regalos. Hasta 560 px ocupan todo el ancho en columnas iguales y usan la etiqueta corta (`pn-tab-short`); el título largo va dentro de cada panel. Nunca deben necesitar scroll lateral. |
 | Lista ordenable (`SortableGrid`, Mis regalos) | Las tarjetas se arrastran para ordenarse (mouse: agarrar y llevar; celular: mantener apretado un instante y llevar), Alt + flechas con teclado; tocar una tarjeta abre su edición. Sin flechas de subir/bajar. |
 
-| Editor de «Tu página» | Edición con resultado a la vista: la **ventana en vivo** (`LiveCard`, clases `lc-*`, `src/components/panel/live-card.tsx`) es la página pública real en un iframe (`?ventana`) alineado a la sección que se edita; se actualiza por `storage` (~150 ms). ≥ 1280 px: sección · formulario · ventana fija a la derecha. Menos: chips de sección (con ícono de estado) y ventana fijas arriba (se pueden ocultar), formulario debajo; con teclado abierto se achica. «Ver completa» abre el pop-up de vista previa anclado en esa sección. |
+| Editor de «Tu página» | Rediseño del 2026-11-25: una sola columna (hasta 880 px), **sin vista previa dentro del editor**. Arriba, «Tu página» y el botón verde «Ver mi página», que abre el pop-up de vista previa. Debajo, dos tarjetas: «Tus secciones», con barra de avance «N de M listas», y «Sumá más secciones». Al editar, una barra con «← Tu página», el nombre y el lugar de la sección («Eventos · 3 de 5») con flechas para moverla, y «Listo» en verde. |
 | Tarjetas de la lista | `.rg-grid` / `.rg-card`: foto, monto sobre la foto y nombre, con «Editar» y «Quitar»; toda la tarjeta abre la edición. |
 | Más opciones `.pn-more` | `<details>` para campos opcionales de un formulario corto. |
 
@@ -86,7 +86,7 @@ Pesos: `--w-regular` 400 (texto), `--w-medium` 500 (navegación, botones, etique
 - Los cambios del panel **se guardan solos**; no hay botón «Guardar» por pantalla (los diálogos de edición sí confirman).
 - Botón «Vista previa» siempre visible en la cabecera del panel (abre un pop-up con la página pública).
 - En pantallas táctiles todo botón llega a 44 px (`pointer: coarse`).
-- Editar con resultado a la vista: la ventana en vivo queda siempre en pantalla junto a (o encima de) los campos; la página completa se ve en el pop-up de «Vista previa».
+- Ver el resultado: «Ver mi página», arriba de «Tu página», y «Vista previa», en la barra del panel, abren la página real en un pop-up. El editor no repite una vista previa al costado (decisión de la dueña, 2026-11-25).
 - Una acción principal por pantalla; las secundarias son «ghost» (borde, sin relleno).
 - El plan restringe el acceso, no borra datos: al cambiar de plan se conservan.
 
@@ -213,7 +213,12 @@ Enlace «Ir al contenido», `aria-current` en la navegación, `aria-live` en avi
 - No hay guía de **iconografía** más allá del uso de `lucide-react`, ni de **ilustración** ni de **animación** (solo transiciones puntuales).
 - **`!important` en la página pública (`invitacion.css`):** quedan 44 (eran 129), cada uno con su causa en `ui-iteration-audit.md` §10.2. Regla para lo nuevo: no sumar `!important` para pisar una capa anterior del mismo archivo. Se edita la regla existente o se sube la especificidad. Antes de quitar uno, verificar con estilos calculados en todas las vistas: varios se respaldan entre sí.
 - **Inicio (diseño de la dueña, 2026-10-28):** única excepción a la paleta gris del panel. Los íconos de los pasos y de los accesos llevan un fondo de tinte muy suave: rosa `#f6e8e6` (regalos), salvia `#e5eee3` (sitio) y celeste `#e3ecf3` (publicar). Solo de fondo del ícono; botones y textos siguen en grises y en el oscuro del panel. Clases `hx-*` y `.hm-ico.is-sage` / `.is-sky` (`panel.css`).
-- **Barra de contexto al editar (panel):** en una edición larga (hoy, cada sección de «Tu página»), una barra fija arriba con flecha para volver (nombre accesible «Volver a …»), ícono + nombre de lo que se edita (en celular) y «Listo». Es opaca, va pegada al borde (top: 0) y, en el celular, lleva debajo la ventana en vivo en el mismo bloque. Las acciones que sacan algo («Quitar de la invitación») van al pie, lejos de «Listo». Los campos de la edición llevan `scroll-margin-top` igual al alto del bloque fijo. Clases: `.ed-stick`, `.ed-bar`, `.ed-now`, `.ed-done` (`panel.css`).
+- **Barra de contexto al editar (panel):** en cada sección de «Tu página» hay una barra arriba con:
+  - la flecha para volver (nombre accesible «Volver a Tu página»);
+  - el nombre y el lugar de la sección (`.ed-place`, «Eventos · 3 de 5») con «Subir» y «Bajar»;
+  - «Listo», en verde Weda.
+
+  En el celular la barra es fija y opaca. «Quitar de tu página» va al pie como enlace discreto, lejos de «Listo». Clases: `.ed-stick`, `.ed-bar`, `.ed-place`, `.ed-done` (`panel.css`).
 - **Movimiento en la landing:** scroll suave con inercia (Lenis, `src/lib/smooth-scroll.ts`, `lerp 0.075`; solo con mouse/trackpad, el táctil queda nativo); al cargar, el fondo del hero entra con fundido y leve acercamiento y el texto sube escalonado; al scrollear, los bloques (`src/lib/reveal.ts`) suben 28 px y se funden (0,8 s, escalonado de 90 ms entre tarjetas). Con «reducir movimiento» no se anima nada y sin JavaScript todo queda visible.
 - No hay modo oscuro.
 - La cobertura de `prefers-reduced-motion` en el panel no está auditada.
@@ -228,10 +233,16 @@ Enlace «Ir al contenido», `aria-current` en la navegación, `aria-live` en avi
 
 ## Editor de la invitación (2026-10-27)
 - **«Save the date» en la estructura:** fila reordenable como las demás (sin «Quitar»); aparece solo con fecha. Detalle en `ux-flows.md` §15.
-- **Estructura numerada** (`.ed-rows`, `.ed-row`): fila = número + ícono + nombre y estado (ícono + texto) + acciones (`Subir`, `Bajar`, `Quitar` de 40 px). Las filas fijas dicen por qué («Siempre primera», «Siempre al final», «Va con los eventos»). «Para agregar» usa la misma fila con borde, sin relleno, y un botón `Agregar`.
+- **Lista de secciones** (`.ed-list`, `.ed-item`). Cada fila tiene:
+  - el lugar;
+  - el ícono de referencia en un cuadradito suave (`.ed-tile-ico`);
+  - el nombre, qué trae en una línea y una etiqueta de estado con ícono y texto (`.ed-chip`: verde si está lista, ámbar si falta algo, gris si está oculta);
+  - las acciones Subir, Bajar y Quitar, en gris.
+
+  La portada dice «Siempre primera». «Sumá más secciones» usa tarjetas livianas (`.ed-tile`) con el ícono, qué trae y un «+» redondo. Las opciones sí/no son interruptores con su explicación (`.ed-option`, `.ed-switch`). Los pasos de «cómo funciona» van en `.ed-how`.
 - **Vista previa escalada** (`SitePreview`, `.sp-stage` / `.sp-device`): iframe al ancho lógico del dispositivo con `transform: scale`; selección con borde de 3 px del verde de la invitación (`#959571`) y borde punteado al pasar; no se usan sombras ni colores nuevos. Selector Celular / Compu con `.pn-switch`.
 - **Mover/quitar:** siempre reversibles (botones + «Deshacer»), con el foco devuelto al botón y anuncio por `aria-live`.
-- Las reglas viejas `.pn-snav`, `.pn-live` (solo la ventana móvil) y `.pn-editor-grid` ya no se usan salvo la ventana en vivo del celular; quedan por limpiar.
+- Las reglas viejas `.pn-snav`, `.pn-live`, `.lc-*`, `.sp-*` y `.ed-view` ya no se usan (la ventana en vivo y la vista previa del editor se sacaron el 2026-11-25); quedan por limpiar en `panel.css`.
 
 ## Sin azul en botones (2026-10-27)
 - La pizarra azulada `#5A646C` ya no se usa en ningún botón ni opción seleccionada. En `ejemplo.css`, `--ej-slate` pasó a ser el verde de la invitación (`#959571`) y se usa para fondos, bordes y foco (filtros activos, «Continuar» y «Enviar» del carrito, opción «Alias» elegida, comprobante cargado, barra del carrito, «Siguiente»); el texto y los íconos neutros usan `--ej-ink` (gris oscuro).
