@@ -21,14 +21,12 @@ function Profile() {
       <header className="pn-page-head is-compact">
         <div>
           <h1>Perfil</h1>
-          <p className="pn-sub">Los datos de tu casamiento y los de tu cuenta.</p>
         </div>
       </header>
 
       <section className="pf-card" aria-labelledby="pf-wed">
         <div className="pf-head">
           <h2 id="pf-wed">Datos del casamiento</h2>
-          <p>Se ven en tu sitio, en la lista de regalos y en la vista previa.</p>
         </div>
         <CoupleForm />
       </section>
@@ -36,7 +34,6 @@ function Profile() {
       <section className="pf-card" aria-labelledby="pf-acc">
         <div className="pf-head">
           <h2 id="pf-acc">Tu cuenta</h2>
-          <p>Con estos datos ingresás a Weda.</p>
         </div>
         {/* Sin cuenta no hay correo ni clave que cambiar: antes se mostraba una clave «••••••••» y un «Cambiar» que siempre fallaba (auditoría 2026-10-28). */}
         {remote.user ? (
@@ -56,7 +53,7 @@ function Profile() {
             </dl>
             {pass === 'open' && <PasswordForm onDone={() => setPass('done')} onCancel={() => setPass('closed')} />}
             {pass === 'done' && <p className="pn-note" role="status">Listo: cambiaste tu clave. Cerramos las sesiones abiertas en otros dispositivos; en este seguís adentro.</p>}
-            <p className="pn-note">Tu casamiento se guarda en tu cuenta: podés abrirlo desde otro dispositivo. Si no recordás tu clave, <Link to="/clave" className="pn-link">pedí un enlace por correo</Link>. Para cambiar el correo, escribinos a <a className="pn-link" href="mailto:hola@weda.app">hola@weda.app</a>.</p>
+            <p className="pn-hint">¿Olvidaste tu clave? <Link to="/clave" className="pn-link">Pedí un enlace por correo</Link>. Para cambiar el correo, escribinos a <a className="pn-link" href="mailto:hola@weda.app">hola@weda.app</a>.</p>
           </>
         ) : (
           <p className="pn-note">Todavía no tenés una cuenta. Creá una para guardar tu casamiento en Weda, abrirlo desde cualquier dispositivo y publicarlo.</p>

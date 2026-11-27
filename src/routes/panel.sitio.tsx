@@ -316,7 +316,6 @@ function SiteEditor() {
       <header className="pn-page-head is-compact ed-head">
         <div>
           <h1>Tu sitio</h1>
-          <p className="pn-sub">Armalo sección por sección. Todo se guarda solo.</p>
         </div>
         <button type="button" className="pn-btn ed-see" onClick={() => openPreview('home', anchor)}><Eye size={17} aria-hidden="true" />Ver mi sitio</button>
       </header>

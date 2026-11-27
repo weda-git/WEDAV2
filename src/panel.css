@@ -2564,3 +2564,56 @@ body:has(.pn-app) { background: #f6f6f3; }
 }
 .pn-photos .pn-gactions { grid-column: auto; } /* (2026-11-27) una regla de la galería la mandaba a la columna 2 y la foto quedaba de 1 px */
 .ed-switch input { z-index: 1; } /* el toque cae en la casilla real (también para el teclado y los lectores) */
+
+/* =========================================================================
+   Refinamiento del panel (2026-11-27, boceto pedido por la dueña)
+   Menos capas y menos texto: el título de la pantalla, las pestañas y el contenido, con un ritmo claro.
+   ========================================================================= */
+/* Encabezado: sin línea debajo (las pestañas ya separan) y aire constante hasta lo que sigue. */
+.pn-app .pn-page-head { border-bottom: 0; padding-bottom: 0; margin-bottom: 24px; }
+.pn-app .pn-page-head h1 { letter-spacing: -.02em; }
+@media (min-width: 1024px) { .pn-app .pn-page-head { margin-bottom: 28px; } .pn-app .pn-page-head h1 { font-size: 36px; } }
+/* Pestañas: una sola línea fina y el contenido empieza a un paso fijo. */
+.pn-app .pn-tabs { margin-bottom: 28px; }
+.pn-app .rg-section-head { margin-bottom: 20px; }
+.pn-app .rg-section-head:not(:has(.rg-head-actions, .pn-switch, .rg-total)) { display: none; }
+.pn-app .rg-section-head > div:first-child:has(> .pn-sr:only-child) { flex: 1 1 0; }
+/* Estados vacíos: centrados, sin caja gris de fondo, con el texto justo. */
+.pn-app .pn-empty.is-centered { background: transparent; border: 0; box-shadow: none; padding: 48px 16px 40px; gap: 10px; }
+.pn-app .pn-empty.is-centered h2 { font-size: 22px; font-weight: 500; letter-spacing: -.01em; }
+.pn-app .pn-empty.is-centered p { max-width: 380px; margin-inline: auto; font-size: 15px; }
+.pn-app .pn-empty.is-centered .pn-empty-ico { width: 52px; height: 52px; background: #fff; box-shadow: inset 0 0 0 1px #e8e5dc; color: var(--text-main); }
+/* Totales: tarjetas planas con un número que manda. */
+.pn-app .gl-stats { margin-bottom: 24px; }
+.pn-app .gl-stats strong { font-size: 28px; font-weight: 500; letter-spacing: -.01em; }
+/* Mercado Pago (todavía no disponible): una fila tenue, no una tarjeta del mismo peso que la cuenta. */
+.pn-app .pn-cfg-block[aria-labelledby='cfg-mp'] { align-content: start; gap: 6px; padding: 18px 22px; background: transparent; border-style: dashed; }
+.pn-app .pn-cfg-block[aria-labelledby='cfg-mp'] h2 { font-size: 16px; color: var(--pn-muted); }
+.pn-app .pn-cfg-block[aria-labelledby='cfg-mp'] .pn-muted { font-size: 13.5px; }
+/* Mesas: la frase y «Crear mesa» en una fila. */
+.pn-app .mg-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.pn-app .mg-head .pn-muted { margin: 0; }
+/* Perfil del menú: nombres y estado en una sola línea legible. */
+.pn-app .pn-profile-meta { white-space: nowrap; }
+/* Barra de herramientas de una pestaña (moneda, packs…): pegada a las pestañas y alineada a la izquierda, sin un título que repita la pestaña. */
+.pn-app .rg-section-head > div:first-child:has(> .pn-sr:only-child) { flex: 0 0 0; width: 0; min-width: 0; margin-right: -12px; } /* el título queda para lectores de pantalla */
+.pn-app .rg-section-head:has(> div:first-child > .pn-sr:only-child) { justify-content: flex-start; margin-top: -8px; }
+@media (max-width: 1023px) { .pn-app .pn-tabs { margin-bottom: 20px; } }
+/* Etiqueta de la mesa en la tipografía del panel (no monoespaciada). */
+.pn-app .mg .rg-label { font-family: inherit; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--pn-muted); }
+/* Ritmo vertical: la página ya separa sus bloques con «gap»; sin márgenes extra que dupliquen el aire. */
+.pn-app .pn-page-head, .pn-app .pn-tabs { margin-bottom: 0; }
+.pn-app .pn-page { row-gap: 20px; }
+@media (min-width: 1024px) { .pn-app .pn-page { row-gap: 28px; } .pn-app .pn-page-head { margin-bottom: 0; } }
+.pn-app .pn-tabpanel { padding-top: 0; }
+.pn-app .rg-section-head:has(> div:first-child > .pn-sr:only-child) { margin-top: 0; }
+/* Mercado Pago no se estira al alto de la cuenta de al lado. */
+.pn-app .pn-cfg-block[aria-labelledby='cfg-mp'] { align-self: start; }
+/* Packs: «Agregar» es la acción; «Ver qué incluye» pasa a enlace discreto. */
+.pn-app .rg-pack-actions { display: flex; flex-direction: row-reverse; align-items: center; justify-content: space-between; gap: 12px; }
+.pn-app .rg-pack-actions .pn-btn.is-ghost:first-child { min-height: 0; padding: 0; border: 0; background: none; box-shadow: none; color: var(--pn-muted); text-decoration: underline; text-underline-offset: 3px; font-size: 14px; }
+.pn-app .rg-pack-actions .pn-btn.is-ghost:first-child:hover { color: var(--text-main); background: none; }
+.pn-app .rg-pack-actions .pn-btn:last-child { flex: 0 0 auto; padding: 0 18px; }
+.pn-app .rg-pack .rg-pack-actions { display: flex !important; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; grid-template-columns: none; }
+.pn-app .rg-pack .rg-pack-actions > .pn-btn { width: auto; }
+.pn-app .rg-pack .rg-pack-actions > .pn-btn.is-ghost:first-child { flex: 0 0 auto; justify-content: flex-start; }

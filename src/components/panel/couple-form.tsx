@@ -148,7 +148,7 @@ export function CoupleForm({ onDone, onCancel }: { onDone?: () => void; onCancel
       <PhotoTile value={photo} onChange={choosePhoto} />
       <div className="pn-actions is-end">
         {onCancel && <button type="button" className="pn-btn is-ghost" onClick={onCancel}>Cancelar</button>}
-        <button type="submit" className="pn-btn">Guardar</button>
+        <button type="submit" className="pn-btn is-primary">Guardar</button>
       </div>
     </form>
   );
