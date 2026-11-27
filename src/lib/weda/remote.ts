@@ -133,6 +133,17 @@ type Meta = { email: string; revision: number; hash: string; guestIds: string[] 
 const readMeta = (): Meta | null => { try { const m = JSON.parse(window.localStorage.getItem(META_KEY) ?? 'null'); return m && typeof m.email === 'string' && typeof m.revision === 'number' ? m as Meta : null; } catch { return null; } };
 const writeMeta = (email?: string) => { try { window.localStorage.setItem(META_KEY, JSON.stringify({ email: email ?? (remote.impersonating ? `como:${remote.impersonating.email}` : remote.user?.email) ?? '', revision, hash: hashOf(syncedDraft), guestIds: [...syncedGuests.keys()] } satisfies Meta)); } catch { /* sin lugar: solo se pierde la ayuda para recuperar cambios */ } };
 
+/* Huella del último borrador que este navegador mandó a guardar. Se anota ANTES de enviarlo: si la página se recarga con el guardado en camino, el
+   navegador corta la respuesta pero el servidor igual lo guarda. Al volver, esa huella dice «lo que tiene el servidor lo mandé yo» y no es un conflicto
+   con otro dispositivo (antes el panel se congelaba en «conflicto» y dejaba de guardar lo que se hiciera después). */
+const SENT_KEY = 'weda-sync-sent';
+/** JSON con las claves ordenadas: el servidor devuelve el mismo borrador con otro orden de claves, y la huella tiene que coincidir igual. */
+const canonical = (v: unknown): string => JSON.stringify(v, (_k, x) => (x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.keys(x).sort().map(k => [k, (x as Record<string, unknown>)[k]])) : x));
+const readSent = (): string | null => { try { return window.localStorage.getItem(SENT_KEY); } catch { return null; } };
+const writeSent = (json: string | null) => { try { if (json === null) window.localStorage.removeItem(SENT_KEY); else window.localStorage.setItem(SENT_KEY, hashOf(canonical(JSON.parse(json)))); } catch { /* sin almacenamiento: sigue la regla anterior */ } };
+/** ¿Lo que tiene el servidor es el último borrador que mandó este navegador? */
+const isOwnSave = (w: { draft: AppState }) => { const sent = readSent(); return !!sent && hashOf(canonical(draftOf(w.draft))) === sent; };
+
 function markSynced(w: { revision: number; guests: Guest[]; draft: AppState }) {
   revision = w.revision;
   syncedDraft = JSON.stringify(draftOf(w.draft));
@@ -168,6 +179,9 @@ async function attach(email: string, key = email): Promise<void> {
     set({ settled: true, user: { email }, error: e instanceof ApiFailure ? e.code : 'network', save: 'error' });
     return;
   }
+  // Un guardado propio quedó sin confirmar (se recargó con él en camino): el servidor puede estar terminándolo. Se espera un momento y se vuelve a leer,
+  // así se arranca desde esa revisión y no hay un conflicto falso con el primer guardado.
+  { const sent = readSent(), meta = readMeta(); if (sent && meta?.email === key && meta.revision === w.revision && !isOwnSave(w)) { await new Promise(r => setTimeout(r, 700)); try { w = await api('GET', '/api/wedding'); } catch { /* sigue con lo que había */ } } }
   set({ access: (w.access as Access | undefined) ?? null });
   // Lo que haya en este navegador solo cuenta si ya era de esta misma cuenta (cambios propios sin guardar). Un borrador sin cuenta o de otra cuenta se
   // descarta: al entrar se ve únicamente el casamiento guardado en la cuenta, sin mezclas ni copias aparte (decisión de la dueña, 2026-11-06).
@@ -215,7 +229,9 @@ async function attach(email: string, key = email): Promise<void> {
 
 function isUnsyncedLocal(local: AppState, w: any, email: string): boolean {
   const meta = readMeta();
-  if (!meta || meta.email !== email || meta.revision !== w.revision) return false;
+  if (!meta || meta.email !== email) return false;
+  // El servidor está en otra revisión: solo es nuestra si la causó un guardado propio que se cortó al recargar.
+  if (meta.revision !== w.revision && !isOwnSave(w)) return false;
   const localJson = JSON.stringify(draftOf(local));
   return localJson !== JSON.stringify(draftOf(w.draft)) && hashOf(localJson) !== meta.hash;
 }
@@ -259,6 +275,7 @@ async function flush(): Promise<void> {
   if (draftJson === syncedDraft && upsert.length === 0 && remove.length === 0) { baselineRef = local; return; }
   inFlight = true;
   set({ save: 'saving', error: null });
+  writeSent(draftJson);
   try {
     const r = await api('PUT', '/api/wedding', { baseRevision: revision, draft: draftOf(snapshot), guests: { upsert, remove } });
     revision = r.revision;
@@ -276,8 +293,18 @@ async function flush(): Promise<void> {
     set({ save: 'saved', error: null, ...(r.access ? { access: r.access as Access } : {}), ...(pub && typeof r.pendingChanges === 'boolean' ? { publication: { ...pub, pendingChanges: r.pendingChanges } } : {}) });
   } catch (e) {
     if (e instanceof ApiFailure && e.status === 409 && e.code === 'revision_conflict') {
-      frozen = true;
-      set({ save: 'conflict', error: 'revision_conflict' });
+      // Si la revisión nueva del servidor la causó un guardado propio que se cortó (por ejemplo, al recargar), se toma esa revisión y se sigue
+      // guardando. Si la causó otro dispositivo, se congela como siempre y se avisa.
+      const own = await api('GET', '/api/wedding').then(w => (isOwnSave(w) || JSON.stringify(draftOf(w.draft)) === draftJson ? w : null), () => null);
+      if (own) {
+        markSynced(own);
+        writeMeta();
+        rerun = true;
+        set({ save: 'saved', error: null });
+      } else {
+        frozen = true;
+        set({ save: 'conflict', error: 'revision_conflict' });
+      }
     } else if (e instanceof ApiFailure && e.status === 403 && e.code === 'trial_ended') {
       // Venció el trial mientras el panel estaba abierto: se toma el estado del servidor y no se reintenta.
       set({ save: 'error', error: 'trial_ended', access: remote.access ? { ...remote.access, state: 'paused', plan: null } : remote.access });

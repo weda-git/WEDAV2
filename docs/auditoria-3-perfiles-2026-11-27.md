@@ -82,3 +82,14 @@ Pendientes de aprobación: 2, 3, 5, 10 y 13.
   - Con el servidor cargado se nota más: dos pruebas que recargan enseguida («recargar en medio de la edición» y «Flujo 3») fallan en tanda y pasan solas.
   - No lo introdujo el rediseño (no toca el guardado).
   - Propuesta: al cerrar o recargar la página, mandar lo pendiente al servidor, o avisar «Guardando…» antes de salir.
+
+### Resuelto (2026-11-27)
+Causa real: si se recarga con un guardado en camino, el navegador corta la respuesta pero el servidor igual lo guarda. Al volver, el panel veía una revisión nueva, la tomaba como «otro dispositivo guardó», se congelaba en conflicto y **dejaba de guardar lo que se hiciera después**.
+
+Arreglo (`remote.ts`):
+- antes de enviar se anota la huella del borrador (con las claves ordenadas, porque el servidor devuelve el mismo contenido en otro orden);
+- al volver, si el servidor tiene ese borrador, es un guardado propio y no un conflicto;
+- si el guardado todavía se está terminando, el panel espera un momento y vuelve a leer;
+- ante un 409, si la revisión nueva es propia, se toma y se sigue guardando.
+
+Un cambio real de otro dispositivo sigue congelando y avisando como antes. Prueba nueva en `e2e/builder.spec.ts`.
