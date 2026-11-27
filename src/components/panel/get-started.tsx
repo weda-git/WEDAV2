@@ -84,7 +84,7 @@ export function GetStarted() {
             <li key={x.key} className={`hs-item ${state}${x.key === 'publicar' ? ' is-goal' : ''}`} aria-current={x.key === current ? 'step' : undefined}>
               <span className="hs-mark" aria-hidden="true">{x.done ? <Check size={15} strokeWidth={2.6} /> : i + 1}</span>
               <div className="hs-body">
-                <h3>{x.title}{x.done && <span className="hs-tag">Listo</span>}</h3>
+                <h3>{x.title}</h3>
                 <p>{x.done ? x.doneText : x.key === current ? x.now : x.later}</p>
                 {x.key === current && <div className="hs-actions">{primary(x)}</div>}
               </div>

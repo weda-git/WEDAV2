@@ -126,7 +126,6 @@ function GuestsModule() {
       <header className="pn-page-head is-compact">
         <div>
           <h1>Invitados</h1>
-          <p className="pn-sub">{st.total === 0 ? 'Quién viene y dónde se sienta.' : 'Quién viene, qué come y en qué mesa se sienta.'}</p>
         </div>
         {(st.total > 0 || !canGuests) && (
           <div className="pn-head-actions gl-actions">
@@ -147,13 +146,13 @@ function GuestsModule() {
       {vista === 'mesas' ? (canGroups ? <GroupsView /> : <fieldset className="pn-readonly" disabled aria-describedby="gl-op"><legend className="pn-sr">Mesas y grupos, solo lectura</legend><GroupsView /></fieldset>) : null}
       {vista === 'mesas' ? null : (
         <>
-      {/* Los cuatro totales están siempre, también sin invitados (en cero). */}
-      <ul className="gl-stats" aria-label="Resumen de invitados">
+      {/* Los totales aparecen cuando hay invitados (refinamiento 2026-11-27: en cero solo hacían ruido). */}
+      {st.total > 0 && <ul className="gl-stats" aria-label="Resumen de invitados">
         <li><span>Total en lista</span><strong>{st.total}</strong><small>{st.total === 1 ? 'Invitado' : 'Invitados'}</small></li>
         <li><span>Confirmados</span><strong>{st.confirmed}</strong><small>de {st.total} {st.total === 1 ? 'invitado' : 'invitados'}</small></li>
         <li><span>Sin responder</span><strong>{st.pending}</strong><small>{st.declined > 0 ? `${st.declined} no ${st.declined === 1 ? 'asiste' : 'asisten'}` : 'Todavía sin respuesta'}</small></li>
         <li><span>Con restricción</span><strong>{withRestr}</strong><small>Menú especial</small></li>
-      </ul>
+      </ul>}
 
       {st.total === 0 && !canGuests ? (
         <fieldset className="pn-readonly" disabled aria-describedby="gl-op">
@@ -182,7 +181,7 @@ function GuestsModule() {
         <div className="pn-empty is-centered">
           <span className="pn-empty-ico" aria-hidden="true"><Users size={22} strokeWidth={1.6} /></span>
           <h2>Todavía no hay invitados</h2>
-          <p>Podés agregar invitados de a uno, con todos sus datos, o importar tu planilla de Excel. Las respuestas de la página también llegan acá.</p>
+          <p>Sumalos de a uno o importá tu planilla. Las confirmaciones de tu sitio también llegan acá.</p>
           <div className="pn-actions is-center">
             <button type="button" className="pn-btn" onClick={() => setAdding(true)}><Plus size={16} aria-hidden="true" />Agregar invitado</button>
             <button type="button" className="pn-btn is-ghost" onClick={() => setImporting(true)}><Upload size={15} aria-hidden="true" />Importar desde Excel</button>

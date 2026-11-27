@@ -552,7 +552,6 @@ function GiftsModule() {
       <header className="pn-page-head is-compact rg-head">
         <div>
           <h1>Lista de regalos</h1>
-          <p className="pn-sub" role="status" aria-live="polite">Tus invitados eligen un regalo de tu lista y te lo regalan por alias.</p>
         </div>
         <div className="rg-head-actions">
           {isLive(s) && <button type="button" className="pn-btn is-ghost" onClick={copyLink} title="Copiar el enlace de tu lista de regalos"><Copy size={16} aria-hidden="true" />Copiar enlace</button>}
@@ -587,7 +586,7 @@ function GiftsModule() {
           ) : (
             <>
               <div className="rg-section-head">
-                <div><h2>Mis regalos ({items.length})</h2><p className="pn-muted">Arrastrá las tarjetas para cambiar el orden y tocá una para editarla.</p></div>
+                <div><h2 className="pn-sr">Mis regalos ({items.length})</h2></div>
                 <div className="rg-head-actions">
                   <CurrencyChip mode={mode} onOpen={() => setCurAsk({ first: false })} />
                   <button type="button" className="pn-btn is-ghost" onClick={() => { setCatView('packs'); setTab('agregar'); }}><Package size={16} aria-hidden="true" />Explorar packs sugeridos</button>
@@ -638,7 +637,7 @@ function GiftsModule() {
           <div className="rg-catalog">
             {items.length > 0 && !paid && <AliasNudge onGo={() => setTab('cobro')} />}
             <div className="rg-section-head">
-              <div><h2>Catálogo sugerido y packs</h2><p className="pn-muted">Elegí packs curados completos o agregá regalos individuales a tu lista.</p></div>
+              <div><h2 className="pn-sr">Catálogo</h2></div>
               <div className="rg-head-actions">
               {currencyChosen(s.gifts) && <CurrencyChip mode={mode} onOpen={() => setCurAsk({ first: false })} />}
               <div className="pn-switch is-small" role="group" aria-label="Qué querés ver">
@@ -695,19 +694,19 @@ function GiftsModule() {
         {tab === 'recibidos' && (
           <>
             <div className="rg-section-head">
-              <div><h2>Aportes recibidos</h2><p className="pn-muted">Quién te regaló, qué regalos, el monto, la fecha, su mensaje y el comprobante.</p></div>
+              <div><h2 className="pn-sr">Aportes recibidos</h2></div>
             </div>
             {/* Los totales están siempre, también antes del primer regalo (en cero): uno por cada moneda de la lista y de lo recibido (BR-21). */}
-            <ul className={`gl-stats${totalsByCurrency(counted, shown).length > 1 ? '' : ' is-two'}`} aria-label="Resumen de aportes recibidos">
+            {giftCount > 0 && <ul className={`gl-stats${totalsByCurrency(counted, shown).length > 1 ? '' : ' is-two'}`} aria-label="Resumen de aportes recibidos">
               <li><span>Regalos recibidos</span><strong>{giftCount}</strong><small>{giftCount === 1 ? 'Regalo' : 'Regalos'}</small></li>
               {totalsByCurrency(counted, shown).map(([c, n]) => <li key={c}><span>Total {CURRENCY_IN[c]}</span><strong>{formatMoney(n, c)}</strong><small>{c === 'USD' ? 'Dólares' : 'Pesos argentinos'}</small></li>)}
-            </ul>
+            </ul>}
             {contrib.failed && <p className="pn-banner" role="alert">No pudimos traer tus aportes. Revisá tu conexión y volvé a abrir esta pestaña.</p>}
             {contrib.loading ? <p className="pn-muted" role="status">Cargando tus aportes…</p> : received.length === 0 ? (
               <div className="pn-empty is-centered">
                 <span className="pn-empty-ico" aria-hidden="true"><GiftIcon size={22} strokeWidth={1.6} /></span>
                 <h2>Todavía no recibiste regalos</h2>
-                <p>Cuando un invitado regale desde la página de tu lista, lo vas a ver acá con su nombre, el monto y su mensaje. Para probarlo, regalá algo desde la vista de invitado.</p>
+                <p>Acá vas a ver quién te regaló, cuánto y su mensaje.</p>
                 <div className="pn-actions is-center"><button type="button" className="pn-btn" onClick={() => openPreview('gifts')}><Eye size={16} aria-hidden="true" />Ver la lista como invitado</button></div>
               </div>
             ) : (
@@ -760,7 +759,7 @@ function GiftsModule() {
         {tab === 'cobro' && (
           <div className="pn-config">
             <div className="rg-section-head">
-              <div><h2>Datos de cobro</h2><p className="pn-muted">A dónde te llegan los regalos de tus invitados.</p></div>
+              <div><h2 className="pn-sr">Datos de cobro</h2></div>
             </div>
             {/* GIFT-10 v2 (D4): una cuenta por moneda, cada una con sus datos y sus protecciones. */}
             {/* Solo las monedas que usa la lista (o que ya tienen cuenta cargada); con una sola, no hay pestañas (auditoría 2026-11-27). */}

@@ -53,7 +53,7 @@ function Profile({ compact = false }: { compact?: boolean }) {
       {img}
       <span className="pn-profile-text">
         <span className="pn-profile-names">{coupleLabel(couple)}</span>
-        <span className="pn-profile-meta"><span>Casamiento</span><i aria-hidden="true" /><span>{status}</span></span>
+        <span className="pn-profile-meta"><span>{status}</span></span>
       </span>
     </Link>
   );
