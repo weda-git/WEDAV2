@@ -477,7 +477,7 @@ function GiftsModule() {
   const [catView, setCatView] = useState<'packs' | 'singles'>('packs');
   const [packOpen, setPackOpen] = useState<GiftSet | null>(null);
   const [creating, setCreating] = useState(false);
-  const [cfg, setCfg] = useState<'bank' | 'mp' | null>(null);
+  const [cfg, setCfg] = useState<'bank' | null>(null);
   // Con cuenta, el destino de cobro solo cambia con la clave (PayoutForm); sin cuenta se carga en este navegador y se confirma al crearla.
   const remote = useRemote();
   const payout = remote.user ? remote.payout : null;
@@ -803,13 +803,6 @@ function GiftsModule() {
               </section>
                 );
               })()}
-              <section className="pn-cfg-block" aria-labelledby="cfg-mp">
-                <div className="pn-cfg-head"><h2 id="cfg-mp">Mercado Pago</h2><span className="pn-chip">Próximamente</span></div>
-                <p className="pn-muted">Conectá tu cuenta de Mercado Pago para recibir los aportes ahí. Todavía no está disponible.</p>
-                <div className="pn-cfg-actions" hidden>
-                  <button type="button" className="pn-btn" onClick={() => setCfg('mp')}>Configurar</button>
-                </div>
-              </section>
             </div>
           </div>
         )}
@@ -839,18 +832,6 @@ function GiftsModule() {
         </Dialog>
         );
       })()}
-
-      {cfg === 'mp' && (
-        <Dialog open onOpenChange={o => { if (!o) setCfg(null); }}>
-          <DialogContent className="pn-dialog">
-            <DialogTitle>Mercado Pago</DialogTitle>
-            <DialogDescription>Todavía no podemos conectar tu cuenta de Mercado Pago. Cuando esté disponible, la vas a configurar desde acá.</DialogDescription>
-            <label className="pn-check"><input type="checkbox" checked={s.gifts.acceptCard} onChange={e => update(x => ({ ...x, gifts: { ...x.gifts, acceptCard: e.target.checked } }))} /><span>Mostrar también la opción de pagar con tarjeta</span></label>
-            <p className="pn-hint">Es solo tu preferencia: el cobro con tarjeta se habilita cuando conectemos un servicio de pagos.</p>
-            <div className="pn-actions is-end"><button type="button" className="pn-btn" onClick={() => setCfg(null)}>Listo</button></div>
-          </DialogContent>
-        </Dialog>
-      )}
 
       {creating && (
         <Dialog open onOpenChange={o => { if (!o) setCreating(false); }}>
