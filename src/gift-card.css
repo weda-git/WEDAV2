@@ -87,3 +87,12 @@
 .dm-root .rg-card.gc .gc-name { margin: calc(var(--gc-f) * 1.05) calc(var(--gc-f) * .4) 0 !important; font-size: calc(var(--gc-f) * 1.08) !important; line-height: 1.3 !important; color: #1f1f1d; }
 .dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: calc(var(--gc-f) * 3) !important; min-height: calc(var(--gc-f) * 3) !important; margin-top: calc(var(--gc-f) * 1.05) !important; font-size: calc(var(--gc-f) * 1.08) !important; border: 1px solid #e4e4e4 !important; background: #fff !important; color: #1f1f1d; }
 @media (max-width: 640px) { .dm-root .rg-card.gc { --gc-f: 12px; } }
+/* Menos margen alrededor de la foto (2026-11-28, pedido de la dueña): la foto llega casi al borde, como en la referencia. */
+.dm-root .rg-card.gc { padding: 8px 8px 10px; border-radius: 16px; box-shadow: 0 0 0 1px #efefef, 0 1px 6px rgb(0 0 0 / .04); }
+.dm-root .rg-card.gc .gc-photo { border-radius: 11px; }
+.dm-root .rg-card.gc .gc-name { margin-inline: 4px !important; }
+@media (max-width: 640px) {
+  .dm-root .rg-card.gc { padding: 5px 5px 7px; border-radius: 13px; }
+  .dm-root .rg-card.gc .gc-photo { border-radius: 9px; }
+  .dm-root .rg-card.gc .gc-name { margin-inline: 3px !important; }
+}
