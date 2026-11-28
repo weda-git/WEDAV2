@@ -96,3 +96,11 @@
   .dm-root .rg-card.gc .gc-photo { border-radius: 9px; }
   .dm-root .rg-card.gc .gc-name { margin-inline: 3px !important; }
 }
+/* Lineado más suave al tocar «Regalar» (2026-11-28, pedido de la dueña): sin el borde casi negro.
+   Al tocar o pasar el mouse, el botón toma un gris claro; el regalo ya elegido se marca con un contorno oliva claro y fino. */
+.dm-root .rg-card.gc .gc-action:hover:not(:disabled), .dm-root .rg-card.gc .gc-action:active:not(:disabled), .dm-root .rg-btn.gc-action:hover:not(:disabled) { border-color: #cfcdc6 !important; background: #fff !important; }
+@media (hover: hover) { .dm-root .rg-card.gc.is-pickable:hover .gc-action:not(:disabled) { border-color: #cfcdc6 !important; } }
+.dm-root .rg-card.gc .gc-action:focus-visible { outline: 2px solid #c9c7b8; outline-offset: 2px; }
+.dm-root .rg-card.gc.in-cart { box-shadow: 0 0 0 1.5px #c9c7ae, 0 1px 6px rgb(0 0 0 / .04); }
+.dm-root .rg-card.gc.in-cart .rg-photo { outline: 0; }
+.dm-root .rg-card.gc.in-cart .gc-action { border-color: #c9c7ae !important; }
