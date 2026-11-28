@@ -54,3 +54,8 @@
 /* GIFT-10 v2: con «Las dos», el globito lleva pesos arriba y dólares abajo (más chico). */
 .gc-photo .gc-price.is-two { display: grid; gap: 1px; border-radius: 14px; line-height: 1.15; }
 .gc-photo .gc-price.is-two > span + span { font-size: .85em; color: #6b6b6b; }
+/* Tarjeta de regalo más compacta (2026-11-28, referencia de la dueña): el nombre ocupa solo lo que necesita (uno o dos renglones) y «Regalar»
+   va justo debajo, sin el hueco del segundo renglón vacío. Si en una fila hay un nombre de dos renglones, el botón sigue al pie de la tarjeta. */
+.gc .gc-name, .dm-root .rg-card.gc .gc-name { min-height: 0 !important; margin-top: 12px !important; }
+.gc .gc-action, .dm-root .rg-card.gc .gc-action { margin-top: 12px !important; }
+@media (max-width: 1023px) { .rg-grid .gc .gc-name, .pn-catalog .gc .gc-name { min-height: 0 !important; } }
