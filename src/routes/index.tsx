@@ -15,11 +15,11 @@ import { useReveal } from '@/lib/reveal';
 /* Portada: tres fotos que se van alternando con un fundido (pedido de la dueña, 2026-11-27). La primera carga con prioridad; las otras, después.
    Con «reducir movimiento» queda fija la primera. `pos` es el encuadre en compu y `posM`, en el celular. */
 const HERO_PHOTOS = [
-  { src: '/hero-montanas.jpg', w: 1800, h: 1201, pos: '50% 100%', posM: '50% 50%' },
-  { src: '/hero-beso.jpg', w: 1197, h: 1800, pos: '50% 26%', posM: '58% 50%' },
-  { src: '/hero-manos.jpg', w: 1199, h: 1800, pos: '50% 40%', posM: '50% 45%' },
+  { src: '/hero-pareja-campo.jpg', w: 1180, h: 690, pos: '50% 20%', posM: '50% 50%' },
+  { src: '/hero-beso.webp', w: 1330, h: 2000, pos: '50% 24%', posM: '56% 50%', dim: .82 },
+  { src: '/hero-manos.webp', w: 1333, h: 2000, pos: '50% 40%', posM: '42% 50%', dim: .74 },
 ];
-const HERO_EVERY = 6000;
+const HERO_EVERY = 8000;
 function HeroSlides() {
   const [i, setI] = useState(0);
   useEffect(() => {
@@ -29,7 +29,7 @@ function HeroSlides() {
   }, []);
   return <>{HERO_PHOTOS.map((p, n) => (
     <img key={p.src} className={`hero-image hero-photo hero-slide${n === i ? ' is-on' : ''}`} src={p.src} alt="" width={p.w} height={p.h}
-      style={{ ['--pos' as string]: p.pos, ['--pos-m' as string]: p.posM } as React.CSSProperties}
+      style={{ ['--pos' as string]: p.pos, ['--pos-m' as string]: p.posM, ['--dim' as string]: ('dim' in p ? p.dim : .86) } as React.CSSProperties}
       {...(n === 0 ? { fetchPriority: 'high' as const } : { loading: 'lazy' as const })} decoding="async" aria-hidden="true" />
   ))}</>;
 }
