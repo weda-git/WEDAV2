@@ -66,9 +66,10 @@ function GiftCard({ gift, inCart, onPick }: { gift: Gift; inCart: boolean; onPic
   const { money, price } = useMoney();
   const Icon = icons[gift.icon];
   return (
-    <article className={`rg-card gc${inCart ? ' in-cart' : ''}`}>
-      {/* Tocar la foto también regala (pedido de la dueña, 2026-11-20). Con teclado se usa el botón «Regalar», que hace lo mismo. */}
-      <div className={`rg-photo gc-photo is-pickable${gift.fit ? ' is-contain' : ''}${gift.fit === 'white' ? ' is-white' : ''}`} style={gift.fit && gift.image ? ({ '--bg': `url(${gift.image})` } as React.CSSProperties) : undefined} onClick={() => onPick(gift)}>
+    // Tocar cualquier parte de la tarjeta (foto, nombre, bordes o el botón) regala (pedido de la dueña, 2026-11-28).
+    // Con teclado y lector de pantalla se usa el botón «Regalar», que hace lo mismo; la tarjeta no suma otro elemento enfocable.
+    <article className={`rg-card gc is-pickable${inCart ? ' in-cart' : ''}`} onClick={e => { if (!(e.target as HTMLElement).closest('button')) onPick(gift); }}>
+      <div className={`rg-photo gc-photo is-pickable${gift.fit ? ' is-contain' : ''}${gift.fit === 'white' ? ' is-white' : ''}`} style={gift.fit && gift.image ? ({ '--bg': `url(${gift.image})` } as React.CSSProperties) : undefined}>
         {gift.image
           ? <img src={gift.image} alt="" loading="lazy" style={gift.pos || gift.zoom ? { objectPosition: gift.pos, ...(gift.zoom ? { transform: `scale(${gift.zoom.scale})`, transformOrigin: gift.zoom.origin } : {}) } : undefined} />
           : <span className="rg-icon" aria-hidden="true"><Icon size={34} strokeWidth={1.2} /></span>}

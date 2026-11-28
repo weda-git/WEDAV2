@@ -54,3 +54,45 @@
 /* GIFT-10 v2: con «Las dos», el globito lleva pesos arriba y dólares abajo (más chico). */
 .gc-photo .gc-price.is-two { display: grid; gap: 1px; border-radius: 14px; line-height: 1.15; }
 .gc-photo .gc-price.is-two > span + span { font-size: .85em; color: #6b6b6b; }
+/* Tarjeta de regalo más compacta (2026-11-28, referencia de la dueña): el nombre ocupa solo lo que necesita (uno o dos renglones) y «Regalar»
+   va justo debajo, sin el hueco del segundo renglón vacío. Si en una fila hay un nombre de dos renglones, el botón sigue al pie de la tarjeta. */
+.gc .gc-name, .dm-root .rg-card.gc .gc-name { min-height: 0 !important; margin-top: 12px !important; }
+.gc .gc-action, .dm-root .rg-card.gc .gc-action { margin-top: 12px !important; }
+@media (max-width: 1023px) { .rg-grid .gc .gc-name, .pn-catalog .gc .gc-name { min-height: 0 !important; } }
+/* «Regalar» en blanco, igual que la tarjeta (2026-11-28, pedido de la dueña): sin el crema que lo hacía ver anaranjado. */
+.gc .gc-action, .dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { background: #fff !important; }
+.gc .gc-action:hover:not(:disabled), .dm-root .rg-card.gc .gc-action:hover:not(:disabled) { background: #fff !important; }
+/* «Regalar» más fino (2026-11-28, referencia de la dueña) y toda la tarjeta tocable. */
+.dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: 36px !important; min-height: 36px !important; font-size: 14px !important; }
+.dm-root .rg-card.gc.is-pickable { cursor: pointer; }
+@media (hover: hover) { .dm-root .rg-card.gc.is-pickable:hover .gc-action:not(:disabled) { border-color: var(--iv-ink, #3b3c3a) !important; } }
+@media (max-width: 640px) { .dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: 34px !important; min-height: 34px !important; font-size: 13.5px !important; } }
+/* Proporciones (2026-11-28, pedido de la dueña): nombre, precio y «Regalar» con la misma letra (14 px en celular, 15 px en compu) y el mismo
+   peso; el precio y el botón con la misma altura de pastilla (32 / 34 px), para que conversen entre sí. */
+.dm-root .rg-card.gc .gc-name { font-size: 15px !important; line-height: 1.3 !important; }
+.dm-root .rg-card.gc .gc-photo .gc-price { display: inline-flex; align-items: center; height: 34px; padding: 0 14px; font-size: 15px !important; font-weight: 400 !important; line-height: 1; }
+.dm-root .rg-card.gc .gc-photo .gc-price.is-two { height: auto; padding: 6px 14px; }
+.dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: 34px !important; min-height: 34px !important; font-size: 15px !important; font-weight: 400 !important; }
+@media (max-width: 640px) {
+  .dm-root .rg-card.gc .gc-name { font-size: 14px !important; }
+  .dm-root .rg-card.gc .gc-photo .gc-price { height: 30px; padding: 0 12px; font-size: 14px !important; }
+  .dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: 32px !important; min-height: 32px !important; font-size: 14px !important; }
+}
+/* Tarjeta «tal cual» la referencia de la dueña (2026-11-28). Todo sale de una misma medida de letra (--gc-f):
+   margen interior ≈ 0,9×, precio = 2× de alto, botón = 3× de alto, nombre a la misma letra con aire parejo arriba y abajo.
+   Bordes muy suaves y una sombra apenas visible. */
+.dm-root .rg-card.gc { --gc-f: 15px; padding: calc(var(--gc-f) * .9); padding-bottom: calc(var(--gc-f) * .9); border-radius: calc(var(--gc-f) * 1.2); box-shadow: 0 0 0 1px #ececec, 0 2px 10px rgb(0 0 0 / .05); }
+.dm-root .rg-card.gc .gc-photo { border-radius: calc(var(--gc-f) * .8); }
+.dm-root .rg-card.gc .gc-photo .gc-price { left: calc(var(--gc-f) * .9); bottom: calc(var(--gc-f) * .9); height: calc(var(--gc-f) * 2); padding: 0 calc(var(--gc-f) * 1.1); font-size: var(--gc-f) !important; box-shadow: none; background: rgb(255 255 255 / .96); }
+.dm-root .rg-card.gc .gc-name { margin: calc(var(--gc-f) * 1.05) calc(var(--gc-f) * .4) 0 !important; font-size: calc(var(--gc-f) * 1.08) !important; line-height: 1.3 !important; color: #1f1f1d; }
+.dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: calc(var(--gc-f) * 3) !important; min-height: calc(var(--gc-f) * 3) !important; margin-top: calc(var(--gc-f) * 1.05) !important; font-size: calc(var(--gc-f) * 1.08) !important; border: 1px solid #e4e4e4 !important; background: #fff !important; color: #1f1f1d; }
+@media (max-width: 640px) { .dm-root .rg-card.gc { --gc-f: 12px; } }
+/* Menos margen alrededor de la foto (2026-11-28, pedido de la dueña): la foto llega casi al borde, como en la referencia. */
+.dm-root .rg-card.gc { padding: 8px 8px 10px; border-radius: 16px; box-shadow: 0 0 0 1px #efefef, 0 1px 6px rgb(0 0 0 / .04); }
+.dm-root .rg-card.gc .gc-photo { border-radius: 11px; }
+.dm-root .rg-card.gc .gc-name { margin-inline: 4px !important; }
+@media (max-width: 640px) {
+  .dm-root .rg-card.gc { padding: 5px 5px 7px; border-radius: 13px; }
+  .dm-root .rg-card.gc .gc-photo { border-radius: 9px; }
+  .dm-root .rg-card.gc .gc-name { margin-inline: 3px !important; }
+}

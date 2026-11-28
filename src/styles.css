@@ -688,7 +688,7 @@ a:not([href]) { cursor: default; }
 .fd-gm-photo img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .fd-gm-price { position: absolute; left: 1.6cqw; bottom: 1.6cqw; padding: .8cqw 2cqw; border-radius: 99cqw; background: rgb(255 255 255 / .95); color: var(--foreground); font-size: 2.8cqw; line-height: 1.2; }
 .fd-gm-card b { margin: 2cqw 1.8cqw 0; font-weight: 400; line-height: 1.18; color: var(--foreground); }
-.fd-gm-btn { display: grid; place-items: center; height: 6.8cqw; margin: 1.8cqw .8cqw .8cqw; border: 1px solid rgb(59 60 58 / .2); border-radius: 99cqw; background: #fbfaf7; color: var(--foreground); font-size: 3cqw; }
+.fd-gm-btn { display: grid; place-items: center; height: 6.8cqw; margin: 1.8cqw .8cqw .8cqw; border: 1px solid rgb(59 60 58 / .2); border-radius: 99cqw; background: #fff; color: var(--foreground); font-size: 3cqw; }
 @keyframes fdgm-up { from { transform: translateY(0); } to { transform: translateY(calc(-50% - 1.5cqw)); } }
 @keyframes fdgm-down { from { transform: translateY(calc(-50% - 1.5cqw)); } to { transform: translateY(0); } }
 @media (prefers-reduced-motion: no-preference) {
