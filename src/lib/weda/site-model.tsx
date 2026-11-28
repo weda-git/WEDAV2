@@ -114,7 +114,11 @@ export const demoSiteData: SiteData = {
   note: { title: '', text: '' },
   rsvp: { deadline: demoDeadline, menus: demoMenus },
   dressCode: demoDress,
-  gallery: { photos: [demoGallery[0], demoGallery[2], demoGallery[3]].filter((g): g is (typeof demoGallery)[number] => !!g), hashtag: demoSocial.hashtag, handle: demoSocial.handle },
+  // Fotos de la misma pareja de la portada, sin repetir la del beso (2026-11-28, pedido de la dueña).
+  gallery: { photos: [
+    { src: '/hero-manos.webp', alt: 'Vera y Santiago de la mano, caminando sobre pétalos', pos: 'center 40%' },
+    { src: '/encontrar-pareja-montanas.webp', alt: 'Vera y Santiago caminando de la mano por el campo, con las montañas de fondo', pos: 'center 80%' },
+  ], hashtag: demoSocial.hashtag, handle: demoSocial.handle },
   playlist: demoPlaylist,
   message: { title: 'Que vengas ya es un regalo.', text: '' },
   gifts: demoGifts,
