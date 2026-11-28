@@ -129,3 +129,9 @@
 /* El regalo ya elegido: contorno suave (pedido anterior de la dueña) y el botón «En tu regalo» con el mismo borde. */
 .dm-root .rg-card.gc.in-cart { box-shadow: 0 0 0 1.5px #c9c7ae !important; }
 .dm-root .rg-card.gc.in-cart .gc-action { border-color: #c9c7ae !important; }
+/* Un poco menos de aire en todo (2026-11-28, pedido de la dueña): la foto más cerca del borde de la tarjeta, y el nombre y «Regalar» más juntos. */
+.dm-root .rg-card.gc { padding: 8px !important; border-radius: 14px !important; }
+.dm-root .rg-card.gc .gc-photo { border-radius: 10px !important; }
+.dm-root .rg-card.gc .gc-photo .gc-price { left: 10px !important; bottom: 10px !important; }
+.dm-root .rg-card.gc .gc-name { margin: 10px 4px 0 !important; }
+.dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { margin-top: 10px !important; padding: 8px 0 !important; }
