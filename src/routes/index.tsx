@@ -14,10 +14,11 @@ import { useReveal } from '@/lib/reveal';
 
 /* Portada: tres fotos que se van alternando con un fundido (pedido de la dueña, 2026-11-27). La primera carga con prioridad; las otras, después.
    Con «reducir movimiento» queda fija la primera. `pos` es el encuadre en compu y `posM`, en el celular. */
+// Orden fijo (pedido de la dueña, 2026-11-28): siempre arranca con el beso en la frente, después las manos y por último la pareja caminando.
 const HERO_PHOTOS = [
-  { src: '/hero-pareja-campo.jpg', w: 1180, h: 690, pos: '50% 20%', posM: '50% 50%' },
   { src: '/hero-beso.webp', w: 1330, h: 2000, pos: '50% 24%', posM: '56% 50%', dim: .82 },
   { src: '/hero-manos.webp', w: 1333, h: 2000, pos: '50% 40%', posM: '42% 50%', dim: .74 },
+  { src: '/hero-pareja-campo.jpg', w: 1180, h: 690, pos: '50% 20%', posM: '50% 50%' },
 ];
 const HERO_EVERY = 8000;
 function HeroSlides() {
