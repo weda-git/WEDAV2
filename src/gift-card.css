@@ -62,3 +62,8 @@
 /* «Regalar» en blanco, igual que la tarjeta (2026-11-28, pedido de la dueña): sin el crema que lo hacía ver anaranjado. */
 .gc .gc-action, .dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { background: #fff !important; }
 .gc .gc-action:hover:not(:disabled), .dm-root .rg-card.gc .gc-action:hover:not(:disabled) { background: #fff !important; }
+/* «Regalar» más fino (2026-11-28, referencia de la dueña) y toda la tarjeta tocable. */
+.dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: 36px !important; min-height: 36px !important; font-size: 14px !important; }
+.dm-root .rg-card.gc.is-pickable { cursor: pointer; }
+@media (hover: hover) { .dm-root .rg-card.gc.is-pickable:hover .gc-action:not(:disabled) { border-color: var(--iv-ink, #3b3c3a) !important; } }
+@media (max-width: 640px) { .dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: 34px !important; min-height: 34px !important; font-size: 13.5px !important; } }
