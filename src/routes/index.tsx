@@ -20,7 +20,7 @@ const HERO_PHOTOS = [
   { src: '/hero-manos.webp', w: 1333, h: 2000, pos: '50% 40%', posM: '42% 50%', dim: .74 },
   { src: '/hero-pareja-campo.jpg', w: 1180, h: 690, pos: '50% 20%', posM: '50% 50%' },
 ];
-const HERO_EVERY = 8000;
+const HERO_EVERY = 9000;
 function HeroSlides() {
   const [i, setI] = useState(0);
   useEffect(() => {
