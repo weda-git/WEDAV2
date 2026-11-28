@@ -12,7 +12,7 @@ import { homeJsonLd, pageMeta } from '@/lib/site';
 import { useSmoothScroll } from '@/lib/smooth-scroll';
 import { useReveal } from '@/lib/reveal';
 
-const HERO_PHOTO = '/hero-casamiento-sauce.jpg';
+const HERO_PHOTO = '/hero-casamiento-auto.jpg';
 
 export const Route = createFileRoute('/')({
   head: () => {
@@ -124,8 +124,8 @@ function Index() {
     <FloatNav onLanding />
     <main id="main">
     <section className="seed-hero" id="top">
-      {/* Foto de la pareja bajo el sauce (pedido de la dueña, 2026-11-27). El encuadre sigue a la pareja (`.hero-photo`). */}
-      <img className="hero-image hero-photo" src={HERO_PHOTO} alt="" width={1004} height={672} fetchPriority="high" decoding="async" aria-hidden="true"/>
+      {/* Foto de la pareja en el auto, a la salida (pedido de la dueña, 2026-11-27). El encuadre sigue a la pareja (`.hero-photo`). */}
+      <img className="hero-image hero-photo" src={HERO_PHOTO} alt="" width={1800} height={1201} fetchPriority="high" decoding="async" aria-hidden="true"/>
       <div className="hero-inner"><div className="hero-copy"><h1>Tu casamiento empieza antes del gran día.</h1><p>Creá el sitio de tu casamiento, armá tu lista de regalos y organizá tus invitados.</p><div className="hero-actions"><SeedLink pill to="/crear/cuenta">Crear mi evento</SeedLink><Button variant="seedLink" asChild><Link to="/ejemplo"><span>Ver ejemplo</span><ArrowRight size={15}/></Link></Button></div></div></div>
     </section>
     <section className="products-section" id="products"><div className="section-inner">
