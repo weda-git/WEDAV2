@@ -104,3 +104,28 @@
 .dm-root .rg-card.gc.in-cart { box-shadow: 0 0 0 1.5px #c9c7ae, 0 1px 6px rgb(0 0 0 / .04); }
 .dm-root .rg-card.gc.in-cart .rg-photo { outline: 0; }
 .dm-root .rg-card.gc.in-cart .gc-action { border-color: #c9c7ae !important; }
+
+/* =========================================================================
+   Catálogo de regalos «tal cual» la especificación que trajo la dueña (2026-11-28), con la tipografía de Weda.
+   Grilla 4 / 2 / 1 columnas con 24 px; tarjeta blanca con borde #E4E4E7, 16 px de radio y 12 px de margen; foto cuadrada con 12 px de radio
+   y un zoom sutil al pasar el mouse; precio en pastilla sobre la foto; título a 15 px; «Regalar» de ancho completo, ~40 px de alto.
+   Esto pisa las reglas anteriores de la tarjeta pública (va al final del archivo).
+   ========================================================================= */
+.dm-root .rg-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 24px !important; }
+@media (max-width: 1023px) { .dm-root .rg-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (max-width: 639px) { .dm-root .rg-grid { grid-template-columns: minmax(0, 1fr) !important; } }
+
+.dm-root .rg-card.gc { justify-content: space-between; padding: 12px !important; border-radius: 16px !important; background: #fff; box-shadow: 0 0 0 1px #E4E4E7 !important; transition: box-shadow .2s ease; }
+@media (hover: hover) { .dm-root .rg-card.gc:hover { box-shadow: 0 0 0 1px #E4E4E7, 0 1px 2px rgb(0 0 0 / .06) !important; } }
+.dm-root .rg-card.gc .gc-photo { aspect-ratio: 1 / 1; border-radius: 12px !important; background: #F4F4F5; }
+.dm-root .rg-card.gc .gc-photo img { object-position: center; transition: transform .3s ease; }
+@media (hover: hover) { .dm-root .rg-card.gc:hover .gc-photo img { transform: scale(1.03); } }
+.dm-root .rg-card.gc .gc-photo .gc-price { left: 12px !important; bottom: 12px !important; height: auto !important; padding: 4px 14px !important; border-radius: 999px; background: rgb(255 255 255 / .94) !important; color: #18181B !important; font-size: 14px !important; font-weight: 500 !important; line-height: 1.43 !important; font-variant-numeric: tabular-nums; box-shadow: 0 1px 2px rgb(0 0 0 / .05) !important; }
+.dm-root .rg-card.gc .gc-name { margin: 14px 4px 0 !important; font-size: 15px !important; font-weight: 500 !important; line-height: 1.375 !important; color: #18181B !important; }
+.dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: auto !important; min-height: 0 !important; margin-top: 16px !important; padding: 10px 0 !important; border-radius: 999px !important; border: 1px solid #E4E4E7 !important; background: #fff !important; color: #18181B !important; font-size: 14px !important; font-weight: 500 !important; line-height: 1.43 !important; transition: background-color .15s, color .15s, border-color .15s; }
+@media (hover: hover) {
+  .dm-root .rg-card.gc .gc-action:hover:not(:disabled), .dm-root .rg-card.gc.is-pickable:hover .gc-action:not(:disabled) { background: #18181B !important; border-color: #18181B !important; color: #fff !important; }
+}
+/* El regalo ya elegido: contorno suave (pedido anterior de la dueña) y el botón «En tu regalo» con el mismo borde. */
+.dm-root .rg-card.gc.in-cart { box-shadow: 0 0 0 1.5px #c9c7ae !important; }
+.dm-root .rg-card.gc.in-cart .gc-action { border-color: #c9c7ae !important; }
