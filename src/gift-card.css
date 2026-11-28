@@ -59,3 +59,6 @@
 .gc .gc-name, .dm-root .rg-card.gc .gc-name { min-height: 0 !important; margin-top: 12px !important; }
 .gc .gc-action, .dm-root .rg-card.gc .gc-action { margin-top: 12px !important; }
 @media (max-width: 1023px) { .rg-grid .gc .gc-name, .pn-catalog .gc .gc-name { min-height: 0 !important; } }
+/* «Regalar» en blanco, igual que la tarjeta (2026-11-28, pedido de la dueña): sin el crema que lo hacía ver anaranjado. */
+.gc .gc-action, .dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { background: #fff !important; }
+.gc .gc-action:hover:not(:disabled), .dm-root .rg-card.gc .gc-action:hover:not(:disabled) { background: #fff !important; }
