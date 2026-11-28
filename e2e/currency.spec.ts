@@ -97,7 +97,7 @@ test('pesos y dólares: elegir al empezar, los dos precios, una cuenta por moned
   await shot(guest, '7-regalar');
 });
 
-test('el ejemplo (Vera y Santiago) está en pesos y dólares: pregunta al entrar y deja la moneda como desplegable', async ({ page }) => {
+test('el ejemplo (Agustina y Tomás) está en pesos y dólares: pregunta al entrar y deja la moneda como desplegable', async ({ page }) => {
   await page.goto('/ejemplo/regalos', { waitUntil: 'networkidle' });
   const ask = page.getByRole('dialog', { name: 'Elegí la moneda' });
   await expect(ask).toBeVisible();

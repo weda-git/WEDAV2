@@ -58,7 +58,7 @@ export function SiteDemo() {
           <div className="fd-page">
             <div className="fd-hero">
               <small>¡Nos casamos!</small>
-              <b>Vera y Santiago</b>
+              <b>Agustina y Tomás</b>
               <i>20 . 03 . 27</i>
             </div>
             <div className="fd-std">

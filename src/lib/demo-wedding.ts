@@ -2,12 +2,12 @@
 // nombres, lugares, direcciones e importes están inventados para mostrar la experiencia.
 
 export const wedding = {
-  couple: 'Vera & Santiago',
+  couple: 'Agustina & Tomás',
   initials: 'V & S',
   dateLabel: 'Sábado 20 de marzo de 2027',
   dateShort: '20 de marzo de 2027',
   city: 'Cañuelas, Buenos Aires',
-  photo: '/portada-ejemplo-vera-santiago.jpg?v=2', // foto de la pareja de ejemplo (2026-11-20), en blanco y negro y con el cartel del fondo difuminado
+  photo: '/hero-beso.webp', // foto de la pareja de ejemplo (2026-11-28, elegida por la dueña): el beso en la frente bajo el árbol
 };
 
 export type EventKey = 'ceremonia' | 'recepcion' | 'fiesta' | 'civil' | 'brunch';
@@ -44,7 +44,7 @@ export const rsvpDeadline = '20 de enero';
 
 /** Enlaces de Google Maps derivados de una dirección real del evento (no se inventan lugares). */
 export const calendar = {
-  title: 'Casamiento de Vera & Santiago',
+  title: 'Casamiento de Agustina & Tomás',
   start: '20270320T200000Z',
   end: '20270321T070000Z',
   location: `Parroquia Nuestra Señora del Carmen, ${church}`,
@@ -61,7 +61,7 @@ export const dressCode = {
   ],
 };
 
-export const social = { hashtag: '#VeraYSantiago2027', handle: '@veraysantiago.casamiento' };
+export const social = { hashtag: '#AgustinaYTomas2027', handle: '@agustinaytomas.casamiento' };
 
 export const greetings = [
   { who: 'Abuela Nené', text: 'Los quiero ver bailando el vals. Que sean muy felices.' },
@@ -70,15 +70,15 @@ export const greetings = [
 
 /** Fotos del micrositio (mosaico). */
 export const gallery = [
-  { src: '/ejemplo-foto-1.webp', alt: 'Vera y Santiago caminando abrazados por un campo', pos: 'center 40%' },
-  { src: '/ejemplo-foto-2.webp', alt: 'Vera y Santiago sentados frente al mar', pos: 'center 45%' },
-  { src: '/ejemplo-foto-3.webp', alt: 'Santiago besa a Vera en un jardín', pos: 'center 40%' },
-  { src: '/ejemplo-foto-4.webp', alt: 'Vera y Santiago abrazados, ella muestra su anillo', pos: 'center 35%' },
-  { src: '/pareja-portada.jpg?v=3', alt: 'Vera y Santiago abrazados frente al mar', pos: 'center 30%' },
+  { src: '/ejemplo-foto-1.webp', alt: 'Agustina y Tomás caminando abrazados por un campo', pos: 'center 40%' },
+  { src: '/ejemplo-foto-2.webp', alt: 'Agustina y Tomás sentados frente al mar', pos: 'center 45%' },
+  { src: '/ejemplo-foto-3.webp', alt: 'Tomás besa a Agustina en un jardín', pos: 'center 40%' },
+  { src: '/ejemplo-foto-4.webp', alt: 'Agustina y Tomás abrazados, ella muestra su anillo', pos: 'center 35%' },
+  { src: '/pareja-portada.jpg?v=3', alt: 'Agustina y Tomás abrazados frente al mar', pos: 'center 30%' },
 ];
 
 export const playlist = {
-  name: 'Nuestra fiesta · Vera & Santiago',
+  name: 'Nuestra fiesta · Agustina & Tomás',
   tracks: [
     { title: 'La Bachata', artist: 'Manuel Turizo' },
     { title: 'Chandelier', artist: 'Sia' },
@@ -98,7 +98,7 @@ export const menus = [
   { id: 'kids', name: 'Menú kids' },
 ] as const;
 
-export const alias = 'vera.santiago';
+export const alias = 'agustina.tomas';
 
 export type Category = 'Luna de miel' | 'Hogar' | 'Experiencias' | 'Proyectos futuros' | 'Gift cards';
 export const categories: Category[] = ['Luna de miel', 'Hogar', 'Experiencias', 'Proyectos futuros', 'Gift cards'];
