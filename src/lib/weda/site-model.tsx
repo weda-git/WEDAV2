@@ -98,8 +98,8 @@ export const demoSiteData: SiteData = {
   exit: { href: '/', label: 'Volver a Weda' },
   names: demoWedding.couple,
   coverPhoto: demoWedding.photo,
-  coverPosition: '50% 24%', // la foto es vertical: en pantallas anchas el recorte sube para que se vean las caras
-  photoAlt: 'Vera y Santiago sonriendo juntos en una selfie, en blanco y negro',
+  coverPosition: '50% 26%', // la foto es vertical: en pantallas anchas el recorte sube para que se vean las caras
+  photoAlt: 'Vera y Santiago bajo un árbol: él le da un beso en la frente',
   coverText: '¡Nos casamos!',
   eventDate: demoEventDate,
   eventOffset: demoOffset,

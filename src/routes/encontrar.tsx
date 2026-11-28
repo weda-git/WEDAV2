@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowRight, Search, X } from 'lucide-react';
 import { FloatNav } from '@/components/float-nav';
-import { wedding } from '@/lib/demo-wedding';
 import { pageMeta } from '@/lib/site';
 import { invitationPath } from '@/lib/weda/logic';
 import { api, ApiFailure, errorText } from '@/lib/weda/remote';
@@ -41,7 +40,7 @@ function Find() {
     <div className="find">
       <a className="skip-link" href="#buscar">Ir al formulario</a>
       <section className="find-hero" aria-labelledby="find-title">
-        <img className="find-hero-img" src={wedding.photo} alt="" />
+        <img className="find-hero-img" src="/encontrar-pareja-montanas.webp" alt="" />
         <FloatNav back />
         <div className="find-hero-copy">
           <h1 id="find-title">Encontrá un casamiento</h1>
