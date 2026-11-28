@@ -2617,3 +2617,5 @@ body:has(.pn-app) { background: #f6f6f3; }
 .pn-app .rg-pack .rg-pack-actions { display: flex !important; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: space-between; grid-template-columns: none; }
 .pn-app .rg-pack .rg-pack-actions > .pn-btn { width: auto; }
 .pn-app .rg-pack .rg-pack-actions > .pn-btn.is-ghost:first-child { flex: 0 0 auto; justify-content: flex-start; }
+/* Cobro con una sola cuenta (sin Mercado Pago, decisión de la dueña 2026-11-27): la tarjeta a un ancho cómodo, no estirada. */
+.pn-app .pn-cfg-two { grid-template-columns: minmax(0, 560px); }
