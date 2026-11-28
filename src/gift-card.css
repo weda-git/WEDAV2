@@ -67,3 +67,14 @@
 .dm-root .rg-card.gc.is-pickable { cursor: pointer; }
 @media (hover: hover) { .dm-root .rg-card.gc.is-pickable:hover .gc-action:not(:disabled) { border-color: var(--iv-ink, #3b3c3a) !important; } }
 @media (max-width: 640px) { .dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: 34px !important; min-height: 34px !important; font-size: 13.5px !important; } }
+/* Proporciones (2026-11-28, pedido de la dueña): nombre, precio y «Regalar» con la misma letra (14 px en celular, 15 px en compu) y el mismo
+   peso; el precio y el botón con la misma altura de pastilla (32 / 34 px), para que conversen entre sí. */
+.dm-root .rg-card.gc .gc-name { font-size: 15px !important; line-height: 1.3 !important; }
+.dm-root .rg-card.gc .gc-photo .gc-price { display: inline-flex; align-items: center; height: 34px; padding: 0 14px; font-size: 15px !important; font-weight: 400 !important; line-height: 1; }
+.dm-root .rg-card.gc .gc-photo .gc-price.is-two { height: auto; padding: 6px 14px; }
+.dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: 34px !important; min-height: 34px !important; font-size: 15px !important; font-weight: 400 !important; }
+@media (max-width: 640px) {
+  .dm-root .rg-card.gc .gc-name { font-size: 14px !important; }
+  .dm-root .rg-card.gc .gc-photo .gc-price { height: 30px; padding: 0 12px; font-size: 14px !important; }
+  .dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: 32px !important; min-height: 32px !important; font-size: 14px !important; }
+}
