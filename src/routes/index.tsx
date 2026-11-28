@@ -15,9 +15,9 @@ import { useReveal } from '@/lib/reveal';
 /* Portada: tres fotos que se van alternando con un fundido (pedido de la dueña, 2026-11-27). La primera carga con prioridad; las otras, después.
    Con «reducir movimiento» queda fija la primera. `pos` es el encuadre en compu y `posM`, en el celular. */
 const HERO_PHOTOS = [
-  { src: '/hero-abrazo.jpg', w: 1800, h: 1200, pos: '50% 35%', posM: '38% 40%' },
-  { src: '/hero-petalos.jpg', w: 1200, h: 1800, pos: '50% 72%', posM: '46% 70%' },
-  { src: '/hero-manos.jpg', w: 1200, h: 1800, pos: '50% 40%', posM: '50% 45%' },
+  { src: '/hero-montanas.jpg', w: 1800, h: 1201, pos: '50% 100%', posM: '50% 50%' },
+  { src: '/hero-beso.jpg', w: 1197, h: 1800, pos: '50% 26%', posM: '58% 50%' },
+  { src: '/hero-manos.jpg', w: 1199, h: 1800, pos: '50% 40%', posM: '50% 45%' },
 ];
 const HERO_EVERY = 6000;
 function HeroSlides() {
