@@ -12,7 +12,27 @@ import { homeJsonLd, pageMeta } from '@/lib/site';
 import { useSmoothScroll } from '@/lib/smooth-scroll';
 import { useReveal } from '@/lib/reveal';
 
-const HERO_PHOTO = '/hero-casamiento-auto.jpg';
+/* Portada: tres fotos que se van alternando con un fundido (pedido de la dueña, 2026-11-27). La primera carga con prioridad; las otras, después.
+   Con «reducir movimiento» queda fija la primera. `pos` es el encuadre en compu y `posM`, en el celular. */
+const HERO_PHOTOS = [
+  { src: '/hero-abrazo.jpg', w: 1800, h: 1200, pos: '50% 35%', posM: '38% 40%' },
+  { src: '/hero-petalos.jpg', w: 1200, h: 1800, pos: '50% 72%', posM: '46% 70%' },
+  { src: '/hero-manos.jpg', w: 1200, h: 1800, pos: '50% 40%', posM: '50% 45%' },
+];
+const HERO_EVERY = 6000;
+function HeroSlides() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const id = window.setInterval(() => setI(n => (n + 1) % HERO_PHOTOS.length), HERO_EVERY);
+    return () => window.clearInterval(id);
+  }, []);
+  return <>{HERO_PHOTOS.map((p, n) => (
+    <img key={p.src} className={`hero-image hero-photo hero-slide${n === i ? ' is-on' : ''}`} src={p.src} alt="" width={p.w} height={p.h}
+      style={{ ['--pos' as string]: p.pos, ['--pos-m' as string]: p.posM } as React.CSSProperties}
+      {...(n === 0 ? { fetchPriority: 'high' as const } : { loading: 'lazy' as const })} decoding="async" aria-hidden="true" />
+  ))}</>;
+}
 
 export const Route = createFileRoute('/')({
   head: () => {
@@ -124,8 +144,7 @@ function Index() {
     <FloatNav onLanding />
     <main id="main">
     <section className="seed-hero" id="top">
-      {/* Foto de la pareja en el auto, a la salida (pedido de la dueña, 2026-11-27). El encuadre sigue a la pareja (`.hero-photo`). */}
-      <img className="hero-image hero-photo" src={HERO_PHOTO} alt="" width={1800} height={1201} fetchPriority="high" decoding="async" aria-hidden="true"/>
+      <HeroSlides />
       <div className="hero-inner"><div className="hero-copy"><h1>Tu casamiento empieza antes del gran día.</h1><p>Creá el sitio de tu casamiento, armá tu lista de regalos y organizá tus invitados.</p><div className="hero-actions"><SeedLink pill to="/crear/cuenta">Crear mi evento</SeedLink><Button variant="seedLink" asChild><Link to="/ejemplo"><span>Ver ejemplo</span><ArrowRight size={15}/></Link></Button></div></div></div>
     </section>
     <section className="products-section" id="products"><div className="section-inner">

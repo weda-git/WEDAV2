@@ -1664,3 +1664,8 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
   .footer-cols { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .seed-footer .footer-cols .footer-nav { align-items: flex-start; }
 }
+/* Portada con 3 fotos que se alternan (2026-11-27): todas apiladas; la que está «on» se ve, las otras se funden. */
+.seed-hero .hero-slide { object-position: var(--pos, center); opacity: 0; transition: opacity 1.6s ease; }
+.seed-hero .hero-slide.is-on { opacity: 1; }
+@media (max-width: 640px) { .seed-hero .hero-slide { object-position: var(--pos-m, var(--pos, center)); } }
+@media (prefers-reduced-motion: reduce) { .seed-hero .hero-slide { transition: none; } }
