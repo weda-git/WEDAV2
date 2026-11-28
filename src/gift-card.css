@@ -78,3 +78,12 @@
   .dm-root .rg-card.gc .gc-photo .gc-price { height: 30px; padding: 0 12px; font-size: 14px !important; }
   .dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: 32px !important; min-height: 32px !important; font-size: 14px !important; }
 }
+/* Tarjeta «tal cual» la referencia de la dueña (2026-11-28). Todo sale de una misma medida de letra (--gc-f):
+   margen interior ≈ 0,9×, precio = 2× de alto, botón = 3× de alto, nombre a la misma letra con aire parejo arriba y abajo.
+   Bordes muy suaves y una sombra apenas visible. */
+.dm-root .rg-card.gc { --gc-f: 15px; padding: calc(var(--gc-f) * .9); padding-bottom: calc(var(--gc-f) * .9); border-radius: calc(var(--gc-f) * 1.2); box-shadow: 0 0 0 1px #ececec, 0 2px 10px rgb(0 0 0 / .05); }
+.dm-root .rg-card.gc .gc-photo { border-radius: calc(var(--gc-f) * .8); }
+.dm-root .rg-card.gc .gc-photo .gc-price { left: calc(var(--gc-f) * .9); bottom: calc(var(--gc-f) * .9); height: calc(var(--gc-f) * 2); padding: 0 calc(var(--gc-f) * 1.1); font-size: var(--gc-f) !important; box-shadow: none; background: rgb(255 255 255 / .96); }
+.dm-root .rg-card.gc .gc-name { margin: calc(var(--gc-f) * 1.05) calc(var(--gc-f) * .4) 0 !important; font-size: calc(var(--gc-f) * 1.08) !important; line-height: 1.3 !important; color: #1f1f1d; }
+.dm-root .rg-card.gc .gc-action, .dm-root .rg-btn.gc-action { height: calc(var(--gc-f) * 3) !important; min-height: calc(var(--gc-f) * 3) !important; margin-top: calc(var(--gc-f) * 1.05) !important; font-size: calc(var(--gc-f) * 1.08) !important; border: 1px solid #e4e4e4 !important; background: #fff !important; color: #1f1f1d; }
+@media (max-width: 640px) { .dm-root .rg-card.gc { --gc-f: 12px; } }
