@@ -1669,3 +1669,12 @@ main:has(.closing-section) + .seed-footer { margin-top: 0; }
 .seed-hero .hero-slide.is-on { opacity: 1; }
 @media (max-width: 640px) { .seed-hero .hero-slide { object-position: var(--pos-m, var(--pos, center)); } }
 @media (prefers-reduced-motion: reduce) { .seed-hero .hero-slide { transition: none; } }
+/* Portada con fotos que rotan (2026-11-28, pedido de la dueña): la foto acompaña y el mensaje manda. Un velo parejo y un poco más fuerte en el
+   centro, donde van el título y los botones, para que se lean igual con cualquiera de las tres fotos; la foto, apenas más apagada. */
+.seed-hero .hero-slide { filter: brightness(var(--dim, .86)) saturate(.92); }
+.seed-hero::after {
+  background:
+    radial-gradient(ellipse 62% 46% at 50% 54%, rgb(0 0 0 / .42), rgb(0 0 0 / 0) 100%),
+    linear-gradient(180deg, rgb(0 0 0 / .28), rgb(0 0 0 / .12) 40%, rgb(0 0 0 / .32));
+}
+.seed-hero .hero-copy h1, .seed-hero .hero-copy p { text-shadow: 0 1px 18px rgb(0 0 0 / .35); }
