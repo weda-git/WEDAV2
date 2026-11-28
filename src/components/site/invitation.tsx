@@ -44,7 +44,7 @@ function Welcome() {
   if (!site.eventDate) return null;
   const save = () => {
     if (!site.eventDate) return;
-    const file = site.kind === 'demo' ? 'casamiento-vera-y-santiago.ics' : `casamiento-${slugify(site.names.split('&')[0] ?? '', site.names.split('&')[1] ?? '')}.ics`;
+    const file = site.kind === 'demo' ? 'casamiento-agustina-y-tomas.ics' : `casamiento-${slugify(site.names.split('&')[0] ?? '', site.names.split('&')[1] ?? '')}.ics`;
     downloadIcs(buildIcs({ events: site.events, date: site.eventDate, offset: site.eventOffset, title: site.calendarTitle }), file);
   };
   return (

@@ -3,7 +3,7 @@
 export type Couple = { id: string; names: string; photo: string; to: '/ejemplo/regalos' };
 
 export const couples: Couple[] = [
-  { id: 'vera-santiago', names: 'Vera & Santiago', photo: '/parejas/ignacio-martina.jpg', to: '/ejemplo/regalos' },
+  { id: 'agustina-tomas', names: 'Agustina & Tomás', photo: '/parejas/ignacio-martina.jpg', to: '/ejemplo/regalos' },
   { id: 'camila-lucas', names: 'Camila & Lucas', photo: '/parejas/camila-lucas.jpg', to: '/ejemplo/regalos' },
   { id: 'valentina-mariano', names: 'Valentina & Mariano', photo: '/parejas/valentina-mariano.jpg', to: '/ejemplo/regalos' },
   { id: 'julieta-franco', names: 'Julieta & Franco', photo: '/parejas/julieta-franco.jpg', to: '/ejemplo/regalos' },

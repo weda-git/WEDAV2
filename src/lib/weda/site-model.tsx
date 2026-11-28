@@ -90,7 +90,7 @@ export type SiteActions = {
 
 const SLOT: Record<string, number> = { ceremonia: 1, recepcion: 2, fiesta: 3, civil: 4, brunch: 5 };
 
-/** Datos de la demo /ejemplo (Vera & Santiago): exactamente lo que ya se mostraba. */
+/** Datos de la demo /ejemplo (Agustina & Tomás): exactamente lo que ya se mostraba. */
 export const demoSiteData: SiteData = {
   kind: 'demo',
   homePath: '/ejemplo',
@@ -99,7 +99,7 @@ export const demoSiteData: SiteData = {
   names: demoWedding.couple,
   coverPhoto: demoWedding.photo,
   coverPosition: '50% 26%', // la foto es vertical: en pantallas anchas el recorte sube para que se vean las caras
-  photoAlt: 'Vera y Santiago bajo un árbol: él le da un beso en la frente',
+  photoAlt: 'Agustina y Tomás bajo un árbol: él le da un beso en la frente',
   coverText: '¡Nos casamos!',
   eventDate: demoEventDate,
   eventOffset: demoOffset,
@@ -116,15 +116,15 @@ export const demoSiteData: SiteData = {
   dressCode: demoDress,
   // Fotos de la misma pareja de la portada, sin repetir la del beso (2026-11-28, pedido de la dueña).
   gallery: { photos: [
-    { src: '/hero-manos.webp', alt: 'Vera y Santiago de la mano, caminando sobre pétalos', pos: 'center 40%' },
-    { src: '/encontrar-pareja-montanas.webp', alt: 'Vera y Santiago caminando de la mano por el campo, con las montañas de fondo', pos: 'center 80%' },
+    { src: '/hero-manos.webp', alt: 'Agustina y Tomás de la mano, caminando sobre pétalos', pos: 'center 40%' },
+    { src: '/encontrar-pareja-montanas.webp', alt: 'Agustina y Tomás caminando de la mano por el campo, con las montañas de fondo', pos: 'center 80%' },
   ], hashtag: demoSocial.hashtag, handle: demoSocial.handle },
   playlist: demoPlaylist,
   message: { title: 'Que vengas ya es un regalo.', text: '' },
   gifts: demoGifts,
   // El ejemplo muestra la lista en pesos y dólares (2026-11-24): así se ve la pregunta al entrar y el desplegable de moneda.
   currencies: ['ARS', 'USD'],
-  usd: { alias: `${demoAlias}.usd`, bank: 'Banco de ejemplo', cbu: '0000003100000000000002', holder: 'Vera y Santiago' },
+  usd: { alias: `${demoAlias}.usd`, bank: 'Banco de ejemplo', cbu: '0000003100000000000002', holder: 'Agustina y Tomás' },
   freeAmount: { enabled: false, min: MIN_AMOUNT }, // /ejemplo no cambia (D7)
   giftCategories: demoCategories,
   giftsCover: null,
@@ -132,7 +132,7 @@ export const demoSiteData: SiteData = {
   // El ejemplo muestra la cuenta completa (2026-11-24): datos ficticios, no son de nadie.
   bank: 'Banco de ejemplo',
   cbu: '0000003100000000000001',
-  holder: 'Vera y Santiago',
+  holder: 'Agustina y Tomás',
   acceptCard: true,
 };
 

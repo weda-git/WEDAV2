@@ -75,7 +75,7 @@ export function buildIcs({ events, date, offset, title, now = new Date() }: IcsI
 }
 
 /** Dispara la descarga del .ics en el navegador. */
-export function downloadIcs(ics: string, filename = 'casamiento-vera-y-santiago.ics') {
+export function downloadIcs(ics: string, filename = 'casamiento-agustina-y-tomas.ics') {
   const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
   const a = document.createElement('a');
   a.href = url;
